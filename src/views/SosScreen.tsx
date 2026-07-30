@@ -1,0 +1,445 @@
+/* ----------------------------------------------------
+   ALIVIA - PANTALLA DE AYUDA DE EMERGENCIA (SosScreen)
+   Directorio de líneas de crisis + Contacto seguro local
+   ---------------------------------------------------- */
+
+import React, { useState, useEffect } from 'react';
+import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check } from 'lucide-react';
+import { getEmergencyContact, saveEmergencyContact } from '../utils/localDb';
+
+export const SosScreen: React.FC = () => {
+  // Contacto Seguro local
+  const [safeContact, setSafeContact] = useState<{ name: string; phone: string } | null>(null);
+  const [isConfiguring, setIsConfiguring] = useState<boolean>(false);
+  const [contactName, setContactName] = useState<string>('');
+  const [contactPhone, setContactPhone] = useState<string>('');
+  
+  // Selección de país para líneas de ayuda
+  const [country, setCountry] = useState<'MX' | 'CO' | 'AR' | 'US'>('MX');
+
+  useEffect(() => {
+    // Cargar contacto al inicializar
+    const saved = getEmergencyContact();
+    if (saved) {
+      setSafeContact(saved);
+    }
+  }, []);
+
+  const isValidPhone = (phone: string): boolean => {
+    return /^[\d\s\+\-\(\)]{7,20}$/.test(phone.trim());
+  };
+
+  const handleSaveContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName.trim() || !isValidPhone(contactPhone)) return;
+
+    saveEmergencyContact(contactName.trim(), contactPhone.trim());
+    setSafeContact({ name: contactName.trim(), phone: contactPhone.trim() });
+    setIsConfiguring(false);
+    setContactName('');
+    setContactPhone('');
+  };
+
+  const handleDeleteContact = () => {
+    localStorage.removeItem('alivia_emergency_contact');
+    setSafeContact(null);
+  };
+
+  // Base de datos de líneas de crisis reales gratuitas
+  const helplineDirectory = {
+    MX: [
+      {
+        name: 'Línea de la Vida (Salud Mental / Adicciones)',
+        phone: '800 911 2000',
+        desc: 'Línea del gobierno federal, disponible 24/7 de forma gratuita y confidencial.',
+        type: 'call'
+      },
+      {
+        name: 'SAPTEL (Apoyo Psicológico Gratuito)',
+        phone: '55 5259 8121',
+        desc: 'Servicio de psicoterapia telefónica las 24 horas del día.',
+        type: 'call'
+      },
+      {
+        name: 'Línea crisis Joven (Chat de WhatsApp)',
+        phone: '55 2108 0432',
+        desc: 'Chat de contención de crisis directo y confidencial para jóvenes.',
+        type: 'chat'
+      }
+    ],
+    CO: [
+      {
+        name: 'Línea de Prevención del Suicidio (Nacional)',
+        phone: '192',
+        desc: 'Atención psicológica inmediata y gratuita las 24 horas.',
+        type: 'call'
+      },
+      {
+        name: 'Línea 106 (El Poder de Ser Escuchado)',
+        phone: '106',
+        desc: 'Orientación para adolescentes y jóvenes de la Secretaría de Salud.',
+        type: 'call'
+      },
+      {
+        name: 'Porque Quiero Estar Bien (Chat de Apoyo)',
+        phone: '300 912 5231',
+        desc: 'Chat directo de acompañamiento y crisis emocional vía WhatsApp.',
+        type: 'chat'
+      }
+    ],
+    AR: [
+      {
+        name: 'Centro de Asistencia al Suicida',
+        phone: '135',
+        desc: 'Atención gratuita desde Buenos Aires y GBA. Desde el interior: (011) 5275 1135',
+        type: 'call'
+      },
+      {
+        name: 'Línea Salud Mental Responde (CABA)',
+        phone: '0800 333 1665',
+        desc: 'Apoyo y orientación las 24 horas, confidencial.',
+        type: 'call'
+      }
+    ],
+    US: [
+      {
+        name: 'Suicide & Crisis Lifeline (Nacional)',
+        phone: '988',
+        desc: 'Línea nacional gratuita 24/7. Disponible por llamada o chat de texto.',
+        type: 'call'
+      },
+      {
+        name: 'Crisis Text Line (SMS)',
+        phone: '741741',
+        desc: 'Envía un mensaje de texto con la palabra "HOME" (o "APOYO" para español) para chatear 24/7.',
+        type: 'sms'
+      }
+    ]
+  };
+
+  const activeHelplines = helplineDirectory[country];
+
+  return (
+    <div className="fade-in flex flex-col gap-4">
+      {/* 1. SECCIÓN A: CONTACTO SEGURO LOCAL */}
+      <div className="glass-card flex flex-col gap-4" style={styles.emergencyCard}>
+        <div style={styles.cardHeader}>
+          <Heart size={16} color="var(--accent-rose)" />
+          <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>MI CONTACTO SEGURO</h3>
+        </div>
+
+        {safeContact ? (
+          // Contacto Seguro Configurado
+          <div style={styles.activeContactContainer}>
+            <p className="body-standard" style={{ fontSize: '12px', opacity: 0.8 }}>
+              Llama rápidamente a tu persona de confianza cuando sientas que te estás abrumando.
+            </p>
+            <a 
+              href={`tel:${safeContact.phone}`} 
+              style={{
+                ...styles.safeCallBtn,
+                background: 'linear-gradient(135deg, rgba(var(--accent-gold-rgb), 0.3) 0%, rgba(var(--accent-sage-rgb), 0.2) 100%)',
+                border: '1px solid rgba(var(--accent-gold-rgb), 0.25)',
+              }}
+            >
+              <div style={styles.callIconGlow}>
+                <Phone size={24} color="var(--accent-gold)" />
+              </div>
+              <div style={styles.contactDetails}>
+                <span style={styles.contactName}>{safeContact.name}</span>
+                <span style={styles.contactPhone}>{safeContact.phone}</span>
+              </div>
+              <span style={styles.callBadge}>LLAMAR AHORA</span>
+            </a>
+            
+            <button onClick={handleDeleteContact} style={styles.deleteBtn}>
+              <Trash2 size={13} />
+              Eliminar este contacto
+            </button>
+          </div>
+        ) : isConfiguring ? (
+          // Formulario para Agregar Contacto Seguro
+          <form onSubmit={handleSaveContact} className="fade-in flex flex-col gap-3">
+            <p className="body-standard" style={{ fontSize: '12px', opacity: 0.8 }}>
+              Guarda el teléfono de tu mejor amigo(a), terapeuta, sponsor o familiar que sepa cómo apoyarte en momentos duros.
+            </p>
+            <input
+              type="text"
+              placeholder="Nombre del contacto (ej: Mamá, Sponsor...)"
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              className="input-apple"
+              required
+            />
+            <input
+              type="tel"
+              placeholder="Número telefónico (ej: +52...)"
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              className="input-apple"
+              required
+            />
+            <div className="flex gap-3" style={{ marginTop: '4px' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsConfiguring(false)} 
+                className="btn-secondary"
+                style={{ flex: 1, padding: '10px', borderRadius: '12px', fontSize: '13px' }}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="btn-primary"
+                style={{ flex: 2, padding: '10px', borderRadius: '12px', fontSize: '13px' }}
+                disabled={!contactName.trim() || !isValidPhone(contactPhone)}
+              >
+                <Check size={14} />
+                Guardar contacto
+              </button>
+            </div>
+          </form>
+        ) : (
+          // Sin Contacto - Botón Agregar
+          <div className="flex flex-col items-center text-center gap-3" style={{ padding: '10px 0' }}>
+            <p className="body-standard" style={{ fontSize: '12px', opacity: 0.8 }}>
+              ¿Tienes un patrocinador, amigo o terapeuta al que puedas recurrir? Configúralo aquí para llamarle en un solo toque en una crisis.
+            </p>
+            <button onClick={() => setIsConfiguring(true)} className="btn-secondary" style={{ width: '80%', maxWidth: '240px', borderRadius: '16px' }}>
+              <UserPlus size={14} />
+              Agregar contacto seguro
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 2. SECCIÓN B: DIRECTORIO DE AYUDA DE CRISIS */}
+      <div className="glass-card flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <div style={styles.cardHeader}>
+            <ShieldAlert size={16} color="var(--accent-rose)" />
+            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>LÍNEAS DE CRISIS GRATUITAS</h3>
+          </div>
+
+          {/* Selector de País */}
+          <select 
+            value={country} 
+            onChange={(e) => setCountry(e.target.value as any)} 
+            style={styles.countrySelector}
+          >
+            <option value="MX">🇲🇽 México</option>
+            <option value="CO">🇨🇴 Colombia</option>
+            <option value="AR">🇦🇷 Argentina</option>
+            <option value="US">🇺🇸 EE. UU.</option>
+          </select>
+        </div>
+
+        <p className="body-standard" style={{ fontSize: '12px', opacity: 0.7 }}>
+          Si sientes que ya no puedes soportar el dolor o tienes pensamientos de autolesión, por favor haz clic en uno de estos botones. Te atenderán profesionales de forma confidencial.
+        </p>
+
+        {/* Directorio de Botones */}
+        <div style={styles.helplineList}>
+          {activeHelplines.map((line, idx) => {
+            const isCall = line.type === 'call';
+            const isSms = line.type === 'sms';
+            
+            return (
+              <div key={idx} style={styles.helplineRow}>
+                <div style={styles.lineMeta}>
+                  <h4 className="title-small" style={{ color: 'var(--text-primary)', fontSize: '13px', textTransform: 'none', letterSpacing: '0' }}>
+                    {line.name}
+                  </h4>
+                  <p className="body-standard" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {line.desc}
+                  </p>
+                </div>
+                
+                <a 
+                  href={isCall ? `tel:${line.phone.replace(/\s+/g, '')}` : isSms ? `sms:${line.phone}?body=APOYO` : `https://wa.me/${line.phone.replace(/\s+/g, '')}`}
+                  target={!isCall && !isSms ? '_blank' : undefined}
+                  rel="noopener noreferrer"
+                  style={{
+                    ...styles.lineActionBtn,
+                    background: line.type === 'chat' ? 'rgba(76, 175, 80, 0.12)' : 'rgba(var(--accent-gold-rgb), 0.12)',
+                    color: line.type === 'chat' ? '#81c784' : 'var(--accent-gold)',
+                    borderColor: line.type === 'chat' ? 'rgba(76, 175, 80, 0.2)' : 'var(--border-color)'
+                  }}
+                >
+                  {line.type === 'chat' ? (
+                    <MessageSquare size={16} />
+                  ) : (
+                    <Phone size={16} />
+                  )}
+                  <span style={styles.lineBtnText}>{line.phone}</span>
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. LÍNEA GENERAL DE EMERGENCIAS (911) */}
+      <a href="tel:911" className="glass-card" style={styles.generalSosCard}>
+        <ShieldAlert size={22} color="#ff8a80" style={{ minWidth: '22px' }} />
+        <div style={{ flex: 1 }}>
+          <h4 className="title-medium" style={{ color: '#ff8a80', fontSize: '15px' }}>EMERGENCIAS EXTREMAS: Llamar al 911</h4>
+          <p className="body-standard" style={{ fontSize: '11px', color: '#ffcdd2', marginTop: '2px' }}>
+            Si estás sufriendo una sobredosis médica, autolesión crítica o agresión activa, llama de inmediato.
+          </p>
+        </div>
+        <div style={styles.arrowGlow}>
+          <Phone size={16} color="#fff" />
+        </div>
+      </a>
+    </div>
+  );
+};
+
+const styles: { [key: string]: React.CSSProperties } = {
+  emergencyCard: {
+    background: 'linear-gradient(135deg, rgba(var(--accent-rose-rgb), 0.05) 0%, rgba(var(--accent-gold-rgb), 0.02) 100%)',
+    border: '1px solid rgba(var(--accent-rose-rgb), 0.12)',
+  },
+  cardHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  countrySelector: {
+    background: 'rgba(0, 0, 0, 0.2)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '10px',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '11px',
+    fontWeight: 500,
+    padding: '4px 8px',
+    outline: 'none',
+    cursor: 'pointer',
+  },
+  activeContactContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  safeCallBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '16px',
+    borderRadius: '20px',
+    textDecoration: 'none',
+    gap: '14px',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
+    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+  },
+  callIconGlow: {
+    width: '46px',
+    height: '46px',
+    borderRadius: '50%',
+    background: 'var(--bg-elevated)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    boxShadow: '0 0 15px rgba(var(--accent-gold-rgb), 0.15)',
+  },
+  contactDetails: {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    gap: '2px',
+  },
+  contactName: {
+    fontFamily: 'var(--font-title)',
+    fontWeight: 600,
+    fontSize: '16px',
+    color: 'var(--text-primary)',
+  },
+  contactPhone: {
+    fontSize: '13px',
+    color: 'var(--text-secondary)',
+    fontFamily: 'var(--font-body)',
+  },
+  callBadge: {
+    fontSize: '10px',
+    fontFamily: 'var(--font-title)',
+    fontWeight: 700,
+    letterSpacing: '0.05em',
+    color: '#fff',
+    background: 'linear-gradient(135deg, #66bb6a 0%, #43a047 100%)',
+    padding: '6px 10px',
+    borderRadius: '10px',
+    boxShadow: '0 3px 8px rgba(67, 160, 71, 0.3)',
+  },
+  deleteBtn: {
+    alignSelf: 'center',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: 'var(--text-muted)',
+    fontSize: '11px',
+    fontFamily: 'var(--font-title)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '4px 8px',
+    borderRadius: '8px',
+    transition: 'color 0.2s',
+  },
+  helplineList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+    marginTop: '4px',
+  },
+  helplineRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '12px',
+    borderBottom: '1px solid var(--border-color)',
+    paddingBottom: '12px',
+  },
+  lineMeta: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  lineActionBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    height: '36px',
+    padding: '0 12px',
+    borderRadius: '12px',
+    border: '1px solid transparent',
+    textDecoration: 'none',
+    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+  },
+  lineBtnText: {
+    fontSize: '12px',
+    fontFamily: 'var(--font-title)',
+    fontWeight: 600,
+  },
+  generalSosCard: {
+    background: 'linear-gradient(135deg, rgba(211, 47, 47, 0.15) 0%, rgba(198, 40, 40, 0.2) 100%)',
+    border: '1px solid rgba(211, 47, 47, 0.25)',
+    display: 'flex',
+    alignItems: 'center',
+    padding: '16px',
+    borderRadius: '24px',
+    textDecoration: 'none',
+    gap: '12px',
+  },
+  arrowGlow: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #ef5350 0%, #c62828 100%)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    boxShadow: '0 4px 10px rgba(198, 40, 40, 0.3)',
+  }
+};
