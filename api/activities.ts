@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const { rows } = await pool.query(
-      `SELECT * FROM fn_insert_activity($1, $2)`,
+      `SELECT o_id AS id, o_title AS title, o_date AS date FROM fn_insert_activity($1, $2)`,
       [String(id), String(title)]
     );
     return res.status(200).json(rows[0] ?? null);
