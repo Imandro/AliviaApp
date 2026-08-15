@@ -63,6 +63,7 @@ export const Coping: React.FC = () => {
   const [completedActivities, setCompletedActivities] = useState<string[]>([]);
   const [activityStats, setActivityStats] = useState<{ [id: string]: number }>({});
   const [streak, setStreak] = useState<number>(0);
+  const [recentActivities, setRecentActivities] = useState<{ id: string; title: string; date: string }[]>([]);
 
   const activities: Activity[] = [
     {
@@ -207,8 +208,14 @@ export const Coping: React.FC = () => {
   const ActivityIcon = activeActivity.icon;
 
   useEffect(() => {
-    setActivityStats(getActivityStats());
-    setStreak(getCompletionStreak());
+    const loadStats = async () => {
+      const [stats, s] = await Promise.all([getActivityStats(), getCompletionStreak()]);
+      setActivityStats(stats);
+      setStreak(s);
+      const recent = [...(await getCompletedActivities())].slice(-7).reverse();
+      setRecentActivities(recent);
+    };
+    loadStats();
   }, []);
 
   useEffect(() => {
@@ -246,15 +253,21 @@ export const Coping: React.FC = () => {
     setActivityStep(0);
   };
 
-  const handleNextActivity = () => {
+  const handleNextActivity = async () => {
     if (activityStep < activeActivity.steps.length - 1) {
       setActivityStep(prev => prev + 1);
       return;
     }
-    saveCompletedActivity(activeActivity.id, activeActivity.title);
+    await saveCompletedActivity(activeActivity.id, activeActivity.title);
     setCompletedActivities(prev => prev.includes(activeActivity.id) ? prev : [...prev, activeActivity.id]);
-    setActivityStats(getActivityStats());
-    setStreak(getCompletionStreak());
+    const [stats, s, recent] = await Promise.all([
+      getActivityStats(),
+      getCompletionStreak(),
+      getCompletedActivities(),
+    ]);
+    setActivityStats(stats);
+    setStreak(s);
+    setRecentActivities([...recent].slice(-7).reverse());
     setActivityStep(0);
   };
 
@@ -523,7 +536,7 @@ export const Coping: React.FC = () => {
           <div className="glass-card flex flex-col gap-3">
             <h4 className="title-small" style={{ color: 'var(--text-primary)', fontSize: '12px' }}>Últimas 7 actividades</h4>
             {(() => {
-              const recent = [...getCompletedActivities()].slice(-7).reverse();
+              const recent = recentActivities;
               return recent.map((item) => {
                 const activity = activities.find(a => a.id === item.id);
                 if (!activity) return null;
@@ -540,7 +553,7 @@ export const Coping: React.FC = () => {
                 );
               });
             })()}
-            {getCompletedActivities().length === 0 && (
+            {recentActivities.length === 0 && (
               <p className="body-standard" style={{ fontSize: '12px', opacity: 0.6, textAlign: 'center' }}>
                 Completa una actividad para ver tu historial aquí
               </p>

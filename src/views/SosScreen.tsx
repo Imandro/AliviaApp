@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check } from 'lucide-react';
-import { getEmergencyContact, saveEmergencyContact } from '../utils/localDb';
+import { getEmergencyContact, saveEmergencyContact, deleteEmergencyContact } from '../utils/localDb';
 
 export const SosScreen: React.FC = () => {
   // Contacto Seguro local
@@ -19,29 +19,32 @@ export const SosScreen: React.FC = () => {
 
   useEffect(() => {
     // Cargar contacto al inicializar
-    const saved = getEmergencyContact();
-    if (saved) {
-      setSafeContact(saved);
-    }
+    const loadContact = async () => {
+      const saved = await getEmergencyContact();
+      if (saved) {
+        setSafeContact(saved);
+      }
+    };
+    loadContact();
   }, []);
 
   const isValidPhone = (phone: string): boolean => {
     return /^[\d\s\+\-\(\)]{7,20}$/.test(phone.trim());
   };
 
-  const handleSaveContact = (e: React.FormEvent) => {
+  const handleSaveContact = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactName.trim() || !isValidPhone(contactPhone)) return;
 
-    saveEmergencyContact(contactName.trim(), contactPhone.trim());
+    await saveEmergencyContact(contactName.trim(), contactPhone.trim());
     setSafeContact({ name: contactName.trim(), phone: contactPhone.trim() });
     setIsConfiguring(false);
     setContactName('');
     setContactPhone('');
   };
 
-  const handleDeleteContact = () => {
-    localStorage.removeItem('alivia_emergency_contact');
+  const handleDeleteContact = async () => {
+    await deleteEmergencyContact();
     setSafeContact(null);
   };
 

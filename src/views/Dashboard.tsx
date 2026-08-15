@@ -66,8 +66,8 @@ export const Dashboard: React.FC = () => {
     refreshData();
   }, []);
 
-  const refreshData = () => {
-    const history = getLastWeekMoods();
+  const refreshData = async () => {
+    const history = await getLastWeekMoods();
     setWeeklyHistory(history);
 
     const todayStr = getTodayString();
@@ -78,8 +78,8 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSaveMood = () => {
-    saveTodayMood(moodScore, noteText.trim() || undefined);
+  const handleSaveMood = async () => {
+    await saveTodayMood(moodScore, noteText.trim() || undefined);
     setIsSavedToday(true);
     setNoteText('');
     refreshData();

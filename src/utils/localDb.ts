@@ -1,5 +1,5 @@
 /* ----------------------------------------------------
-   ALIVIA - BASE DE DATOS LOCAL (localStorage)
+   ALIVIA - BASE DE DATOS (Neon PostgreSQL vía API)
    Gestión de historial emocional y contactos seguros
    ---------------------------------------------------- */
 
@@ -14,6 +14,27 @@ export interface EmergencyContact {
   phone: string;
 }
 
+export interface CompletedActivity {
+  id: string;
+  title: string;
+  completedAt: string; // ISO timestamp
+  date: string; // YYYY-MM-DD
+}
+
+const BASE = '/api';
+
+const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error || `Error ${res.status} en ${path}`);
+  }
+  return res.json() as Promise<T>;
+};
+
 // Obtener la fecha de hoy en formato local YYYY-MM-DD sin problemas de huso horario
 export const getTodayString = (): string => {
   const d = new Date();
@@ -24,120 +45,95 @@ export const getTodayString = (): string => {
 };
 
 // Guardar o actualizar el estado de ánimo de hoy
-export const saveTodayMood = (score: number, note?: string): MoodEntry[] => {
-  const history = getMoodHistory();
+export const saveTodayMood = async (score: number, note?: string): Promise<MoodEntry[]> => {
   const today = getTodayString();
-  
-  const existingIndex = history.findIndex(entry => entry.date === today);
-  
-  if (existingIndex >= 0) {
-    history[existingIndex] = { date: today, score, note };
-  } else {
-    history.push({ date: today, score, note });
-  }
-  
-  // Guardar ordenado por fecha
-  history.sort((a, b) => a.date.localeCompare(b.date));
-  localStorage.setItem('alivia_mood_history', JSON.stringify(history));
-  return history;
+  await request('/moods', {
+    method: 'POST',
+    body: JSON.stringify({ date: today, score, note }),
+  });
+  return getMoodHistory();
 };
 
 // Obtener todo el historial de ánimo
-export const getMoodHistory = (): MoodEntry[] => {
-  const data = localStorage.getItem('alivia_mood_history');
-  if (!data) return [];
-  try {
-    return JSON.parse(data);
-  } catch (e) {
-    return [];
-  }
+export const getMoodHistory = async (): Promise<MoodEntry[]> => {
+  return request<MoodEntry[]>('/moods');
 };
 
 // Obtener los ánimos de los últimos 7 días (para el grid semanal de Apple)
-export const getLastWeekMoods = (): { date: string; dayName: string; score: number | null }[] => {
-  const history = getMoodHistory();
+export const getLastWeekMoods = async (): Promise<{ date: string; dayName: string; score: number | null }[]> => {
+  let history: MoodEntry[] = [];
+  try {
+    history = await getMoodHistory();
+  } catch (e) {
+    history = [];
+  }
   const result = [];
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-  
+
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    
+
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
     const dayName = dayNames[d.getDay()];
-    
+
     const matchedEntry = history.find(entry => entry.date === dateStr);
-    
+
     result.push({
       date: dateStr,
       dayName,
       score: matchedEntry ? matchedEntry.score : null
     });
   }
-  
+
   return result;
 };
 
 // Obtener contacto de emergencia
-export const getEmergencyContact = (): EmergencyContact | null => {
-  const data = localStorage.getItem('alivia_emergency_contact');
-  if (!data) return null;
+export const getEmergencyContact = async (): Promise<EmergencyContact | null> => {
   try {
-    return JSON.parse(data);
+    return await request<EmergencyContact | null>('/contacts');
   } catch (e) {
     return null;
   }
 };
 
 // Guardar contacto de emergencia
-export const saveEmergencyContact = (name: string, phone: string): void => {
-  localStorage.setItem('alivia_emergency_contact', JSON.stringify({ name, phone }));
+export const saveEmergencyContact = async (name: string, phone: string): Promise<void> => {
+  await request('/contacts', {
+    method: 'PUT',
+    body: JSON.stringify({ name, phone }),
+  });
+};
+
+// Eliminar contacto de emergencia
+export const deleteEmergencyContact = async (): Promise<void> => {
+  await request('/contacts', { method: 'DELETE' });
 };
 
 // Historial de Actividades Completadas
-export interface CompletedActivity {
-  id: string;
-  title: string;
-  completedAt: string; // ISO timestamp
-  date: string; // YYYY-MM-DD
-}
-
-export const getCompletedActivities = (): CompletedActivity[] => {
-  const data = localStorage.getItem('alivia_completed_activities');
-  if (!data) return [];
+export const getCompletedActivities = async (): Promise<CompletedActivity[]> => {
   try {
-    return JSON.parse(data);
+    return await request<CompletedActivity[]>('/activities');
   } catch (e) {
     return [];
   }
 };
 
-export const saveCompletedActivity = (id: string, title: string): CompletedActivity[] => {
-  const activities = getCompletedActivities();
-  const today = getTodayString();
-  
-  // Evitar duplicados del mismo día para la misma actividad
-  const existingToday = activities.find(a => a.id === id && a.date === today);
-  if (existingToday) return activities;
-  
-  const newActivity: CompletedActivity = {
-    id,
-    title,
-    completedAt: new Date().toISOString(),
-    date: today
-  };
-  
-  activities.push(newActivity);
-  localStorage.setItem('alivia_completed_activities', JSON.stringify(activities));
-  return activities;
+export const saveCompletedActivity = async (id: string, title: string): Promise<CompletedActivity[]> => {
+  await request('/activities', {
+    method: 'POST',
+    body: JSON.stringify({ id, title }),
+  });
+  return getCompletedActivities();
 };
 
 // Calcular streak de días consecutivos
-export const getCompletionStreak = (): number => {
-  const activities = getCompletedActivities();
+export const getCompletionStreak = async (): Promise<number> => {
+  const activities = await getCompletedActivities();
   if (activities.length === 0) return 0;
 
   const dates = [...new Set(activities.map(a => a.date))].sort().reverse();
@@ -160,8 +156,8 @@ export const getCompletionStreak = (): number => {
 };
 
 // Estadísticas por tipo de actividad
-export const getActivityStats = (): { [id: string]: number } => {
-  const activities = getCompletedActivities();
+export const getActivityStats = async (): Promise<{ [id: string]: number }> => {
+  const activities = await getCompletedActivities();
   const stats: { [id: string]: number } = {};
   activities.forEach(a => {
     stats[a.id] = (stats[a.id] || 0) + 1;
