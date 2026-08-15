@@ -2,6 +2,14 @@
 
 Base de datos: **Neon PostgreSQL** · Esquema: `public` · Fuente: [`schema.sql`](./schema.sql)
 
+## Mapa visual
+
+| Archivo | Descripción |
+|---|---|
+| [`er-diagrama.png`](./er-diagrama.png) | Mapa ER en imagen (PNG), listo para compartir o imprimir |
+| [`er-diagrama.svg`](./er-diagrama.svg) | Mapa ER vectorial (SVG): zoom infinito sin perder calidad |
+| [`er-diagrama.html`](./er-diagrama.html) | Mapa ER interactivo: abre en el navegador, cambia de tema y descarga PNG/SVG |
+
 ## Diagrama ER
 
 ```mermaid

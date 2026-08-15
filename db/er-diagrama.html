@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALIVIA - Modelo Entidad-Relación</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #101c15 0%, #16211a 100%);
+    color: #e6e2d5;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+  header {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  h1 { font-size: 22px; letter-spacing: 0.08em; font-weight: 600; }
+  h1 span { color: #F2E3A0; }
+  .sub { font-size: 12px; opacity: .65; margin-top: 4px; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  button, select {
+    background: rgba(242, 227, 160, 0.10);
+    border: 1px solid rgba(242, 227, 160, 0.3);
+    color: #F2E3A0;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all .25s;
+  }
+  button:hover { background: rgba(242, 227, 160, 0.2); }
+  select option { background: #1a241d; color: #e6e2d5; }
+  #diagram {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    overflow-x: auto;
+  }
+  #diagram svg { width: 100%; height: auto; min-width: 900px; }
+  .legend {
+    max-width: 1200px;
+    margin: 20px auto 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: #cfc9b8;
+  }
+  .legend b { color: #F2E3A0; }
+  footer {
+    max-width: 1200px;
+    margin: 24px auto 0;
+    text-align: center;
+    font-size: 11px;
+    opacity: .55;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>ALIVIA <span>·</span> Modelo Entidad-Relación</h1>
+    <p class="sub">Base de datos: Neon PostgreSQL · Esquema: public · 9 tablas (7 de contenido + users + sessions)</p>
+  </div>
+  <div class="tools">
+    <select id="themeSelect" onchange="setTheme(this.value)">
+      <option value="default">Tema claro</option>
+      <option value="dark">Tema oscuro</option>
+      <option value="neutral">Neutro</option>
+      <option value="forest">Bosque</option>
+    </select>
+    <button onclick="downloadPng()">⬇ Descargar PNG</button>
+    <button onclick="downloadSvg()">⬇ Descargar SVG</button>
+  </div>
+</header>
+
+<div id="diagram"></div>
+
+<div class="legend">
+  <span><b>PK</b> Llave primaria</span>
+  <span><b>FK</b> Llave foránea</span>
+  <span><b>1:N</b> Uno a muchos</span>
+  <span><b>TEXT[]</b> Arreglo de texto (onboarding)</span>
+  <span><b>UUID</b> Identificador 128-bit</span>
+  <span>Última actualización: 2026</span>
+</div>
+
+<footer>ALIVIA · Tu espacio seguro para sentirte mejor — Diagrama generado desde db/er-model.md</footer>
+
+<script>
+const ER_SOURCE = `erDiagram
+    MOOD_ENTRIES {
+        date DATE PK
+        score INTEGER "1-5, CHECK"
+        note TEXT
+    }
+
+    EMERGENCY_CONTACT {
+        id INTEGER PK "siempre = 1"
+        name TEXT
+        phone TEXT
+    }
+
+    COMPLETED_ACTIVITIES {
+        id TEXT PK "compuesto"
+        title TEXT
+        completed_at TIMESTAMPTZ
+        date DATE PK "compuesto"
+    }
+
+    COMMUNITY_POSTS {
+        id SERIAL PK
+        author TEXT
+        content TEXT
+        topic TEXT
+        likes INTEGER
+        created_at TIMESTAMPTZ
+    }
+
+    PLANS {
+        id SERIAL PK
+        title TEXT
+        area TEXT
+        created_at TIMESTAMPTZ
+    }
+
+    PLAN_GOALS {
+        id SERIAL PK
+        plan_id INTEGER FK
+        title TEXT
+        done BOOLEAN
+        created_at TIMESTAMPTZ
+    }
+
+    PLAN_ACTIVITIES {
+        id SERIAL PK
+        plan_id INTEGER FK
+        title TEXT
+        duration TEXT
+        done BOOLEAN
+        created_at TIMESTAMPTZ
+    }
+
+    USERS {
+        id UUID PK
+        username TEXT "unique"
+        email TEXT "unique"
+        phone TEXT "unique, opcional"
+        name TEXT
+        password_hash TEXT
+        problems TEXT[] "onboarding"
+        situations TEXT[] "onboarding"
+        strategies TEXT[] "onboarding"
+        trusted_person TEXT
+        trusted_phone TEXT
+        wants_contact BOOLEAN
+        changes TEXT[] "onboarding"
+        goals_text TEXT
+        onboarding_done BOOLEAN
+        created_at TIMESTAMPTZ
+        updated_at TIMESTAMPTZ
+    }
+
+    SESSIONS {
+        token TEXT PK
+        user_id UUID FK
+        created_at TIMESTAMPTZ
+        expires_at TIMESTAMPTZ
+    }
+
+    PLANS ||--o{ PLAN_GOALS : "tiene (1:N)"
+    PLANS ||--o{ PLAN_ACTIVITIES : "incluye (1:N)"
+    USERS ||--o{ SESSIONS : "abre (1:N)"
+
+    MOOD_ENTRIES ||--o{ COMPLETED_ACTIVITIES : "comparten fecha (no FK)"
+`;
+
+let diagramSvg = '';
+
+mermaid.initialize({
+  startOnLoad: false,
+  securityLevel: 'loose',
+  theme: 'default',
+  fontFamily: '-apple-system, "Segoe UI", Roboto, sans-serif',
+  er: {
+    diagramPadding: 18,
+    layoutDirection: 'TB',
+    minEntityWidth: 130,
+    entityPadding: 16,
+    fontSize: 14,
+    useMaxWidth: true,
+  },
+});
+
+async function render() {
+  const { svg } = await mermaid.render('erDiagramSvg', ER_SOURCE);
+  diagramSvg = svg;
+  document.getElementById('diagram').innerHTML = svg;
+  document.querySelectorAll('#diagram svg').forEach(s => s.setAttribute('width', '100%'));
+}
+
+async function setTheme(theme) {
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme, fontFamily: '-apple-system, "Segoe UI", Roboto, sans-serif' });
+  await render();
+}
+
+function downloadSvg() {
+  const svg = diagramSvg;
+  const blob = new Blob(['<svg xmlns="http://www.w3.org/2000/svg">' + svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '') + '</svg>'], { type: 'image/svg+xml' });
+  triggerDownload(blob, 'alivia-er-diagrama.svg');
+}
+
+function downloadPng() {
+  const svgNode = document.querySelector('#diagram svg');
+  if (!svgNode) return;
+  const rect = svgNode.getBoundingClientRect();
+  const width = parseInt(svgNode.getAttribute('width')) || rect.width;
+  const height = parseInt(svgNode.getAttribute('height')) || rect.height;
+  const canvas = document.createElement('canvas');
+  canvas.width = width * 2;
+  canvas.height = height * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const img = new Image();
+  const xml = new XMLSerializer().serializeToString(svgNode);
+  const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(b => triggerDownload(b, 'alivia-er-diagrama.png'), 'image/png');
+  };
+  img.src = url;
+}
+
+function triggerDownload(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+render();
+</script>
+</body>
+</html>
