@@ -83,13 +83,23 @@ END $$;
 -- ---------- ACTIVIDADES (completed_activities) ----------
 
 CREATE OR REPLACE FUNCTION fn_insert_activity(p_id TEXT, p_title TEXT)
-RETURNS TABLE(id TEXT, title TEXT, date TEXT) LANGUAGE plpgsql AS $$
+RETURNS TABLE(o_id TEXT, o_title TEXT, o_date TEXT) LANGUAGE plpgsql AS $$
+DECLARE
+  v_id TEXT;
+  v_title TEXT;
+  v_date DATE;
 BEGIN
-  RETURN QUERY
   INSERT INTO completed_activities (id, title, date)
   VALUES (p_id, p_title, CURRENT_DATE)
   ON CONFLICT (id, date) DO NOTHING
-  RETURNING completed_activities.id, completed_activities.title, to_char(completed_activities.date, 'YYYY-MM-DD');
+  RETURNING id, title, date INTO v_id, v_title, v_date;
+  IF v_id IS NULL THEN
+    RETURN;
+  END IF;
+  o_id := v_id;
+  o_title := v_title;
+  o_date := to_char(v_date, 'YYYY-MM-DD');
+  RETURN NEXT;
 END $$;
 
 CREATE OR REPLACE FUNCTION fn_get_activities()
