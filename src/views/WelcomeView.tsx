@@ -1,0 +1,379 @@
+import React, { useState } from 'react';
+import { Eye, EyeOff, Loader2, Heart, Lock, User as UserIcon, Mail, Phone, Star } from 'lucide-react';
+import { register, login, setToken, SafeUser } from '../utils/auth';
+
+interface WelcomeViewProps {
+  onAuthenticated: (user: SafeUser, needsOnboarding: boolean) => void;
+}
+
+type Mode = 'login' | 'register';
+
+export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => {
+  const [mode, setMode] = useState<Mode>('login');
+  const [form, setForm] = useState({
+    name: '',
+    username: '',
+    email: '',
+    phone: '',
+    password: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.id]: e.target.value });
+    setError('');
+  };
+
+  const switchMode = (m: Mode) => {
+    setMode(m);
+    setError('');
+    setShowPassword(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      let token: string;
+      let user: SafeUser;
+
+      if (mode === 'register') {
+        const res = await register({
+          name: form.name.trim(),
+          username: form.username.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          password: form.password,
+        });
+        token = res.token;
+        user = res.user;
+      } else {
+        const res = await login(form.email.trim(), form.password);
+        token = res.token;
+        user = res.user;
+      }
+
+      setToken(token);
+      onAuthenticated(user, !user.onboarding_done);
+    } catch (err: any) {
+      setError(err?.message || 'Ocurrió un error, intenta de nuevo');
+      setLoading(false);
+    }
+  };
+
+  const isLogin = mode === 'login';
+
+  return (
+    <div className="app-shell">
+      <div className="bg-blobs" aria-hidden="true">
+        <div className="bg-blob bg-blob-1" />
+        <div className="bg-blob bg-blob-2" />
+        <div className="bg-blob bg-blob-3" />
+      </div>
+
+      <div style={styles.centered}>
+        <div className="glass-card fade-in" style={styles.card}>
+          <div style={styles.logoWrap}>
+            <div style={styles.logoCircle}>
+              <Heart size={26} color="var(--accent-gold)" fill="rgba(var(--accent-gold-rgb), 0.25)" />
+            </div>
+            <h1 style={styles.logo}>ALIVIA</h1>
+            <p style={styles.tagline}>Tu espacio seguro para sentirte mejor</p>
+          </div>
+
+          <div style={styles.header}>
+            <h3 style={styles.title}>
+              {isLogin ? 'Bienvenido de nuevo' : '¡Hola! Es hora de brillar'}
+            </h3>
+            <p style={styles.subtitle}>
+              {isLogin
+                ? 'Nos alegra verte otra vez. Entra con tu usuario o correo.'
+                : 'Crea tu cuenta y empieza tu camino hacia el bienestar.'}
+            </p>
+          </div>
+
+          {error && (
+            <div style={styles.alertError}>
+              <Star size={13} />
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            {!isLogin && (
+              <>
+                <div style={styles.field}>
+                  <label htmlFor="name" style={styles.label}>
+                    <UserIcon size={13} color="var(--accent-gold)" /> Tu nombre
+                  </label>
+                  <input
+                    id="name"
+                    className="input-apple"
+                    style={styles.input}
+                    placeholder="¿Cómo te llamas?"
+                    value={form.name}
+                    onChange={handleChange}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+
+                <div style={styles.field}>
+                  <label htmlFor="username" style={styles.label}>
+                    <Star size={13} color="var(--accent-gold)" /> Nombre de usuario
+                  </label>
+                  <input
+                    id="username"
+                    className="input-apple"
+                    style={styles.input}
+                    placeholder="Ej: ana_bienestar"
+                    value={form.username}
+                    onChange={handleChange}
+                    autoComplete="username"
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            <div style={styles.field}>
+              <label htmlFor="email" style={styles.label}>
+                <Mail size={13} color="var(--accent-gold)" /> {isLogin ? 'Usuario o correo' : 'Correo electrónico'}
+              </label>
+              <input
+                id="email"
+                className="input-apple"
+                style={styles.input}
+                placeholder={isLogin ? 'Tu usuario o correo' : 'tucorreo@ejemplo.com'}
+                value={form.email}
+                onChange={handleChange}
+                autoComplete={isLogin ? 'username' : 'email'}
+                required
+              />
+            </div>
+
+            {!isLogin && (
+              <div style={styles.field}>
+                <label htmlFor="phone" style={styles.label}>
+                  <Phone size={13} color="var(--accent-gold)" /> Teléfono (opcional)
+                </label>
+                <input
+                  id="phone"
+                  type="tel"
+                  className="input-apple"
+                  style={styles.input}
+                  placeholder="+52 55 1234 5678"
+                  value={form.phone}
+                  onChange={handleChange}
+                  autoComplete="tel"
+                />
+              </div>
+            )}
+
+            <div style={styles.field}>
+              <label htmlFor="password" style={styles.label}>
+                <Lock size={13} color="var(--accent-gold)" /> Contraseña
+              </label>
+              <div style={styles.passwordWrap}>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="input-apple"
+                  style={styles.input}
+                  placeholder={isLogin ? 'Tu contraseña' : 'Mínimo 6 caracteres'}
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={styles.eyeBtn}
+                  title={showPassword ? 'Ocultar' : 'Mostrar'}
+                >
+                  {showPassword ? <EyeOff size={18} color="var(--text-muted)" /> : <Eye size={18} color="var(--text-muted)" />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-primary" style={styles.submit} disabled={loading}>
+              {loading ? <Loader2 size={20} className="spin" /> : isLogin ? 'Entrar' : 'Crear mi cuenta'}
+            </button>
+          </form>
+
+          <div style={styles.switchWrap}>
+            <p style={styles.switchText}>
+              {isLogin ? '¿Aún no tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
+              <button
+                onClick={() => switchMode(isLogin ? 'register' : 'login')}
+                style={styles.switchLink}
+              >
+                {isLogin ? 'Crear una cuenta' : 'Inicia sesión'}
+              </button>
+            </p>
+          </div>
+
+          <p style={styles.footer}>Tu información está segura y en privado. Alivia te acompaña.</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const styles: { [key: string]: React.CSSProperties } = {
+  centered: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '24px 20px',
+    position: 'relative',
+    zIndex: 1,
+  },
+  card: {
+    width: '100%',
+    maxWidth: '420px',
+    padding: '28px 26px',
+    borderRadius: '28px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '18px',
+  },
+  logoWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  logoCircle: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(var(--accent-gold-rgb), 0.08)',
+    border: '1px solid rgba(var(--accent-gold-rgb), 0.15)',
+    boxShadow: '0 8px 30px rgba(var(--accent-gold-rgb), 0.12)',
+  },
+  logo: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '24px',
+    fontWeight: 600,
+    letterSpacing: '0.25em',
+    margin: 0,
+    background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--text-primary) 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  },
+  tagline: {
+    margin: 0,
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+  },
+  header: {
+    textAlign: 'center',
+  },
+  title: {
+    margin: 0,
+    fontFamily: 'var(--font-title)',
+    fontSize: '22px',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+  },
+  subtitle: {
+    margin: '6px 0 0',
+    fontSize: '13px',
+    color: 'var(--text-muted)',
+    lineHeight: 1.5,
+  },
+  alertError: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '10px 14px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    color: 'var(--accent-rose)',
+    background: 'rgba(var(--accent-rose-rgb), 0.08)',
+    border: '1px solid rgba(var(--accent-rose-rgb), 0.2)',
+  },
+  field: {
+    marginBottom: '14px',
+  },
+  label: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    marginBottom: '6px',
+    paddingLeft: '4px',
+  },
+  input: {
+    width: '100%',
+    padding: '13px 16px',
+    borderRadius: '14px',
+    fontSize: '14px',
+  },
+  passwordWrap: {
+    position: 'relative',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+  },
+  submit: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '16px',
+    fontSize: '15px',
+    fontWeight: 700,
+    letterSpacing: '0.02em',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    marginTop: '4px',
+  },
+  switchWrap: {
+    borderTop: '1px solid var(--border-color)',
+    paddingTop: '14px',
+    textAlign: 'center',
+  },
+  switchText: {
+    margin: 0,
+    fontSize: '13px',
+    color: 'var(--text-muted)',
+  },
+  switchLink: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: 'var(--accent-gold)',
+    fontWeight: 700,
+    fontSize: '13px',
+    padding: 0,
+  },
+  footer: {
+    margin: 0,
+    textAlign: 'center',
+    fontSize: '11px',
+    color: 'var(--text-muted)',
+    opacity: 0.7,
+  },
+};

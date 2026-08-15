@@ -241,3 +241,96 @@ BEGIN
     (SELECT COUNT(*) FROM completed_activities),
     COALESCE((SELECT AVG(score) FROM mood_entries), 0);
 END $$;
+-- ---------- CUENTAS Y SESIONES (users / sessions) ----------
+
+DROP FUNCTION IF EXISTS fn_create_user(TEXT, TEXT, TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS fn_get_user_by_identifier(TEXT);
+DROP FUNCTION IF EXISTS fn_get_user_by_id(UUID);
+DROP FUNCTION IF EXISTS fn_update_user_profile(UUID, TEXT[], TEXT[], TEXT[], TEXT, TEXT, BOOLEAN, TEXT[], TEXT, BOOLEAN);
+DROP FUNCTION IF EXISTS fn_update_user_profile(UUID, TEXT[], TEXT[], TEXT[], TEXT, TEXT, BOOLEAN, TEXT[], TEXT, BOOLEAN, TEXT);
+
+CREATE OR REPLACE FUNCTION fn_create_user(
+  p_username TEXT,
+  p_email TEXT,
+  p_phone TEXT,
+  p_name TEXT,
+  p_password_hash TEXT
+) RETURNS users LANGUAGE plpgsql AS $$
+DECLARE
+  v_user users;
+BEGIN
+  IF EXISTS (SELECT 1 FROM users WHERE username = LOWER(p_username)) THEN
+    RAISE EXCEPTION 'El usuario ya está en uso';
+  END IF;
+  IF EXISTS (SELECT 1 FROM users WHERE email = LOWER(p_email)) THEN
+    RAISE EXCEPTION 'El correo ya está registrado';
+  END IF;
+  IF p_phone IS NOT NULL AND EXISTS (SELECT 1 FROM users WHERE phone = p_phone) THEN
+    RAISE EXCEPTION 'El teléfono ya está registrado';
+  END IF;
+
+  INSERT INTO users (username, email, phone, name, password_hash)
+  VALUES (LOWER(p_username), LOWER(p_email), p_phone, p_name, p_password_hash)
+  RETURNING * INTO v_user;
+
+  RETURN v_user;
+END $$;
+
+CREATE OR REPLACE FUNCTION fn_get_user_by_identifier(p_identifier TEXT)
+RETURNS users LANGUAGE plpgsql AS $$
+DECLARE
+  v_user users;
+BEGIN
+  SELECT * INTO v_user
+  FROM users
+  WHERE LOWER(username) = LOWER(p_identifier) OR LOWER(email) = LOWER(p_identifier)
+  LIMIT 1;
+  RETURN v_user;
+END $$;
+
+CREATE OR REPLACE FUNCTION fn_get_user_by_id(p_id UUID)
+RETURNS users LANGUAGE plpgsql AS $$
+DECLARE
+  v_user users;
+BEGIN
+  SELECT * INTO v_user FROM users WHERE id = p_id LIMIT 1;
+  RETURN v_user;
+END $$;
+
+CREATE OR REPLACE FUNCTION fn_update_user_profile(
+  p_id UUID,
+  p_problems TEXT[] DEFAULT '{}',
+  p_situations TEXT[] DEFAULT '{}',
+  p_strategies TEXT[] DEFAULT '{}',
+  p_trusted_person TEXT DEFAULT NULL,
+  p_trusted_phone TEXT DEFAULT NULL,
+  p_wants_contact BOOLEAN DEFAULT FALSE,
+  p_changes TEXT[] DEFAULT '{}',
+  p_goals_text TEXT DEFAULT NULL,
+  p_onboarding_done BOOLEAN DEFAULT FALSE,
+  p_phone TEXT DEFAULT NULL
+) RETURNS users LANGUAGE plpgsql AS $$
+DECLARE
+  v_user users;
+BEGIN
+  UPDATE users SET
+    phone = COALESCE(p_phone, phone),
+    problems = p_problems,
+    situations = p_situations,
+    strategies = p_strategies,
+    trusted_person = p_trusted_person,
+    trusted_phone = p_trusted_phone,
+    wants_contact = p_wants_contact,
+    changes = p_changes,
+    goals_text = p_goals_text,
+    onboarding_done = p_onboarding_done,
+    updated_at = now()
+  WHERE id = p_id
+  RETURNING * INTO v_user;
+
+  IF v_user.id IS NULL THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  RETURN v_user;
+END $$;

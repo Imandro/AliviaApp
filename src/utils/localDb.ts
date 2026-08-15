@@ -24,8 +24,12 @@ export interface CompletedActivity {
 const BASE = '/api';
 
 const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
+  const token = localStorage.getItem('alivia_token');
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     ...options,
   });
   if (!res.ok) {

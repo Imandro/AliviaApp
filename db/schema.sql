@@ -55,3 +55,32 @@ CREATE TABLE IF NOT EXISTS plan_activities (
   done BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Cuentas y sesiones
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username TEXT UNIQUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  phone TEXT UNIQUE,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  problems TEXT[] NOT NULL DEFAULT '{}',
+  situations TEXT[] NOT NULL DEFAULT '{}',
+  strategies TEXT[] NOT NULL DEFAULT '{}',
+  trusted_person TEXT,
+  trusted_phone TEXT,
+  wants_contact BOOLEAN NOT NULL DEFAULT FALSE,
+  changes TEXT[] NOT NULL DEFAULT '{}',
+  goals_text TEXT,
+  onboarding_done BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  token TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
