@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSchema, getPool } from './_db.js';
+import { ensureSchema, ensureFunctions, getPool } from './_db.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -9,13 +9,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     await ensureSchema();
+    await ensureFunctions();
     const pool = getPool();
 
     if (req.method === 'GET') {
-      const { rows } = await pool.query(
-        `SELECT id, title, to_char(date, 'YYYY-MM-DD') AS date
-         FROM completed_activities ORDER BY completed_at ASC`
-      );
+      const { rows } = await pool.query(`SELECT * FROM fn_get_activities()`);
       return res.status(200).json(rows);
     }
 
@@ -24,13 +22,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'id y title son requeridos' });
     }
 
-    const date = new Date().toISOString().slice(0, 10);
     const { rows } = await pool.query(
-      `INSERT INTO completed_activities (id, title, date)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (id, date) DO NOTHING
-       RETURNING id, title, to_char(date, 'YYYY-MM-DD') AS date`,
-      [String(id), String(title), date]
+      `SELECT * FROM fn_insert_activity($1, $2)`,
+      [String(id), String(title)]
     );
     return res.status(200).json(rows[0] ?? null);
   } catch (err) {
