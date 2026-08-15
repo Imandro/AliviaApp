@@ -8,12 +8,20 @@ import { Breathe } from './views/Breathe';
 import { BurnJournal } from './views/BurnJournal';
 import { Coping } from './views/Coping';
 import { SosScreen } from './views/SosScreen';
+import { ExploreView } from './views/ExploreView';
+import { ChatView } from './views/ChatView';
+import { RadarView } from './views/RadarView';
+import { PlansView } from './views/PlansView';
+import { CommunityView } from './views/CommunityView';
+import { LibraryView } from './views/LibraryView';
+import { ConnectView } from './views/ConnectView';
 
 const ROUTE_MAP: Record<string, TabId> = {
   '/': 'dashboard',
   '/breathe': 'breathe',
   '/journal': 'journal',
   '/coping': 'coping',
+  '/explore': 'explore',
 };
 
 function AppShell() {
@@ -68,6 +76,13 @@ function AppShell() {
                 <Route path="/journal" element={<BurnJournal theme={theme} />} />
                 <Route path="/coping" element={<Coping />} />
                 <Route path="/sos" element={<SosScreen />} />
+                <Route path="/explore" element={<ExploreView />} />
+                <Route path="/chat" element={<ChatView />} />
+                <Route path="/radar" element={<RadarView />} />
+                <Route path="/plans" element={<PlansView />} />
+                <Route path="/community" element={<CommunityView />} />
+                <Route path="/library" element={<LibraryView />} />
+                <Route path="/connect" element={<ConnectView />} />
               </Routes>
             </div>
           </ErrorBoundary>

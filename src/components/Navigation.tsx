@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Home, Wind, PenTool, Compass } from 'lucide-react';
+import { Home, Wind, PenTool, Compass, LayoutGrid } from 'lucide-react';
 
-export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping';
+export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'explore';
 
 interface NavigationProps {
   activeTab: TabId;
@@ -14,7 +14,7 @@ interface NavItem {
   icon: React.ComponentType<any>;
 }
 
-const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping'];
+const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping', 'explore'];
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   const navRef = useRef<HTMLDivElement>(null);
@@ -25,6 +25,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     { id: 'breathe', label: 'Respirar', icon: Wind },
     { id: 'journal', label: 'Desahogo', icon: PenTool },
     { id: 'coping', label: 'Apoyo', icon: Compass },
+    { id: 'explore', label: 'Explorar', icon: LayoutGrid },
   ];
 
   useEffect(() => {
