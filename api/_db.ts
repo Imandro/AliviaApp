@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 let pool: Pool | null = null;
 
@@ -22,7 +24,48 @@ CREATE TABLE IF NOT EXISTS completed_activities (
   date DATE NOT NULL,
   PRIMARY KEY (id, date)
 );
+
+CREATE TABLE IF NOT EXISTS community_posts (
+  id SERIAL PRIMARY KEY,
+  author TEXT NOT NULL DEFAULT 'Anónimo',
+  content TEXT NOT NULL,
+  topic TEXT,
+  likes INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS plans (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  area TEXT NOT NULL DEFAULT 'general',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS plan_goals (
+  id SERIAL PRIMARY KEY,
+  plan_id INTEGER NOT NULL REFERENCES plans(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  done BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS plan_activities (
+  id SERIAL PRIMARY KEY,
+  plan_id INTEGER NOT NULL REFERENCES plans(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  duration TEXT,
+  done BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 `;
+
+const FUNCTIONS_SQL = (() => {
+  try {
+    return readFileSync(join(process.cwd(), 'db', 'functions.sql'), 'utf8');
+  } catch {
+    return '';
+  }
+})();
 
 export function getPool(): Pool {
   if (!pool) {
@@ -34,6 +77,7 @@ export function getPool(): Pool {
       ssl: { rejectUnauthorized: false },
       max: 5,
       connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
     });
   }
   return pool;
@@ -52,4 +96,19 @@ export function ensureSchema(): Promise<void> {
       });
   }
   return schemaReady;
+}
+
+let functionsReady: Promise<void> | null = null;
+
+export function ensureFunctions(): Promise<void> {
+  if (!functionsReady) {
+    functionsReady = getPool()
+      .query(FUNCTIONS_SQL)
+      .then(() => {})
+      .catch((err) => {
+        functionsReady = null;
+        throw err;
+      });
+  }
+  return functionsReady;
 }

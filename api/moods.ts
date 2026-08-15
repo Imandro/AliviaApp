@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { ensureSchema, getPool } from './_db.js';
+import { ensureSchema, ensureFunctions, getPool } from './_db.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -9,13 +9,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     await ensureSchema();
+    await ensureFunctions();
     const pool = getPool();
 
     if (req.method === 'GET') {
-      const { rows } = await pool.query(
-        `SELECT to_char(date, 'YYYY-MM-DD') AS date, score, note
-         FROM mood_entries ORDER BY date ASC`
-      );
+      const { rows } = await pool.query(`SELECT * FROM fn_get_moods()`);
       return res.status(200).json(rows);
     }
 
@@ -25,11 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const { rows } = await pool.query(
-      `INSERT INTO mood_entries (date, score, note)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (date)
-       DO UPDATE SET score = EXCLUDED.score, note = EXCLUDED.note
-       RETURNING to_char(date, 'YYYY-MM-DD') AS date, score, note`,
+      `SELECT o_date AS date, o_score AS score, o_note AS note FROM fn_upsert_mood($1, $2, $3)`,
       [date, score, note ?? null]
     );
     return res.status(200).json(rows[0]);
