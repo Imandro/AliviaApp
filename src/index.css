@@ -477,6 +477,11 @@ body::after {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
 .fade-in {
   animation: fadeIn 0.45s var(--spring-fast) forwards;
 }

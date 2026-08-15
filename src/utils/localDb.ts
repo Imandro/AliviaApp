@@ -164,3 +164,90 @@ export const getActivityStats = async (): Promise<{ [id: string]: number }> => {
   });
   return stats;
 };
+
+// -------------------- COMUNIDAD GLOBAL --------------------
+
+export interface CommunityPost {
+  id: number;
+  author: string;
+  content: string;
+  topic: string;
+  likes: number;
+  created_at: string;
+}
+
+export const getPosts = async (topic?: string): Promise<CommunityPost[]> => {
+  try {
+    const qs = topic && topic !== 'todos' ? `?topic=${encodeURIComponent(topic)}` : '';
+    return await request<CommunityPost[]>(`/posts${qs}`);
+  } catch (e) {
+    return [];
+  }
+};
+
+export const createPost = async (content: string, topic: string, author: string): Promise<CommunityPost> => {
+  return request<CommunityPost>('/posts', {
+    method: 'POST',
+    body: JSON.stringify({ content, topic, author }),
+  });
+};
+
+export const likePost = async (postId: number): Promise<void> => {
+  await request(`/posts/like?postId=${postId}`, { method: 'POST' });
+};
+
+// -------------------- PLANES DE PROGRESO --------------------
+
+export interface PlanGoal {
+  id: number;
+  title: string;
+  done: boolean;
+}
+
+export interface Plan {
+  id: number;
+  title: string;
+  area: string;
+  created_at: string;
+  goals: PlanGoal[];
+}
+
+export const getPlans = async (): Promise<Plan[]> => {
+  try {
+    return await request<Plan[]>('/plans');
+  } catch (e) {
+    return [];
+  }
+};
+
+export const createPlan = async (title: string, area: string): Promise<Plan> => {
+  return request<Plan>('/plans', {
+    method: 'POST',
+    body: JSON.stringify({ title, area }),
+  });
+};
+
+export const deletePlan = async (planId: number): Promise<void> => {
+  await request(`/plans?planId=${planId}`, { method: 'DELETE' });
+};
+
+export const addPlanGoal = async (planId: number, goalTitle: string): Promise<PlanGoal> => {
+  return request<PlanGoal>(`/plans?planId=${planId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ action: 'add_goal', goalTitle }),
+  });
+};
+
+export const togglePlanGoal = async (planId: number, goalId: number): Promise<void> => {
+  await request(`/plans?planId=${planId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ action: 'toggle_goal', goalId }),
+  });
+};
+
+export const deletePlanGoal = async (planId: number, goalId: number): Promise<void> => {
+  await request(`/plans?planId=${planId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ action: 'delete_goal', goalId }),
+  });
+};
