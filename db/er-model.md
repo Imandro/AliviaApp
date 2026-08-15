@@ -58,8 +58,36 @@ erDiagram
         created_at TIMESTAMPTZ
     }
 
+    USERS {
+        id UUID PK
+        username TEXT "unique"
+        email TEXT "unique"
+        phone TEXT "unique, opcional"
+        name TEXT
+        password_hash TEXT
+        problems TEXT[] "onboarding"
+        situations TEXT[] "onboarding"
+        strategies TEXT[] "onboarding"
+        trusted_person TEXT
+        trusted_phone TEXT
+        wants_contact BOOLEAN
+        changes TEXT[] "onboarding"
+        goals_text TEXT
+        onboarding_done BOOLEAN
+        created_at TIMESTAMPTZ
+        updated_at TIMESTAMPTZ
+    }
+
+    SESSIONS {
+        token TEXT PK
+        user_id UUID FK
+        created_at TIMESTAMPTZ
+        expires_at TIMESTAMPTZ
+    }
+
     PLANS ||--o{ PLAN_GOALS : "tiene (1:N)"
     PLANS ||--o{ PLAN_ACTIVITIES : "incluye (1:N)"
+    USERS ||--o{ SESSIONS : "abre (1:N)"
 
     MOOD_ENTRIES ||--o{ COMPLETED_ACTIVITIES : "comparten fecha (no FK)"
 ```
@@ -70,8 +98,9 @@ erDiagram
 |---|---|---|---|---|
 | Plan → Metas | `plans` | `plan_goals` | 1 : N | `ON DELETE CASCADE` |
 | Plan → Actividades | `plans` | `plan_activities` | 1 : N | `ON DELETE CASCADE` |
+| Usuario → Sesiones | `users` | `sessions` | 1 : N | `ON DELETE CASCADE` |
 
-El resto de tablas son **independientes** (no tienen llaves foráneas entre sí).
+Las tablas de contenido (`mood_entries`, `emergency_contact`, `completed_activities`, `community_posts`, `plans`) son **independientes** (no tienen llaves foráneas a `users`); cada usuario registrado comparte el mismo contenido global.
 
 ## Tablas
 
@@ -141,9 +170,41 @@ El resto de tablas son **independientes** (no tienen llaves foráneas entre sí)
 | `done` | `BOOLEAN` | NOT NULL, default `false` | Estado de completado |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Fecha de creación |
 
+### `users` — Cuentas y perfil de bienestar (Login / Registro)
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `id` | `UUID` | **PK**, default `gen_random_uuid()` | Identificador único |
+| `username` | `TEXT` | UNIQUE, NOT NULL | Nombre de usuario (se guarda en minúsculas) |
+| `email` | `TEXT` | UNIQUE, NOT NULL | Correo (se guarda en minúsculas) |
+| `phone` | `TEXT` | UNIQUE, opcional | Teléfono registrado al crear la cuenta |
+| `name` | `TEXT` | NOT NULL | Nombre visible (saludo en la app) |
+| `password_hash` | `TEXT` | NOT NULL | Hash `scrypt` con sal (nunca se expone) |
+| `problems` | `TEXT[]` | default `'{}'` | Problemas con los que lucha (onboarding) |
+| `situations` | `TEXT[]` | default `'{}'` | Cosas que está pasando (onboarding) |
+| `strategies` | `TEXT[]` | default `'{}'` | Cómo desea luchar contra eso (onboarding) |
+| `trusted_person` | `TEXT` | opcional | Persona de mayor confianza |
+| `trusted_phone` | `TEXT` | opcional | Teléfono de esa persona |
+| `wants_contact` | `BOOLEAN` | NOT NULL, default `false` | Consentimiento para contacto de acompañamiento |
+| `changes` | `TEXT[]` | default `'{}'` | Cosas que desea cambiar (onboarding) |
+| `goals_text` | `TEXT` | opcional | Texto libre adicional |
+| `onboarding_done` | `BOOLEAN` | NOT NULL, default `false` | Indica si completó el primer inicio |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Fecha de registro |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Última actualización |
+
+### `sessions` — Sesiones de login
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `token` | `TEXT` | **PK** | Token de sesión (doble UUID), se envía como `Bearer` |
+| `user_id` | `UUID` | **FK → `users(id)`**, NOT NULL, `ON DELETE CASCADE` | Dueño de la sesión |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Fecha de creación |
+| `expires_at` | `TIMESTAMPTZ` | NOT NULL | Expira a los 30 días; las expiradas se limpian al crear una nueva |
+
 ## Notas de diseño
 
-- **Sin usuario global**: la app es 100% anónima/individual; no hay tabla `users`. Cada dispositivo comparte el mismo almacenamiento de la BD.
+- **Cuentas**: `users` guarda credenciales + perfil de bienestar (onboarding). El login acepta **usuario o correo** como identificador.
+- **Seguridad**: contraseñas con `scrypt` + sal aleatoria; las sesiones expiran a los 30 días y el `password_hash` nunca se devuelve al cliente.
 - **`mood_entries.date` es PK** → un solo ánimo por día (upsert por conflicto).
 - **`completed_activities` PK compuesta `(id, date)`** → imposible duplicar la misma actividad el mismo día.
 - **`emergency_contact.id = 1`** → patrón de "fila única" con upsert.

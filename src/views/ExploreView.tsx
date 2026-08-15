@@ -8,8 +8,10 @@ import {
   Users,
   BookOpen,
   Handshake,
+  CircleUser,
   ChevronRight,
 } from 'lucide-react';
+import type { SafeUser } from '../utils/auth';
 
 interface FeatureCard {
   id: string;
@@ -85,9 +87,18 @@ const FEATURES: FeatureCard[] = [
     gradient: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.10) 0%, rgba(var(--accent-gold-rgb), 0.05) 100%)',
     color: 'var(--accent-sage)',
   },
+  {
+    id: 'profile',
+    title: 'Mi Perfil',
+    desc: 'Revisa tus datos, tu persona de confianza y lo que quieres cambiar. Edítalo cuando quieras.',
+    icon: CircleUser,
+    path: '/profile',
+    gradient: 'linear-gradient(135deg, rgba(var(--accent-lavender-rgb), 0.10) 0%, rgba(var(--accent-warm-rgb), 0.05) 100%)',
+    color: 'var(--accent-lavender)',
+  },
 ];
 
-export const ExploreView: React.FC = () => {
+export const ExploreView: React.FC<{ user?: SafeUser }> = ({ user }) => {
   const navigate = useNavigate();
 
   return (
@@ -98,7 +109,9 @@ export const ExploreView: React.FC = () => {
           <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>EXPLORAR</h3>
         </div>
         <p className="body-standard" style={{ fontSize: '12px', opacity: 0.75 }}>
-          Todas las herramientas de Alivia en un solo lugar. Disponibles para ti cuando las necesites.
+          {user
+            ? `Hola, ${user.name.split(' ')[0]}. Todas las herramientas de Alivia en un solo lugar, listas para cuando las necesites.`
+            : 'Todas las herramientas de Alivia en un solo lugar. Disponibles para ti cuando las necesites.'}
         </p>
       </div>
 

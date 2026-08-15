@@ -482,6 +482,15 @@ body::after {
   30% { transform: translateY(-5px); opacity: 1; }
 }
 
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .fade-in {
   animation: fadeIn 0.45s var(--spring-fast) forwards;
 }
