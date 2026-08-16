@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BookOpen, Mic, FileText, Sparkles, ArrowRight } from 'lucide-react';
 import { getMoodHistory } from '../utils/localDb';
+import { LUCHAS } from '../utils/luchas';
 
-type Category = 'ansiedad' | 'tristeza' | 'hábitos' | 'relaciones' | 'adicciones' | 'bienestar';
+type Category = 'depresion' | 'ansiedad' | 'familia' | 'economia' | 'amistades' | 'noviazgo' | 'bienestar';
 
 interface LibraryItem {
   id: string;
@@ -23,68 +24,96 @@ const LIBRARY: LibraryItem[] = [
   {
     id: 'l2', type: 'libro', title: 'Tu mente en 18 minutos',
     desc: 'Cómo calmar la mente acelerada con hábitos breves y diarios.',
-    category: ['ansiedad', 'hábitos'], age: '14+',
+    category: ['ansiedad', 'bienestar'], age: '14+',
   },
   {
-    id: 'l3', type: 'articulo', title: 'La ola de la urgencia: por qué las ganas de consumir bajan solas',
-    desc: 'Entiende la curva del craving y cómo surfearla sin pelear contra ella.',
-    category: 'adicciones', age: '12+',
-  },
-  {
-    id: 'l4', type: 'libro', title: 'El poder de los hábitos (resumen juvenil)',
-    desc: 'Por qué los hábitos se pegan y cómo diseñar rutinas que te sostengan.',
-    category: ['hábitos', 'bienestar'], age: '14+',
-  },
-  {
-    id: 'l5', type: 'articulo', title: 'La tristeza también es una respuesta válida',
+    id: 'l3', type: 'articulo', title: 'La tristeza también es una respuesta válida',
     desc: 'Validar la tristeza y distinguirla de la depresión para saber cuándo pedir ayuda.',
-    category: 'tristeza', age: '12+',
+    category: 'depresion', age: '12+',
   },
   {
-    id: 'l6', type: 'recurso', title: 'Guía de primeros auxilios emocionales',
-    desc: 'Respuestas rápidas para momentos de crisis: pánico, enojo y autolesión.',
+    id: 'l4', type: 'recurso', title: 'Guía de primeros auxilios emocionales',
+    desc: 'Respuestas rápidas para momentos de crisis: pánico, enojo y desborde emocional.',
     category: ['bienestar', 'ansiedad'], age: '12+',
   },
   {
-    id: 'l7', type: 'libro', title: 'Cómo hacer amigos incluso siendo tímido(a)',
-    desc: 'Estrategias pequeñas para construir vínculos sin forzarte a ser otra persona.',
-    category: 'relaciones', age: '12+',
+    id: 'l5', type: 'libro', title: 'Cómo hacer amigos incluso siendo tímido(a)',
+    desc: 'Estrategias pequeñas para construir vínculos sanos sin forzarte a ser otra persona.',
+    category: 'amistades', age: '12+',
   },
   {
-    id: 'l8', type: 'articulo', title: 'Familias complicadas: límites sin culpa',
+    id: 'l6', type: 'articulo', title: 'Familias complicadas: límites sin culpa',
     desc: 'Cómo proteger tu paz dentro de un hogar conflictivo sin dejarte llevar por el caos.',
-    category: 'relaciones', age: '14+',
+    category: 'familia', age: '14+',
   },
   {
-    id: 'l9', type: 'recurso', title: 'Técnicas rápidas para dormir (mente en reposo)',
+    id: 'l7', type: 'recurso', title: 'Técnicas rápidas para dormir (mente en reposo)',
     desc: 'Protocolo 4-7-8 y rutina para apagar la mente antes de dormir.',
     category: 'bienestar', age: '10+',
   },
   {
-    id: 'l10', type: 'articulo', title: 'Cómo hablar de lo que sientes con alguien de confianza',
+    id: 'l8', type: 'articulo', title: 'Cómo hablar de lo que sientes con alguien de confianza',
     desc: 'El guion paso a paso para pedir apoyo sin tener que explicarlo todo.',
-    category: 'relaciones', age: '12+',
+    category: ['amistades', 'depresion'], age: '12+',
   },
   {
-    id: 'l11', type: 'recurso', title: 'Radar emocional: cómo llevar una bitácora de tu ánimo',
+    id: 'l9', type: 'recurso', title: 'Radar emocional: cómo llevar una bitácora de tu ánimo',
     desc: 'La ciencia detrás del registro diario de emociones y cómo hacerlo sin agobiarte.',
     category: 'bienestar', age: '12+',
   },
   {
-    id: 'l12', type: 'articulo', title: 'Estrés escolar: el plan de 10 minutos',
+    id: 'l10', type: 'articulo', title: 'Estrés escolar: el plan de 10 minutos',
     desc: 'Divide en bloques pequeños la presión académica sin quemarte.',
-    category: 'hábitos', age: '12+',
+    category: ['ansiedad', 'bienestar'], age: '12+',
+  },
+  {
+    id: 'l11', type: 'articulo', title: 'Amistades que drenan: las 8 señales',
+    desc: 'Cómo reconocer la burla disfrazada de cariño, el control y el uso en tus amistades.',
+    category: 'amistades', age: '12+',
+  },
+  {
+    id: 'l12', type: 'articulo', title: 'Banderas rojas en el noviazgo',
+    desc: 'Celos, control del teléfono y aislamiento: por qué no son amor y cómo salir de ahí.',
+    category: 'noviazgo', age: '14+',
+  },
+  {
+    id: 'l13', type: 'libro', title: 'Romper en paz: terminar una relación tóxica',
+    desc: 'Un plan paso a paso para salir acompañado(a), sin volver a caer y con el corazón entero.',
+    category: 'noviazgo', age: '14+',
+  },
+  {
+    id: 'l14', type: 'recurso', title: 'Economía para jóvenes sin morir en el intento',
+    desc: 'Presupuesto simple, ahorro mínimo y primeras ideas para generar ingresos.',
+    category: 'economia', age: '13+',
+  },
+  {
+    id: 'l15', type: 'recurso', title: 'Becas y apoyos que existen en tu país',
+    desc: 'Dónde buscar programas gratuitos de estudio, empleo y emprendimiento juvenil.',
+    category: 'economia', age: '13+',
+  },
+  {
+    id: 'l16', type: 'articulo', title: 'Sobrevivir al ambiente en casa',
+    desc: 'Hipervigilancia, mediación y culpa: cómo cuidarte sin escapar de tu hogar.',
+    category: 'familia', age: '12+',
+  },
+  {
+    id: 'l17', type: 'libro', title: 'Entender la depresión en jóvenes',
+    desc: 'Qué se siente, por qué pasa y cómo se distingue de la tristeza normal.',
+    category: 'depresion', age: '12+',
+  },
+  {
+    id: 'l18', type: 'recurso', title: 'Cómo calmar un ataque de pánico',
+    desc: 'Pasos concretos para cuando el cuerpo se dispara: agua fría, 4-7-8 y anclaje.',
+    category: 'ansiedad', age: '12+',
   },
 ];
 
-const CATEGORY_META: Record<string, { emoji: string; color: string }> = {
-  ansiedad: { emoji: '🌫️', color: 'var(--accent-warm)' },
-  tristeza: { emoji: '💙', color: 'var(--accent-lavender)' },
-  hábitos: { emoji: '🫁', color: 'var(--accent-sage)' },
-  relaciones: { emoji: '🤝', color: 'var(--accent-rose)' },
-  adicciones: { emoji: '🌀', color: 'var(--accent-gold)' },
+const LUCHA_META: Record<string, { emoji: string; color: string }> = {
   bienestar: { emoji: '🌿', color: 'var(--accent-sage)' },
 };
+LUCHAS.forEach(l => { LUCHA_META[l.id] = { emoji: l.emoji, color: l.color }; });
+
+const CATEGORY_META = LUCHA_META;
 
 const TYPE_ICONS = { libro: BookOpen, articulo: FileText, recurso: Mic };
 
@@ -100,7 +129,7 @@ export const LibraryView: React.FC = () => {
         const last14 = history.slice(-14);
         if (last14.length < 3) return;
         const avg = last14.reduce((a, h) => a + h.score, 0) / last14.length;
-        if (avg <= 2.4) setMoodBased('tristeza');
+        if (avg <= 2.4) setMoodBased('depresion');
         else if (avg <= 3.3) setMoodBased('ansiedad');
         else setMoodBased('bienestar');
       } catch {
