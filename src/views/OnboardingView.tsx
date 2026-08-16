@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Heart,
   Check,
@@ -23,53 +23,53 @@ interface OnboardingViewProps {
 }
 
 const PROBLEMS = [
-  'Ansiedad y preocupaciÃ³n constante',
-  'EstrÃ©s y agobio',
-  'Tristeza o desÃ¡nimo',
+  'Ansiedad y preocupación constante',
+  'Estrés y agobio',
+  'Tristeza o desánimo',
   'Soledad o aislamiento',
   'Baja autoestima',
   'Dificultad para dormir',
   'Irritabilidad o enojo',
-  'Falta de concentraciÃ³n',
+  'Falta de concentración',
   'Pensamientos negativos recurrentes',
   'Consumo o deseos de consumir (adicciones)',
-  'Pensamientos de hacerme daÃ±o o de suicidio',
+  'Pensamientos de hacerme daño o de suicidio',
 ];
 
 const SITUATIONS = [
-  'Ataques de ansiedad o pÃ¡nico',
+  'Ataques de ansiedad o pánico',
   'No poder dormir o descansar',
-  'Falta de motivaciÃ³n',
+  'Falta de motivación',
   'Agobio por trabajo o estudios',
   'Conflictos en casa o familia',
-  'Rupturas o pÃ©rdidas',
+  'Rupturas o pérdidas',
   'Cambios de vida importantes',
   'Cansancio extremo',
   'Miedo o incertidumbre por el futuro',
-  'Ganas fuertes de consumir o recaÃ­das',
+  'Ganas fuertes de consumir o recaídas',
   'Sentirme sin salida o sin ganas de seguir',
 ];
 
 const STRATEGIES = [
   'Hablar con alguien de confianza',
-  'Ejercicio fÃ­sico',
-  'MeditaciÃ³n y respiraciÃ³n',
+  'Ejercicio físico',
+  'Meditación y respiración',
   'Escribir mis pensamientos',
   'Terapia profesional',
   'Establecer rutinas saludables',
   'Usar las herramientas de Alivia',
   'Apoyo de la comunidad',
-  'OraciÃ³n o espiritualidad',
-  'TodavÃ­a no lo sÃ©',
+  'Oración o espiritualidad',
+  'Todavía no lo sé',
 ];
 
 const CHANGES = [
   'Mi forma de dormir',
   'Mis pensamientos',
   'Mi autoestima',
-  'Mi relaciÃ³n con los demÃ¡s',
-  'Mi manejo del estrÃ©s',
-  'Mi estado de Ã¡nimo',
+  'Mi relación con los demás',
+  'Mi manejo del estrés',
+  'Mi estado de ánimo',
   'Mi vida laboral o de estudios',
   'Mi rutina diaria',
 ];
@@ -133,7 +133,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
         try {
           await saveEmergencyContact(trustedPerson.trim(), trustedPhone.trim());
         } catch {
-          // El contacto seguro tambiÃ©n puede guardarse mÃ¡s tarde desde SOS
+          // El contacto seguro también puede guardarse más tarde desde SOS
         }
       }
 
@@ -146,7 +146,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
 
   const renderSummaryChips = (items: string[]) =>
     items.length === 0 ? (
-      <p style={styles.emptyNote}>PrefiriÃ³ no responder</p>
+      <p style={styles.emptyNote}>Prefirió no responder</p>
     ) : (
       <div style={styles.chipRow}>
         {items.map((i) => (
@@ -207,18 +207,18 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
         <div className="glass-card auth-card fade-in" style={styles.card}>
           <div style={styles.topBar}>
             {step > 0 ? (
-              <button type="button" onClick={back} style={styles.backBtn} title="AtrÃ¡s">
+              <button type="button" onClick={back} style={styles.backBtn} title="Atrás">
                 <ArrowLeft size={18} />
               </button>
             ) : (
               <span style={styles.backBtnSpacer} />
             )}
             <span style={styles.stepLabel}>
-              {isEdit ? 'EDITAR PERFIL' : 'TU PRIMERA VEZ EN ALIVIA'} Â· {step + 1}/{TOTAL_STEPS}
+              {isEdit ? 'EDITAR PERFIL' : 'TU PRIMERA VEZ EN ALIVIA'} · {step + 1}/{TOTAL_STEPS}
             </span>
             {onClose ? (
               <button type="button" onClick={onClose} style={styles.backBtn} title="Cerrar">
-                âœ•
+                ✕
               </button>
             ) : (
               <span style={styles.backBtnSpacer} />
@@ -243,16 +243,16 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
               <h1 style={styles.welcomeTitle}>
                 {isEdit
                   ? `Hola, ${user?.name?.split(' ')[0] || 'amigo'}`
-                  : `Â¡Hola, ${user?.name?.split(' ')[0] || 'amigo'}!`}
+                  : `¡Hola, ${user?.name?.split(' ')[0] || 'amigo'}!`}
               </h1>
               <p style={styles.welcomeText}>
-                Antes de comenzar, queremos conocerte un poquito para acompaÃ±arte mejor.
-                TÃ³mate tu tiempo: no hay respuestas correctas o incorrectas.
+                Antes de comenzar, queremos conocerte un poquito para acompañarte mejor.
+                Tómate tu tiempo: no hay respuestas correctas o incorrectas.
               </p>
               <div style={styles.privacyCard}>
                 <Shield size={18} color="var(--accent-sage)" />
                 <p style={styles.privacyText}>
-                  Todo lo que compartas aquÃ­ es privado y solo tÃº puedes verlo. Alivia lo usa
+                  Todo lo que compartas aquí es privado y solo tú puedes verlo. Alivia lo usa
                   para darte herramientas a tu medida.
                 </p>
               </div>
@@ -262,7 +262,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
 
           {step === 1 && (
             <div style={styles.stepWrap}>
-              {sectionTitle('Â¿Con cuÃ¡les problemas luchas?', 'Marca todos los que quieras, sin prisa.')}
+              {sectionTitle('¿Con cuáles problemas luchas?', 'Marca todos los que quieras, sin prisa.')}
               {optionList(PROBLEMS, problems, setProblems)}
               {continueBtn}
             </div>
@@ -270,7 +270,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
 
           {step === 2 && (
             <div style={styles.stepWrap}>
-              {sectionTitle('Â¿QuÃ© cosas estÃ¡s pasando?', 'CuÃ©ntanos quÃ© estÃ¡s atravesando Ãºltimamente.')}
+              {sectionTitle('¿Qué cosas estás pasando?', 'Cuéntanos qué estás atravesando últimamente.')}
               {optionList(SITUATIONS, situations, setSituations)}
               {continueBtn}
             </div>
@@ -278,7 +278,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
 
           {step === 3 && (
             <div style={styles.stepWrap}>
-              {sectionTitle('Â¿CÃ³mo te gustarÃ­a luchar contra eso?', 'Elige las formas en las que quieres cuidarte.')}
+              {sectionTitle('¿Cómo te gustaría luchar contra eso?', 'Elige las formas en las que quieres cuidarte.')}
               {optionList(STRATEGIES, strategies, setStrategies)}
               {continueBtn}
             </div>
@@ -298,14 +298,14 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
                   id="trustedPerson"
                   className="input-apple"
                   style={styles.input}
-                  placeholder="Ej: Mi mamÃ¡, mi mejor amiga..."
+                  placeholder="Ej: Mi mamá, mi mejor amiga..."
                   value={trustedPerson}
                   onChange={(e) => setTrustedPerson(e.target.value)}
                 />
               </div>
               <div style={styles.field}>
                 <label htmlFor="trustedPhone" style={styles.label}>
-                  <Phone size={13} color="var(--accent-gold)" /> Su telÃ©fono (opcional)
+                  <Phone size={13} color="var(--accent-gold)" /> Su teléfono (opcional)
                 </label>
                 <CountryPhoneInput
                   id="trustedPhone"
@@ -325,14 +325,14 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
               <div style={styles.iconCircle}>
                 <Phone size={30} color="var(--accent-sage)" />
               </div>
-              {sectionTitle('Â¿Te gustarÃ­a que te contacten?', 'Para acompaÃ±arte cuando lo necesites.')}
+              {sectionTitle('¿Te gustaría que te contacten?', 'Para acompañarte cuando lo necesites.')}
               <div style={styles.toggleRow}>
                 <div>
-                  <p style={styles.toggleTitle}>{wantsContact ? 'Â¡Claro que sÃ­!' : 'TodavÃ­a no'}</p>
+                  <p style={styles.toggleTitle}>{wantsContact ? '¡Claro que sí!' : 'Todavía no'}</p>
                   <p style={styles.toggleDesc}>
                     {wantsContact
-                      ? 'Pueden escribirte para darte Ã¡nimo y apoyo.'
-                      : 'Solo tÃº decides. Puedes cambiarlo cuando quieras.'}
+                      ? 'Pueden escribirte para darte ánimo y apoyo.'
+                      : 'Solo tú decides. Puedes cambiarlo cuando quieras.'}
                   </p>
                 </div>
                 <button
@@ -360,7 +360,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
               {wantsContact && (
                 <div style={styles.field}>
                   <label htmlFor="ownPhone" style={styles.label}>
-                    <Phone size={13} color="var(--accent-gold)" /> Tu nÃºmero de telÃ©fono
+                    <Phone size={13} color="var(--accent-gold)" /> Tu número de teléfono
                   </label>
                   <CountryPhoneInput
                     id="ownPhone"
@@ -368,7 +368,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
                     onChange={setOwnPhone}
                     autoComplete="tel"
                   />
-                  <p style={styles.hint}>Solo se usarÃ¡ para contactarte si hay algo importante.</p>
+                  <p style={styles.hint}>Solo se usará para contactarte si hay algo importante.</p>
                 </div>
               )}
               <button type="button" className="btn-primary" style={styles.continueBtn} onClick={next}>
@@ -382,17 +382,17 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
               <div style={styles.iconCircle}>
                 <RefreshCcw size={30} color="var(--accent-lavender)" />
               </div>
-              {sectionTitle('Â¿QuÃ© cosas deseas cambiar?', 'SueÃ±a un poco: Â¿quÃ© te gustarÃ­a mejorar en tu vida?')}
+              {sectionTitle('¿Qué cosas deseas cambiar?', 'Sueña un poco: ¿qué te gustaría mejorar en tu vida?')}
               {optionList(CHANGES, changes, setChanges)}
               <div style={styles.field}>
                 <label htmlFor="goalsText" style={styles.label}>
-                  <Sparkles size={13} color="var(--accent-gold)" /> CuÃ©ntanos algo mÃ¡s (opcional)
+                  <Sparkles size={13} color="var(--accent-gold)" /> Cuéntanos algo más (opcional)
                 </label>
                 <textarea
                   id="goalsText"
                   className="input-apple"
                   style={{ ...styles.input, minHeight: '90px', resize: 'vertical' }}
-                  placeholder="Â¿QuÃ© mÃ¡s te gustarÃ­a lograr o cambiar?"
+                  placeholder="¿Qué más te gustaría lograr o cambiar?"
                   value={goalsText}
                   onChange={(e) => setGoalsText(e.target.value)}
                 />
@@ -408,7 +408,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
               </div>
               <h2 style={styles.sectionTitle}>Resumen de tu perfil</h2>
               <p style={styles.sectionSubtitle}>
-                Esto es lo que Alivia recordarÃ¡ de ti. Si algo no te convence, vuelve atrÃ¡s.
+                Esto es lo que Alivia recordará de ti. Si algo no te convence, vuelve atrás.
               </p>
 
               <div style={styles.summaryBlock}>
@@ -416,11 +416,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
                 {renderSummaryChips(problems)}
               </div>
               <div style={styles.summaryBlock}>
-                <p style={styles.summaryLabel}>Cosas que estÃ¡s pasando</p>
+                <p style={styles.summaryLabel}>Cosas que estás pasando</p>
                 {renderSummaryChips(situations)}
               </div>
               <div style={styles.summaryBlock}>
-                <p style={styles.summaryLabel}>CÃ³mo quieres luchar contra eso</p>
+                <p style={styles.summaryLabel}>Cómo quieres luchar contra eso</p>
                 {renderSummaryChips(strategies)}
               </div>
               <div style={styles.summaryBlock}>
@@ -432,29 +432,29 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
                 {trustedPerson.trim() ? (
                   <p style={styles.summaryText}>
                     {trustedPerson.trim()}
-                    {trustedPhone.trim() ? ` Â· ${trustedPhone.trim()}` : ''}
+                    {trustedPhone.trim() ? ` · ${trustedPhone.trim()}` : ''}
                   </p>
                 ) : (
-                  <p style={styles.emptyNote}>PrefiriÃ³ no compartirlo</p>
+                  <p style={styles.emptyNote}>Prefirió no compartirlo</p>
                 )}
               </div>
               <div style={styles.summaryBlock}>
-                <p style={styles.summaryLabel}>Ser contactado para acompaÃ±amiento</p>
+                <p style={styles.summaryLabel}>Ser contactado para acompañamiento</p>
                 <p style={styles.summaryText}>
-                  {wantsContact ? `SÃ­ Â· ${ownPhone.trim() || 'Sin nÃºmero registrado'}` : 'No por ahora'}
+                  {wantsContact ? `Sí · ${ownPhone.trim() || 'Sin número registrado'}` : 'No por ahora'}
                 </p>
               </div>
 
               {goalsText.trim() && (
                 <div style={styles.summaryBlock}>
-                  <p style={styles.summaryLabel}>Algo mÃ¡s que quieres cambiar</p>
+                  <p style={styles.summaryLabel}>Algo más que quieres cambiar</p>
                   <p style={styles.summaryText}>{goalsText.trim()}</p>
                 </div>
               )}
 
               <div style={styles.quoteCard}>
                 <p style={styles.quoteText}>
-                  "Cada pequeÃ±o paso que das hoy te acerca a la persona que quieres ser."
+                  "Cada pequeño paso que das hoy te acerca a la persona que quieres ser."
                 </p>
               </div>
 
