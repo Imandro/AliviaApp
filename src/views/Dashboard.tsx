@@ -186,8 +186,9 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         return (
           <>
             <div style={styles.pickerOverlay} onClick={() => setPickerOpen(false)} />
-            <div style={styles.pickerModal} role="dialog" aria-modal="true">
-              <div style={styles.pickerHandle} />
+            <div style={styles.pickerModalWrap} role="dialog" aria-modal="true">
+              <div style={styles.pickerModal}>
+                <div style={styles.pickerHandle} />
               <div style={styles.modalPreview}>
                 <div style={{ fontSize: '40px', lineHeight: 1, animation: 'softFloat 3s ease-in-out infinite' }}>{preview.emoji}</div>
                 <div style={{ fontFamily: 'var(--font-title)', fontSize: '9.5px', letterSpacing: '0.22em', color: 'var(--text-muted)', marginTop: '10px' }}>
@@ -232,6 +233,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
                   <CheckCircle2 size={16} color="#0c1810" />
                   ¡Listo!
                 </button>
+              </div>
               </div>
             </div>
           </>
@@ -504,12 +506,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 999,
     animation: 'fadeInFast 0.25s ease forwards',
   },
-  pickerModal: {
+  pickerModalWrap: {
     position: 'fixed',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    inset: 0,
     zIndex: 1000,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  pickerModal: {
+    pointerEvents: 'auto',
     width: 'min(380px, calc(100% - 40px))',
     maxHeight: '86vh',
     overflowY: 'auto',
