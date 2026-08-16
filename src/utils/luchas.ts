@@ -229,6 +229,78 @@ export const LUCHAS: Lucha[] = [
       'Ponerme límites de tiempo y espacio en la relación',
     ],
   },
+  {
+    id: 'adicciones',
+    label: 'Adicciones',
+    emoji: '🌀',
+    color: 'var(--accent-warm)',
+    rgb: 'var(--accent-warm-rgb)',
+    frases: [
+      { text: 'No eres tu consumo: eres la persona que está luchando por volver a sí misma.', ref: 'Vuelves a ti' },
+      { text: 'Cada día sin recaer es una victoria, y cada recaída es información, no fracaso.', ref: 'Información' },
+      { text: 'Pedir ayuda con una adicción no es debilidad: es la decisión más valiente del camino.', ref: 'Valentía' },
+    ],
+    retos: [
+      'Hoy identifica 1 disparador de tu consumo (lugar, hora, emoción o persona) y anótalo.',
+      'Remplaza un momento de consumo por otra actividad: caminar, dibujar o hablar.',
+      'Cuéntale la verdad a una persona de confianza sobre tu consumo.',
+    ],
+    saber: [
+      'El craving dura en promedio 15-20 minutos: si te distraes durante ese tiempo, la intensidad baja sola.',
+      'Las adicciones no son falta de voluntad: son cambios en el sistema de recompensa del cerebro, y eso también se reentrena.',
+      'Guardar "solo un poco" para después es la trampa más común: la abstinencia clara reduce el riesgo de recaída.',
+    ],
+    tips: [
+      'Evita el contacto con personas y lugares ligados al consumo al inicio',
+      'Inventa una "respuesta de escape" para cuando te ofrezcan: "no, gracias, cuido mi salud"',
+      'Busca apoyo profesional o de grupos: recuperarte acompañado(a) multiplica tus chances',
+    ],
+    guias: [
+      { title: 'Adicciones y juventud: entender para salir', desc: 'Cómo funciona el ciclo del consumo y qué estrategias reales funcionan para salir.' },
+      { title: 'Recursos de apoyo contra las adicciones', desc: 'Centros, líneas y comunidades de Centroamérica donde pedir ayuda sin pena.' },
+    ],
+    ideas: [
+      'Identificar mis disparadores de consumo',
+      'Tener una respuesta lista para cuando me ofrezcan',
+      'Buscar 1 recurso de apoyo esta semana',
+    ],
+  },
+  {
+    id: 'suicidio',
+    label: 'Pensamientos de suicidio',
+    emoji: '🫂',
+    color: 'var(--accent-rose)',
+    rgb: 'var(--accent-rose-rgb)',
+    frases: [
+      { text: 'Lo que sientes ahora es una tormenta, y las tormentas no duran para siempre. No estás solo(a): quédate un día más.', ref: 'Quédate' },
+      { text: 'Ese pensamiento no eres tú: es el dolor hablando con una voz muy alta. Busca ayuda ahora mismo.', ref: 'Ayuda ya' },
+      { text: 'No tienes que sentirte fuerte hoy: solo tienes que no estar solo(a) hoy.', ref: 'Compañía' },
+    ],
+    retos: [
+      'Si tienes pensamientos de hacerte daño: llama ahora a una línea de ayuda (menú SOS ⚠️).',
+      'Cuéntale a alguien de confianza lo que estás sintiendo hoy.',
+      'Pospón cualquier decisión por 24 horas y busca apoyo profesional esta semana.',
+    ],
+    saber: [
+      'La crisis suicida es temporal: la intensidad máxima dura minutos u horas y cede, aunque ahora no lo parezca.',
+      'Hablar del suicidio no lo "provoca": preguntar y escuchar SIEMPRE ayuda y puede salvar una vida.',
+      'El hecho de que estés leyendo esto buscando apoyo ya es una señal de que quieres estar bien: hay puertas abiertas.',
+    ],
+    tips: [
+      'Usa ya el menú SOS, llama a una línea de crisis o al 911',
+      'No te quedes solo(a): avisa a un adulto de confianza HOY',
+      'Elimina objetos con los que podrías hacerte daño: es una medida real de protección',
+    ],
+    guias: [
+      { title: 'Líneas de ayuda de Centroamérica', desc: 'Teléfonos gratuitos de crisis por país. Están para escucharte ahora.' },
+      { title: 'Cómo pedir ayuda: qué decir y a quién', desc: 'Un guion para hablar con un adulto o profesional sin quedarte en el intento.' },
+    ],
+    ideas: [
+      'Guardar el teléfono de una línea de ayuda en mi celular',
+      'Avisar a una persona de confianza cómo me siento',
+      'Buscar apoyo profesional esta semana',
+    ],
+  },
 ];
 
 export const GENERAL: Lucha = {
@@ -275,10 +347,14 @@ export const getLucha = (id: string): Lucha => LUCHAS.find((l) => l.id === id) ?
 // Relaciona los problemas elegidos en el onboarding con las luchas del marco
 export const problemsToLucha = (problems?: string[]): string => {
   const join = (problems ?? []).join(' ').toLowerCase();
-  if (/ansiedad|estrés|concentraci/.test(join)) return 'ansiedad';
-  if (/tristeza|desánimo|negativos/.test(join)) return 'depresion';
-  if (/soledad|aislamiento/.test(join)) return 'amistades';
-  if (/sueño|dormir|irritabilidad/.test(join)) return 'general';
+  if (/suicid|hacerme daño|dañarme|acabar con/.test(join)) return 'suicidio';
+  if (/adicci|consumo|sustancia|vape|alcohol|drogas/.test(join)) return 'adicciones';
+  if (/ansiedad|estrés|concentraci|pánico/.test(join)) return 'ansiedad';
+  if (/tristeza|desánimo|negativos|depresi/.test(join)) return 'depresion';
+  if (/familia|papás|casa|padres/.test(join)) return 'familia';
+  if (/dinero|económic|trabajo|deuda/.test(join)) return 'economia';
+  if (/noviazgo|pareja|amor|relación/.test(join)) return 'noviazgo';
+  if (/soledad|aislamiento|amigos|amistad/.test(join)) return 'amistades';
   return 'general';
 };
 
