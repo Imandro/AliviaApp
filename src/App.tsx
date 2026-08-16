@@ -169,7 +169,7 @@ function Root() {
       .then((u) => {
         if (cancelled) return;
         setUser(u);
-        setStatus(u.onboarding_done ? 'app' : 'onboarding');
+        setStatus('app');
       })
       .catch(() => {
         if (cancelled) return;
@@ -188,9 +188,9 @@ function Root() {
   if (status === 'welcome') {
     return (
       <WelcomeView
-        onAuthenticated={(u, needsOnboarding) => {
+        onAuthenticated={(u) => {
           setUser(u);
-          setStatus(needsOnboarding ? 'onboarding' : 'app');
+          setStatus('app');
         }}
       />
     );

@@ -5,7 +5,7 @@ import { CountryPhoneInput, isPhoneComplete } from '../components/CountryPhoneIn
 import logoVertical from '../assets/logo-vertical.png';
 
 interface WelcomeViewProps {
-  onAuthenticated: (user: SafeUser, needsOnboarding: boolean) => void;
+  onAuthenticated: (user: SafeUser) => void;
 }
 
 type Mode = 'login' | 'register';
@@ -66,7 +66,8 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
       }
 
       setToken(token);
-      onAuthenticated(user, !user.onboarding_done);
+      window.location.hash = '#/';
+      onAuthenticated(user);
     } catch (err: any) {
       setError(err?.message || 'Ocurrió un error, intenta de nuevo');
       setLoading(false);
