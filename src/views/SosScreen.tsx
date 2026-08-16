@@ -16,7 +16,7 @@ export const SosScreen: React.FC = () => {
   const [contactPhone, setContactPhone] = useState<string>('');
   
   // Selección de país para líneas de ayuda
-  const [country, setCountry] = useState<'MX' | 'CO' | 'AR' | 'US'>('MX');
+  const [country, setCountry] = useState<'NI' | 'SV' | 'GT' | 'HN' | 'CR' | 'PA'>('NI');
 
   useEffect(() => {
     // Cargar contacto al inicializar
@@ -49,74 +49,72 @@ export const SosScreen: React.FC = () => {
     setSafeContact(null);
   };
 
-  // Base de datos de líneas de crisis reales gratuitas
+  // Base de datos de líneas de crisis reales gratuitas (Centroamérica)
   const helplineDirectory = {
-    MX: [
+    NI: [
       {
-        name: 'Línea de la Vida (Salud Mental / Adicciones)',
-        phone: '800 911 2000',
-        desc: 'Línea del gobierno federal, disponible 24/7 de forma gratuita y confidencial.',
-        type: 'call'
-      },
-      {
-        name: 'SAPTEL (Apoyo Psicológico Gratuito)',
-        phone: '55 5259 8121',
-        desc: 'Servicio de psicoterapia telefónica las 24 horas del día.',
-        type: 'call'
-      },
-      {
-        name: 'Línea crisis Joven (Chat de WhatsApp)',
-        phone: '55 2108 0432',
-        desc: 'Chat de contención de crisis directo y confidencial para jóvenes.',
-        type: 'chat'
-      }
-    ],
-    CO: [
-      {
-        name: 'Línea de Prevención del Suicidio (Nacional)',
-        phone: '192',
-        desc: 'Atención psicológica inmediata y gratuita las 24 horas.',
-        type: 'call'
-      },
-      {
-        name: 'Línea 106 (El Poder de Ser Escuchado)',
-        phone: '106',
-        desc: 'Orientación para adolescentes y jóvenes de la Secretaría de Salud.',
-        type: 'call'
-      },
-      {
-        name: 'Porque Quiero Estar Bien (Chat de Apoyo)',
-        phone: '300 912 5231',
-        desc: 'Chat directo de acompañamiento y crisis emocional vía WhatsApp.',
-        type: 'chat'
-      }
-    ],
-    AR: [
-      {
-        name: 'Centro de Asistencia al Suicida',
-        phone: '135',
-        desc: 'Atención gratuita desde Buenos Aires y GBA. Desde el interior: (011) 5275 1135',
-        type: 'call'
-      },
-      {
-        name: 'Línea Salud Mental Responde (CABA)',
-        phone: '0800 333 1665',
-        desc: 'Apoyo y orientación las 24 horas, confidencial.',
+        name: 'Cruz Blanca Nicaragüense (Línea Nacional)',
+        phone: '128',
+        desc: 'Atención de emergencias gratuita y confidencial, disponible las 24 horas en todo el país.',
         type: 'call'
       }
     ],
-    US: [
+    SV: [
       {
-        name: 'Suicide & Crisis Lifeline (Nacional)',
-        phone: '988',
-        desc: 'Línea nacional gratuita 24/7. Disponible por llamada o chat de texto.',
+        name: 'Sistema de Emergencias Médicas (SEM)',
+        phone: '132',
+        desc: 'Atención 24/7 con psicólogas y psicólogos de guardia; atiende también emergencias de salud mental.',
+        type: 'call'
+      }
+    ],
+    GT: [
+      {
+        name: 'MSPAS — Orientación en Salud Mental',
+        phone: '123',
+        desc: 'Línea del Ministerio de Salud Pública para orientación y acompañamiento en salud mental.',
+        type: 'call'
+      }
+    ],
+    HN: [
+      {
+        name: '911 — Sistema Nacional de Emergencias',
+        phone: '911',
+        desc: 'Coordina atención psicosocial gratuita en alianza con la Secretaría de Salud y la OPS.',
         type: 'call'
       },
       {
-        name: 'Crisis Text Line (SMS)',
-        phone: '741741',
-        desc: 'Envía un mensaje de texto con la palabra "HOME" (o "APOYO" para español) para chatear 24/7.',
-        type: 'sms'
+        name: 'Línea 114 (Mujer Vivir Sin Miedo)',
+        phone: '114',
+        desc: 'Policía Nacional: apoyo y atención psicológica para mujeres en situación de violencia.',
+        type: 'call'
+      }
+    ],
+    CR: [
+      {
+        name: 'Colegio de Psicólogos — Línea 1322',
+        phone: '1322',
+        desc: 'Atención psicológica gratuita las 24 horas para personas en crisis.',
+        type: 'call'
+      },
+      {
+        name: 'Línea Aquí Estoy',
+        phone: '800 273 7869',
+        desc: 'Apoyo emocional del Ministerio de Salud en horario limitado; en crisis usa el 1322 o el 911.',
+        type: 'call'
+      }
+    ],
+    PA: [
+      {
+        name: 'MIDES — Línea 147',
+        phone: '147',
+        desc: 'Atención 24/7 gratuita del Ministerio de Desarrollo Social para crisis y salud mental.',
+        type: 'call'
+      },
+      {
+        name: 'MIDES — WhatsApp',
+        phone: '+507 6694 2747',
+        desc: 'Chat directo de apoyo emocional; el número también responde por WhatsApp.',
+        type: 'call'
       }
     ]
   };
@@ -229,10 +227,12 @@ export const SosScreen: React.FC = () => {
             onChange={(e) => setCountry(e.target.value as any)} 
             style={styles.countrySelector}
           >
-            <option value="MX">🇲🇽 México</option>
-            <option value="CO">🇨🇴 Colombia</option>
-            <option value="AR">🇦🇷 Argentina</option>
-            <option value="US">🇺🇸 EE. UU.</option>
+            <option value="NI">🇳🇮 Nicaragua</option>
+            <option value="SV">🇸🇻 El Salvador</option>
+            <option value="GT">🇬🇹 Guatemala</option>
+            <option value="HN">🇭🇳 Honduras</option>
+            <option value="CR">🇨🇷 Costa Rica</option>
+            <option value="PA">🇵🇦 Panamá</option>
           </select>
         </div>
 
