@@ -20,6 +20,7 @@ import {
   getCompletedActivities,
   getPlans,
 } from '../utils/localDb';
+import { LUCHAS, getLucha, problemsToLucha, dayOfYear } from '../utils/luchas';
 import type { SafeUser } from '../utils/auth';
 
 interface MoodInfo {
@@ -37,21 +38,6 @@ const moodDetails: { [key: number]: MoodInfo } = {
   5: { score: 5, emoji: '🌸', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
 };
 
-const ALIENTO_DIA = [
-  { text: 'Respira profundo: cada exhalación es un permiso para soltar lo que no te sirve.', ref: 'Calma' },
-  { text: 'No tienes que cargar todo hoy. Un paso a la vez también es avanzar.', ref: 'Paso a paso' },
-  { text: 'Tus emociones son información, no definen quién eres.', ref: 'Emociones' },
-  { text: 'Descansar no es rendirse: es reabastecer tu energía para seguir.', ref: 'Descanso' },
-  { text: 'Eres más fuerte de lo que crees, y no tienes que demostrarlo a nadie.', ref: 'Fuerza' },
-  { text: 'Hoy elige ser amable contigo: tus mismos ojos, otras palabras.', ref: 'Amabilidad' },
-  { text: 'El silencio también sana. Date un momento sin ruido.', ref: 'Silencio' },
-  { text: 'Lo que sientes ahora no durará para siempre. Nada es permanente.', ref: 'Esperanza' },
-  { text: 'Pide ayuda sin culpa: apoyarte en otros también es fortaleza.', ref: 'Apoyo' },
-  { text: 'Un clima interior tranquilo se construye con pequeños cuidados diarios.', ref: 'Cuidado' },
-  { text: 'No compares tu camino con el de nadie: tu ritmo es válido.', ref: 'Ritmo propio' },
-  { text: 'Cierra los ojos, inhala por 4, sostén por 4, exhala por 8. Estás a salvo.', ref: 'Respira' },
-];
-
 const ALIENTO_BG = [
   'linear-gradient(135deg, #2C533D 0%, #1a2a20 100%)',
   'linear-gradient(135deg, #4F46E5 0%, #312E81 100%)',
@@ -59,21 +45,6 @@ const ALIENTO_BG = [
   'linear-gradient(135deg, #0F766E 0%, #134E4A 100%)',
   'linear-gradient(135deg, #9D174D 0%, #701A4B 100%)',
   'linear-gradient(135deg, #1E40AF 0%, #172554 100%)',
-];
-
-const SABIAS_QUE = [
-  'La respiración abdominal activa el sistema nervioso parasimpático: el "modo calma" del cuerpo, en menos de 60 segundos.',
-  'Escribir lo que sientes por 2 minutos reduce la intensidad de la emoción: al nombrarla, tu cerebro la procesa mejor.',
-  'El cerebro humano tiene un sesgo natural a lo negativo. Buscar 3 cosas buenas al día entrena un equilibrio real.',
-  'Caminar 10 minutos al aire libre equivale a una pausa mental: baja el cortisol y aclara los pensamientos.',
-  'La gratitud no es fingir que todo está bien: es confirmar que, incluso en la tormenta, hay algo que sostiene.',
-  'Los músculos tensos le dicen al cerebro "hay peligro". Soltar los hombros y la mandíbula también calma la mente.',
-];
-
-const TIPS_CRECIMIENTO = [
-  'Tómate 5 minutos de pausa consciente hoy: sin pantallas, solo respirando.',
-  'Nombra una emoción fuerte que sientas: "esto es ansiedad" le quita poder.',
-  'Antes de dormir, recuerda una cosa que lograste, por pequeña que sea.',
 ];
 
 const PRACTICA_META = 3;
@@ -91,18 +62,18 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [goalsTotal, setGoalsTotal] = useState(0);
   const [savingMood, setSavingMood] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
-  const [aliento, setAliento] = useState(ALIENTO_DIA[0]);
+  const [luchaId, setLuchaId] = useState(() => problemsToLucha(user?.problems));
   const [alientoBg, setAlientoBg] = useState(ALIENTO_BG[0]);
-  const [sabias, setSabias] = useState(SABIAS_QUE[0]);
+
+  const lucha = getLucha(luchaId);
+  const day = dayOfYear();
+  const aliento = lucha.frases[day % lucha.frases.length];
+  const retoHoy = lucha.retos[day % lucha.retos.length];
+  const sabias = lucha.saber[day % lucha.saber.length];
 
   useEffect(() => {
-    const dayOfYear = Math.floor(
-      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
-    );
     setCurrentDate(new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }));
-    setAliento(ALIENTO_DIA[dayOfYear % ALIENTO_DIA.length]);
-    setAlientoBg(ALIENTO_BG[dayOfYear % ALIENTO_BG.length]);
-    setSabias(SABIAS_QUE[dayOfYear % SABIAS_QUE.length]);
+    setAlientoBg(ALIENTO_BG[day % ALIENTO_BG.length]);
     refreshData();
   }, []);
 
@@ -205,6 +176,28 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
       </div>
 
+      {/* Selector de luchas */}
+      <div style={styles.luchasRow}>
+        {LUCHAS.map((l) => {
+          const active = l.id === luchaId;
+          return (
+            <button
+              key={l.id}
+              onClick={() => setLuchaId(l.id)}
+              style={{
+                ...styles.luchaChip,
+                background: active ? `rgba(${l.rgb}, 0.16)` : 'var(--bg-base)',
+                borderColor: active ? `rgba(${l.rgb}, 0.45)` : 'var(--border-color)',
+                color: active ? l.color : 'var(--text-muted)',
+              }}
+            >
+              <span style={{ fontSize: 13 }}>{l.emoji}</span>
+              {l.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Aliento para hoy */}
       <div
         className="cm-card cm-press"
@@ -213,7 +206,9 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       >
         <div style={styles.alientoCircle} />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '26px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 190 }}>
-          <h6 style={styles.alientoLabel}>ALIENTO PARA HOY</h6>
+          <h6 style={styles.alientoLabel}>
+            {lucha.emoji} ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
+          </h6>
           <figure style={{ margin: 0 }}>
             <blockquote style={{ margin: '14px 0 0' }}>
               <p style={styles.alientoQuote}>"{aliento.text}"</p>
@@ -224,7 +219,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <span style={styles.alientoBrand}>ALIVIA</span>
       </div>
 
-      {/* Práctica de hoy */}
+      {/* Reto de hoy */}
       <div
         className="cm-card cm-press"
         style={{ ...styles.challengeCard, background: practiceCompleted ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #7C6FE8 0%, #5B4FD0 100%)' }}
@@ -233,13 +228,13 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <div style={styles.challengeTop}>
           <div style={styles.challengeTitleRow}>
             <Trophy size={20} color={practiceCompleted ? '#ffffff' : 'var(--accent-gold)'} />
-            <span style={styles.challengeTitle}>PRÁCTICA DE HOY</span>
+            <span style={styles.challengeTitle}>RETO DE HOY</span>
           </div>
           <span style={styles.challengeBadge}>{practiceDone}/{PRACTICA_META}</span>
         </div>
 
         <h4 style={styles.challengeHeadline}>
-          {practiceCompleted ? 'Práctica completada 🎉' : 'Nutre tu calma interior'}
+          {practiceCompleted ? 'Reto completado 🎉' : retoHoy}
         </h4>
 
         {!practiceCompleted && (
@@ -250,7 +245,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
         <div style={styles.challengeBottom}>
           <p style={styles.challengeText}>
-            {practiceCompleted ? 'Vuelve mañana por más' : 'Respira, desahógate o libera tensiones. 2-5 min'}
+            {practiceCompleted ? 'Vuelve mañana por más' : `Para mejorar tu lucha: ${lucha.label.toLowerCase()}. 2-5 min`}
           </p>
           <div style={styles.challengeCircle}>
             {practiceCompleted ? <CheckCircle2 size={19} color="#10B981" /> : <ArrowRight size={19} color="#5B4FD0" />}
@@ -394,17 +389,20 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             <Target size={30} color="var(--accent-lavender)" />
           </div>
           <h5 style={styles.actionTitle}>Planes</h5>
-          <small style={styles.actionSub}>Metas a tu ritmo</small>
+          <small style={styles.actionSub}>Luchas paso a paso</small>
         </div>
       </div>
 
       {/* Consejo para hoy */}
       <div className="cm-card" style={{ padding: '18px' }}>
         <div style={styles.wisdomHead}>
-          <div className="cm-float" style={styles.wisdomIcon}>
-            <Sun size={22} color="var(--accent-gold)" />
+          <div className="cm-float" style={{ ...styles.wisdomIcon, background: `rgba(${lucha.rgb}, 0.14)` }}>
+            <Sun size={22} color={lucha.color} />
           </div>
-          <h5 style={styles.wisdomTitle}>Sabiduría para hoy</h5>
+          <div style={{ flex: 1 }}>
+            <h5 style={styles.wisdomTitle}>Consejo para hoy</h5>
+            <p style={styles.wisdomSub}>{lucha.emoji} Según tu lucha: {lucha.label}</p>
+          </div>
         </div>
 
         <div style={styles.wisdomBox}>
@@ -415,15 +413,22 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
 
         <div style={{ marginTop: '14px' }}>
-          <h6 style={styles.tipsHead}>TIPS DE BIENESTAR</h6>
+          <h6 style={styles.tipsHead}>CONSEJOS PARA ESTA LUCHA</h6>
           <ul style={styles.tipsList}>
-            {TIPS_CRECIMIENTO.map((tip, i) => (
+            {lucha.tips.map((tip, i) => (
               <li key={i} style={styles.tipItem}>
-                <span style={styles.tipBullet}>•</span>
+                <span style={{ ...styles.tipBullet, color: lucha.color }}>•</span>
                 <span>{tip}</span>
               </li>
             ))}
           </ul>
+          <button
+            onClick={() => navigate('/library')}
+            className="btn-secondary"
+            style={{ marginTop: '12px', padding: '9px 14px', borderRadius: '12px', fontSize: '11.5px' }}
+          >
+            📚 Ver guías sobre {lucha.label.toLowerCase()}
+          </button>
         </div>
       </div>
     </div>
@@ -465,6 +470,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid var(--border-color)',
     borderRadius: '999px',
     padding: '5px',
+  },
+  luchasRow: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  luchaChip: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '7px 12px',
+    borderRadius: '999px',
+    border: '1px solid var(--border-color)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '11px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   sosCircleBtn: {
     width: '40px',
@@ -884,6 +909,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '17px',
     fontWeight: 800,
     color: 'var(--text-primary)',
+  },
+  wisdomSub: {
+    margin: '2px 0 0',
+    fontSize: '11px',
+    color: 'var(--text-muted)',
   },
   wisdomBox: {
     position: 'relative',
