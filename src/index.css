@@ -434,6 +434,31 @@ body::after {
   box-shadow: 0 0 10px rgba(var(--accent-gold-rgb), 0.05);
 }
 
+/* Responsividad: evita el zoom automático de iOS al enfocar inputs en móviles */
+@media (max-width: 480px) {
+  .input-apple,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+.auth-card {
+  transition: padding 0.3s ease;
+}
+
+@media (max-width: 420px) {
+  .auth-card {
+    padding: 18px 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .auth-card {
+    padding: 14px 12px;
+  }
+}
+
 .slider-container {
   width: 100%;
   position: relative;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Loader2, Heart, Lock, User as UserIcon, Mail, Phone, Star } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Heart, Lock, User as UserIcon, Mail, Star } from 'lucide-react';
 import { register, login, setToken, SafeUser } from '../utils/auth';
+import { CountryPhoneInput, isPhoneComplete } from '../components/CountryPhoneInput';
 
 interface WelcomeViewProps {
   onAuthenticated: (user: SafeUser, needsOnboarding: boolean) => void;
@@ -46,7 +47,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
           name: form.name.trim(),
           username: form.username.trim(),
           email: form.email.trim(),
-          phone: form.phone.trim(),
+          phone: isPhoneComplete(form.phone) ? form.phone.trim() : '',
           password: form.password,
         });
         token = res.token;
@@ -76,7 +77,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
       </div>
 
       <div style={styles.centered}>
-        <div className="glass-card fade-in" style={styles.card}>
+        <div className="glass-card auth-card fade-in" style={styles.card}>
           <div style={styles.logoWrap}>
             <div style={styles.logoCircle}>
               <Heart size={26} color="var(--accent-gold)" fill="rgba(var(--accent-gold-rgb), 0.25)" />
@@ -159,18 +160,15 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
             {!isLogin && (
               <div style={styles.field}>
                 <label htmlFor="phone" style={styles.label}>
-                  <Phone size={13} color="var(--accent-gold)" /> Teléfono (opcional)
+                  <Star size={13} color="var(--accent-gold)" /> Teléfono (opcional)
                 </label>
-                <input
+                <CountryPhoneInput
                   id="phone"
-                  type="tel"
-                  className="input-apple"
-                  style={styles.input}
-                  placeholder="+52 55 1234 5678"
                   value={form.phone}
-                  onChange={handleChange}
+                  onChange={(v) => setForm({ ...form, phone: v })}
                   autoComplete="tel"
                 />
+                <p style={styles.phoneHint}>Solo países de Centroamérica · por defecto Nicaragua (+505)</p>
               </div>
             )}
 
@@ -238,7 +236,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   card: {
     width: '100%',
     maxWidth: '420px',
-    padding: '28px 26px',
+    padding: 'clamp(18px, 5vw, 28px) clamp(14px, 4vw, 26px)',
     borderRadius: '28px',
     display: 'flex',
     flexDirection: 'column',
@@ -375,5 +373,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '11px',
     color: 'var(--text-muted)',
     opacity: 0.7,
+  },
+  phoneHint: {
+    margin: '6px 0 0',
+    fontSize: '11px',
+    color: 'var(--text-muted)',
+    paddingLeft: '4px',
   },
 };
