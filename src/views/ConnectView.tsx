@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Handshake, User, MessageSquare, ArrowRight, ArrowLeft, Phone, Check, PartyPopper, Heart } from 'lucide-react';
+import { CountryPhoneInput, isPhoneComplete } from '../components/CountryPhoneInput';
 
 type Stage = 1 | 2 | 3 | 4 | 5;
 
@@ -29,7 +30,7 @@ export const ConnectView: React.FC = () => {
   };
 
   const useSms = () => {
-    if (!person?.phone || !person?.name) return;
+    if (!person?.phone || !isPhoneComplete(person.phone) || !person?.name) return;
     const text = MESSAGE_TEMPLATES[selectedTemplate].text.replace(/\{name\}/g, person.name);
     window.location.href = `sms:${person.phone}?body=${encodeURIComponent(text)}`;
   };
@@ -88,12 +89,11 @@ export const ConnectView: React.FC = () => {
             onChange={(e) => setPerson(prev => ({ ...prev, name: e.target.value }))}
             className="input-apple"
           />
-          <input
-            type="tel"
-            placeholder="Número telefónico (para enviar el mensaje por SMS)"
+          <CountryPhoneInput
             value={person?.phone ?? ''}
-            onChange={(e) => setPerson(prev => ({ ...prev, phone: e.target.value }))}
-            className="input-apple"
+            onChange={(v) => setPerson(prev => ({ ...prev, phone: v }))}
+            placeholder="8XXX XXXX"
+            autoComplete="tel"
           />
           <div className="flex gap-2">
             <button onClick={() => setStage(3)} disabled={!person?.name} className="btn-primary" style={{ flex: 2, padding: '10px', borderRadius: '12px', fontSize: '12.5px' }}>
@@ -141,11 +141,10 @@ export const ConnectView: React.FC = () => {
                 <Phone size={13} color="var(--accent-sage)" />
                 <p style={{ fontSize: '13px', lineHeight: 1.6 }}>{MESSAGE_TEMPLATES[selectedTemplate].text.replace(/\{name\}/g, person.name)}</p>
               </div>
-              <button onClick={useSms} disabled={!person.phone} className="btn-primary" style={{ padding: '10px', borderRadius: '12px', fontSize: '12.5px', width: '100%' }}>
-                <MessageSquare size={14} color="#fff" />
-                {person.phone ? 'Enviar por SMS ahora' : 'Guarda el número para poder enviarlo'}
+<button onClick={useSms} disabled={!isPhoneComplete(person?.phone ?? '')} className="btn-primary" style={{ padding: '10px', borderRadius: '12px', fontSize: '12.5px', width: '100%' }}>
+                {isPhoneComplete(person?.phone ?? '') ? 'Enviar por SMS ahora' : 'Guarda el número para poder enviarlo'}
               </button>
-              {!person.phone && (
+              {!isPhoneComplete(person?.phone ?? '') && (
                 <p className="body-standard" style={{ fontSize: '11px', opacity: 0.6, textAlign: 'center' }}>
                   O simplemente copia el mensaje y envíalo por la app que prefieras.
                 </p>

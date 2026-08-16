@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { SafeUser, updateProfile } from '../utils/auth';
 import { saveEmergencyContact } from '../utils/localDb';
+import { CountryPhoneInput, isPhoneComplete } from '../components/CountryPhoneInput';
 
 interface OnboardingViewProps {
   initial?: SafeUser | null;
@@ -112,19 +113,19 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
     setError('');
     try {
       const saved = await updateProfile({
-        phone: ownPhone.trim() || null,
+        phone: isPhoneComplete(ownPhone) ? ownPhone : null,
         problems,
         situations,
         strategies,
         changes,
         trusted_person: trustedPerson.trim() || null,
-        trusted_phone: trustedPhone.trim() || null,
+        trusted_phone: isPhoneComplete(trustedPhone) ? trustedPhone : null,
         wants_contact: wantsContact,
         goals_text: goalsText.trim() || null,
         onboarding_done: true,
       });
 
-      if (trustedPerson.trim() && trustedPhone.trim()) {
+      if (trustedPerson.trim() && isPhoneComplete(trustedPhone)) {
         try {
           await saveEmergencyContact(trustedPerson.trim(), trustedPhone.trim());
         } catch {
@@ -199,7 +200,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
       </div>
 
       <div style={styles.centered}>
-        <div className="glass-card fade-in" style={styles.card}>
+        <div className="glass-card auth-card fade-in" style={styles.card}>
           <div style={styles.topBar}>
             {step > 0 ? (
               <button type="button" onClick={back} style={styles.backBtn} title="Atrás">
@@ -302,14 +303,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
                 <label htmlFor="trustedPhone" style={styles.label}>
                   <Phone size={13} color="var(--accent-gold)" /> Su teléfono (opcional)
                 </label>
-                <input
+                <CountryPhoneInput
                   id="trustedPhone"
-                  type="tel"
-                  className="input-apple"
-                  style={styles.input}
-                  placeholder="+52 55 1234 5678"
                   value={trustedPhone}
-                  onChange={(e) => setTrustedPhone(e.target.value)}
+                  onChange={setTrustedPhone}
+                  autoComplete="tel"
                 />
               </div>
               <button type="button" className="btn-primary" style={styles.continueBtn} onClick={next}>
@@ -360,14 +358,11 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
                   <label htmlFor="ownPhone" style={styles.label}>
                     <Phone size={13} color="var(--accent-gold)" /> Tu número de teléfono
                   </label>
-                  <input
+                  <CountryPhoneInput
                     id="ownPhone"
-                    type="tel"
-                    className="input-apple"
-                    style={styles.input}
-                    placeholder="+52 55 1234 5678"
                     value={ownPhone}
-                    onChange={(e) => setOwnPhone(e.target.value)}
+                    onChange={setOwnPhone}
+                    autoComplete="tel"
                   />
                   <p style={styles.hint}>Solo se usará para contactarte si hay algo importante.</p>
                 </div>
@@ -495,7 +490,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   card: {
     width: '100%',
     maxWidth: '560px',
-    padding: '24px 22px',
+    padding: 'clamp(14px, 4.5vw, 24px) clamp(12px, 4vw, 22px)',
     borderRadius: '28px',
   },
   topBar: {

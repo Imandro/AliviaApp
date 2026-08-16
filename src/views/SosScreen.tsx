@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check } from 'lucide-react';
 import { getEmergencyContact, saveEmergencyContact, deleteEmergencyContact } from '../utils/localDb';
+import { CountryPhoneInput } from '../components/CountryPhoneInput';
 
 export const SosScreen: React.FC = () => {
   // Contacto Seguro local
@@ -174,13 +175,11 @@ export const SosScreen: React.FC = () => {
               className="input-apple"
               required
             />
-            <input
-              type="tel"
-              placeholder="Número telefónico (ej: +52...)"
+            <CountryPhoneInput
               value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              className="input-apple"
-              required
+              onChange={setContactPhone}
+              placeholder="8XXX XXXX"
+              autoComplete="tel"
             />
             <div className="flex gap-3" style={{ marginTop: '4px' }}>
               <button 
