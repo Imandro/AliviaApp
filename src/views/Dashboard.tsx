@@ -57,9 +57,6 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [todayScore, setTodayScore] = useState<number | null>(null);
   const [todayLabel, setTodayLabel] = useState<string>('');
   const [practiceDone, setPracticeDone] = useState(0);
-  const [plansCount, setPlansCount] = useState(0);
-  const [goalsDone, setGoalsDone] = useState(0);
-  const [goalsTotal, setGoalsTotal] = useState(0);
   const [savingMood, setSavingMood] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
   const [luchaId, setLuchaId] = useState(() => problemsToLucha(user?.problems));
@@ -79,11 +76,10 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
   const refreshData = async () => {
     try {
-      const [history, week, activities, plans] = await Promise.all([
+      const [history, week, activities] = await Promise.all([
         getMoodHistory(),
         getLastWeekMoods(),
         getCompletedActivities(),
-        getPlans(),
       ]);
 
       setWeekHistory(week);
@@ -110,18 +106,6 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       }
 
       setPracticeDone(activities.filter((a) => a.date === today).length);
-
-      setPlansCount(plans.length);
-      let done = 0;
-      let total = 0;
-      plans.forEach((p) => {
-        p.goals.forEach((g) => {
-          total++;
-          if (g.done) done++;
-        });
-      });
-      setGoalsDone(done);
-      setGoalsTotal(total);
     } finally {
       setLoading(false);
     }
@@ -201,11 +185,11 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       {/* Aliento para hoy */}
       <div
         className="cm-card cm-press"
-        style={{ ...styles.alientoCard, backgroundImage: alientoBg, minHeight: 190 }}
+        style={{ ...styles.alientoCard, backgroundImage: alientoBg, minHeight: 165 }}
         onClick={() => navigate('/breathe')}
       >
         <div style={styles.alientoCircle} />
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '26px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 190 }}>
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '22px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 165 }}>
           <h6 style={styles.alientoLabel}>
             {lucha.emoji} ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
           </h6>
@@ -227,7 +211,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       >
         <div style={styles.challengeTop}>
           <div style={styles.challengeTitleRow}>
-            <Trophy size={20} color={practiceCompleted ? '#ffffff' : 'var(--accent-gold)'} />
+            <Trophy size={18} color={practiceCompleted ? '#ffffff' : 'var(--accent-gold)'} />
             <span style={styles.challengeTitle}>RETO DE HOY</span>
           </div>
           <span style={styles.challengeBadge}>{practiceDone}/{PRACTICA_META}</span>
@@ -243,13 +227,13 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </div>
         )}
 
-        <div style={styles.challengeBottom}>
-          <p style={styles.challengeText}>
-            {practiceCompleted ? 'Vuelve mañana por más' : `Para mejorar tu lucha: ${lucha.label.toLowerCase()}. 2-5 min`}
-          </p>
-          <div style={styles.challengeCircle}>
-            {practiceCompleted ? <CheckCircle2 size={19} color="#10B981" /> : <ArrowRight size={19} color="#5B4FD0" />}
-          </div>
+        <div style={styles.challengeBottom}>          
+          <span style={styles.challengeCircle}>
+            {practiceCompleted ? <CheckCircle2 size={18} color="#10B981" /> : <ArrowRight size={18} color="#5B4FD0" />}
+          </span>
+          <span style={styles.challengeText}>
+            {practiceCompleted ? 'Vuelve mañana por más' : `${lucha.emoji} Lucha: ${lucha.label} · 2-5 min`}
+          </span>
         </div>
       </div>
 
@@ -347,37 +331,6 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
       </div>
 
-      {/* Mi progreso */}
-      <div className="cm-card cm-press" style={{ overflow: 'hidden' }} onClick={() => navigate('/plans')}>
-        <div style={{ padding: '18px' }}>
-          <div style={styles.progressHead}>
-            <div style={styles.progressIcon}>
-              <Shield size={26} color="var(--accent-sage)" />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h5 style={styles.progressTitle}>Mi Progreso</h5>
-              <p style={styles.progressDesc}>Tu camino hacia la calma, paso a paso</p>
-            </div>
-            <div style={styles.progressChevron}>
-              <ChevronRight size={22} color="var(--accent-sage)" />
-            </div>
-          </div>
-          <div style={styles.progressGrid}>
-            <div style={styles.progressBox}>
-              <span style={{ ...styles.progressNum, color: 'var(--accent-gold)' }}>{plansCount}</span>
-              <small style={styles.progressSmall}>PLANES</small>
-            </div>
-            <div style={styles.progressBox}>
-              <span style={{ ...styles.progressNum, color: 'var(--accent-sage)' }}>
-                {goalsTotal > 0 ? `${goalsDone}/${goalsTotal}` : '0'}
-              </span>
-              <small style={styles.progressSmall}>METAS CUMPLIDAS</small>
-            </div>
-          </div>
-        </div>
-        <div style={{ height: 4, background: 'var(--accent-gold)', width: '100%' }} />
-      </div>
-
       {/* Grilla de acciones */}
       <div style={styles.actionsGrid}>
         <div className="cm-card cm-press" style={styles.actionCard} onClick={() => navigate('/explore')}>
@@ -404,42 +357,17 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       </div>
 
       {/* Consejo para hoy */}
-      <div className="cm-card" style={{ padding: '18px' }}>
-        <div style={styles.wisdomHead}>
-          <div className="cm-float" style={{ ...styles.wisdomIcon, background: `rgba(${lucha.rgb}, 0.14)` }}>
-            <Sun size={22} color={lucha.color} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <h5 style={styles.wisdomTitle}>Consejo para hoy</h5>
-            <p style={styles.wisdomSub}>{lucha.emoji} Según tu lucha: {lucha.label}</p>
-          </div>
+      <div className="cm-card cm-press" style={styles.wisdomCard} onClick={() => navigate('/library')}>
+        <div className="cm-float" style={{ ...styles.wisdomIcon, background: `rgba(${lucha.rgb}, 0.14)` }}>
+          <Sun size={22} color={lucha.color} />
         </div>
-
-        <div style={styles.wisdomBox}>
-          <div className="cm-shimmer" style={styles.wisdomShimmer} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={styles.wisdomTitle}>Consejo para hoy</p>
           <p style={styles.wisdomFact}>
-            <strong>¿Sabías que?</strong> {sabias}
+            <strong>¿Sabías que?</strong> {sabias.length > 90 ? `${sabias.slice(0, 90)}…` : sabias}
           </p>
         </div>
-
-        <div style={{ marginTop: '14px' }}>
-          <h6 style={styles.tipsHead}>CONSEJOS PARA ESTA LUCHA</h6>
-          <ul style={styles.tipsList}>
-            {lucha.tips.map((tip, i) => (
-              <li key={i} style={styles.tipItem}>
-                <span style={{ ...styles.tipBullet, color: lucha.color }}>•</span>
-                <span>{tip}</span>
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={() => navigate('/library')}
-            className="btn-secondary"
-            style={{ marginTop: '12px', padding: '9px 14px', borderRadius: '12px', fontSize: '11.5px' }}
-          >
-            📚 Ver guías sobre {lucha.label.toLowerCase()}
-          </button>
-        </div>
+        <ChevronRight size={20} color="var(--text-muted)" style={{ flexShrink: 0 }} />
       </div>
     </div>
   );
@@ -558,8 +486,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   alientoQuote: {
     margin: 0,
-    fontSize: '20px',
-    lineHeight: 1.5,
+    fontSize: '18px',
+    lineHeight: 1.45,
     fontWeight: 700,
     fontStyle: 'italic',
     color: '#ffffff',
@@ -582,7 +510,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   challengeCard: {
     overflow: 'hidden',
-    padding: '18px',
+    padding: '16px 18px',
     cursor: 'pointer',
     color: '#ffffff',
   },
@@ -590,7 +518,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '12px',
+    marginBottom: '10px',
   },
   challengeTitleRow: {
     display: 'flex',
@@ -611,11 +539,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#ffffff',
   },
   challengeHeadline: {
-    margin: '0 0 14px',
-    fontSize: '21px',
+    margin: '0 0 12px',
+    fontSize: '19px',
     fontWeight: 800,
     color: '#ffffff',
     fontFamily: 'var(--font-display)',
+    lineHeight: 1.3,
   },
   challengeTrack: {
     height: '12px',
@@ -632,19 +561,20 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   challengeBottom: {
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: '10px',
   },
   challengeText: {
     margin: 0,
-    fontSize: '13px',
-    color: 'rgba(255, 255, 255, 0.82)',
+    fontSize: '12.5px',
+    color: 'rgba(255, 255, 255, 0.85)',
   },
   challengeCircle: {
     background: '#ffffff',
     borderRadius: '50%',
-    padding: '6px',
+    padding: '5px',
     display: 'flex',
+    flexShrink: 0,
   },
 
   statusRow: {
@@ -836,70 +766,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'var(--font-display)',
   },
 
-  progressHead: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '14px',
-  },
-  progressIcon: {
-    background: 'rgba(var(--accent-sage-rgb), 0.12)',
-    borderRadius: '16px',
-    padding: '13px',
-    display: 'flex',
-  },
-  progressTitle: {
-    margin: 0,
-    fontSize: '17px',
-    fontWeight: 800,
-    color: 'var(--text-primary)',
-  },
-  progressDesc: {
-    margin: '2px 0 0',
-    fontSize: '12px',
-    color: 'var(--text-muted)',
-  },
-  progressChevron: {
-    background: 'var(--bg-base)',
-    borderRadius: '50%',
-    padding: '8px',
-    display: 'flex',
-  },
-  progressGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '10px',
-  },
-  progressBox: {
-    background: 'var(--bg-base)',
-    borderRadius: '14px',
-    padding: '14px',
-    textAlign: 'center',
-  },
-  progressNum: {
-    display: 'block',
-    fontSize: '24px',
-    fontWeight: 800,
-    lineHeight: 1.1,
-    fontFamily: 'var(--font-display)',
-  },
-  progressSmall: {
-    display: 'block',
-    marginTop: '3px',
-    fontSize: '10px',
-    fontWeight: 700,
-    letterSpacing: '0.06em',
-    color: 'var(--text-muted)',
-  },
-
   actionsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     gap: '12px',
   },
   actionCard: {
-    padding: '16px 10px',
-    minHeight: '132px',
+    padding: '14px 10px',
+    minHeight: '116px',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -908,13 +782,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
   },
   actionIcon: {
-    width: '58px',
-    height: '58px',
+    width: '50px',
+    height: '50px',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '10px',
+    marginBottom: '8px',
   },
   actionTitle: {
     margin: 0,
@@ -929,75 +803,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'var(--text-muted)',
   },
 
-  wisdomHead: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: '12px',
-  },
   wisdomIcon: {
     background: 'rgba(var(--accent-gold-rgb), 0.14)',
     borderRadius: '12px',
     padding: '11px',
     display: 'flex',
+    flexShrink: 0,
   },
   wisdomTitle: {
     margin: 0,
-    fontSize: '17px',
+    fontSize: '15px',
     fontWeight: 800,
     color: 'var(--text-primary)',
   },
-  wisdomSub: {
-    margin: '2px 0 0',
-    fontSize: '11px',
-    color: 'var(--text-muted)',
-  },
-  wisdomBox: {
-    position: 'relative',
-    overflow: 'hidden',
-    background: 'var(--bg-base)',
-    borderRadius: '16px',
-    padding: '14px',
-    borderLeft: '4px solid var(--accent-gold)',
-  },
-  wisdomShimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
+  wisdomCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '16px',
+    cursor: 'pointer',
   },
   wisdomFact: {
-    position: 'relative',
-    margin: 0,
-    fontSize: '13px',
-    lineHeight: 1.5,
-    color: 'var(--text-secondary)',
-  },
-  tipsHead: {
-    margin: '0 0 8px',
-    fontSize: '10px',
-    fontWeight: 700,
-    letterSpacing: '0.16em',
-    color: 'var(--text-muted)',
-  },
-  tipsList: {
-    margin: 0,
-    padding: 0,
-    listStyle: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  tipItem: {
-    display: 'flex',
-    gap: '8px',
-    fontSize: '12px',
+    margin: '3px 0 0',
+    fontSize: '12.5px',
     lineHeight: 1.45,
     color: 'var(--text-secondary)',
-  },
-  tipBullet: {
-    color: 'var(--accent-gold)',
-    fontWeight: 800,
   },
 };
