@@ -62,6 +62,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [currentDate, setCurrentDate] = useState('');
   const [luchaId, setLuchaId] = useState(() => problemsToLucha(user?.problems));
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [previewLucha, setPreviewLucha] = useState<string | null>(null);
   const [alientoBg, setAlientoBg] = useState(ALIENTO_BG[0]);
 
   const lucha = getLucha(luchaId);
@@ -165,7 +166,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       {/* Selector de luchas */}
       <button
         type="button"
-        onClick={() => setPickerOpen(true)}
+        onClick={() => { setPreviewLucha(luchaId); setPickerOpen(true); }}
         style={{
           ...styles.luchaPicker,
           borderColor: `rgba(${lucha.rgb}, 0.45)`,
@@ -180,43 +181,62 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <ChevronDown size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
       </button>
 
-      {pickerOpen && (
-        <>
-          <div style={styles.pickerOverlay} onClick={() => setPickerOpen(false)} />
-          <div style={styles.pickerSheet}>
-            <div style={styles.pickerHandle} />
-            <h5 style={styles.pickerTitle}>Elige tu lucha principal</h5>
-            <p style={styles.pickerSub}>Hoy te acompañamos con esto</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {LUCHAS.map((l) => {
-                const active = l.id === luchaId;
-                return (
-                  <button
-                    key={l.id}
-                    type="button"
-                    onClick={() => {
-                      setLuchaId(l.id);
-                      setPickerOpen(false);
-                    }}
-                    style={{
-                      ...styles.pickerOption,
-                      background: active ? `rgba(${l.rgb}, 0.14)` : 'var(--bg-base)',
-                      borderColor: active ? `rgba(${l.rgb}, 0.5)` : 'var(--border-color)',
-                    }}
-                  >
-                    <span style={styles.pickerOptionEmoji}>{l.emoji}</span>
-                    <span style={styles.pickerOptionLabel}>
-                      {l.label}
-                      {l.id === 'general' && <small style={styles.pickerOptionSub}>Bienestar y calma general</small>}
-                    </span>
-                    {active && <CheckCircle2 size={18} color={l.color} style={{ flexShrink: 0 }} />}
-                  </button>
-                );
-              })}
+      {pickerOpen && (() => {
+        const preview = getLucha(previewLucha ?? luchaId);
+        return (
+          <>
+            <div style={styles.pickerOverlay} onClick={() => setPickerOpen(false)} />
+            <div style={styles.pickerModal} role="dialog" aria-modal="true">
+              <div style={styles.pickerHandle} />
+              <div style={styles.modalPreview}>
+                <div style={{ fontSize: '40px', lineHeight: 1, animation: 'softFloat 3s ease-in-out infinite' }}>{preview.emoji}</div>
+                <div style={{ fontFamily: 'var(--font-title)', fontSize: '9.5px', letterSpacing: '0.22em', color: 'var(--text-muted)', marginTop: '10px' }}>
+                  MI LUCHA PRINCIPAL
+                </div>
+                <h5 style={styles.modalTitle}>{preview.label}</h5>
+              </div>
+              <p style={styles.pickerSub}>¿Qué quieres acompañar hoy?</p>
+              <div style={styles.pickerOptions}>
+                {LUCHAS.map((l) => {
+                  const active = l.id === (previewLucha ?? luchaId);
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() => setPreviewLucha(l.id)}
+                      style={{
+                        ...styles.pickerOption,
+                        background: active ? `rgba(${l.rgb}, 0.14)` : 'rgba(0,0,0,0.12)',
+                        borderColor: active ? `rgba(${l.rgb}, 0.55)` : 'var(--border-color)',
+                      }}
+                    >
+                      <span style={styles.pickerOptionEmoji}>{l.emoji}</span>
+                      <span style={styles.pickerOptionLabel}>
+                        {l.label}
+                        {l.id === 'general' && <small style={styles.pickerOptionSub}>Bienestar y calma general</small>}
+                      </span>
+                      {active && <CheckCircle2 size={18} color={l.color} style={{ flexShrink: 0 }} />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={styles.modalFooter}>
+                <button type="button" onClick={() => setPickerOpen(false)} style={styles.modalCancel}>
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLuchaId(preview.id); setPickerOpen(false); }}
+                  style={{ ...styles.modalConfirm, background: preview.color }}
+                >
+                  <CheckCircle2 size={16} color="#0c1810" />
+                  ¡Listo!
+                </button>
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>
+        );
+      })()}
 
       {/* Aliento para hoy */}
       <div
@@ -225,6 +245,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         onClick={() => navigate('/breathe')}
       >
         <div style={styles.alientoCircle} />
+        <div style={styles.alientoCircle2} />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '22px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 165 }}>
           <h6 style={styles.alientoLabel}>
             {lucha.emoji} ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
@@ -478,51 +499,66 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: 'fixed',
     inset: 0,
     background: 'rgba(0, 0, 0, 0.55)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
     zIndex: 999,
-    animation: 'fadeIn 0.25s ease forwards',
+    animation: 'fadeInFast 0.25s ease forwards',
   },
-  pickerSheet: {
+  pickerModal: {
     position: 'fixed',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
     zIndex: 1000,
-    background: 'var(--bg-elevated)',
-    borderTopLeftRadius: '28px',
-    borderTopRightRadius: '28px',
-    padding: '12px 20px 28px',
-    boxShadow: '0 -12px 40px rgba(0, 0, 0, 0.45)',
-    animation: 'sheetUp 0.35s cubic-bezier(0.32, 0.9, 0.3, 1) forwards',
-    maxHeight: '78vh',
+    width: 'min(380px, calc(100% - 40px))',
+    maxHeight: '86vh',
     overflowY: 'auto',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-color-glow)',
+    borderRadius: '28px',
+    padding: '14px 20px 20px',
+    boxShadow: '0 30px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+    animation: 'modalPop 0.4s cubic-bezier(0.34, 1.4, 0.5, 1) forwards',
   },
   pickerHandle: {
     width: '44px',
     height: '5px',
     borderRadius: '3px',
     background: 'var(--border-color)',
-    margin: '0 auto 16px',
+    margin: '0 auto 12px',
   },
-  pickerTitle: {
-    margin: 0,
-    fontSize: '18px',
-    fontWeight: 800,
-    fontFamily: 'var(--font-title)',
-    color: 'var(--text-primary)',
+  modalPreview: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '6px 0 10px',
     textAlign: 'center',
   },
+  modalTitle: {
+    margin: '4px 0 0',
+    fontSize: '24px',
+    fontWeight: 800,
+    fontFamily: 'var(--font-display)',
+    color: 'var(--text-primary)',
+    lineHeight: 1.2,
+  },
   pickerSub: {
-    margin: '3px 0 16px',
+    margin: '0 0 14px',
     fontSize: '12px',
     color: 'var(--text-muted)',
     textAlign: 'center',
+  },
+  pickerOptions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
   },
   pickerOption: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
     padding: '12px 14px',
-    borderRadius: '14px',
+    borderRadius: '16px',
     border: '1px solid',
     cursor: 'pointer',
     fontFamily: 'var(--font-title)',
@@ -547,6 +583,41 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '11px',
     fontWeight: 500,
     color: 'var(--text-muted)',
+  },
+  modalFooter: {
+    display: 'flex',
+    gap: '10px',
+    marginTop: '16px',
+  },
+  modalCancel: {
+    flex: 1,
+    padding: '13px',
+    borderRadius: '16px',
+    border: '1px solid var(--border-color)',
+    background: 'rgba(0, 0, 0, 0.2)',
+    color: 'var(--text-secondary)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  modalConfirm: {
+    flex: 1.4,
+    padding: '13px',
+    borderRadius: '16px',
+    border: 'none',
+    color: '#0c1810',
+    fontFamily: 'var(--font-title)',
+    fontSize: '14px',
+    fontWeight: 800,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)',
+    transition: 'all 0.2s ease',
   },
   sosCircleBtn: {
     width: '40px',
@@ -595,6 +666,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '50%',
     background: 'rgba(255, 255, 255, 0.07)',
     transform: 'translate(-30%, -30%)',
+  },
+  alientoCircle2: {
+    position: 'absolute',
+    bottom: '-40px',
+    right: '-30px',
+    width: '130px',
+    height: '130px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.05)',
   },
   alientoLabel: {
     margin: 0,
@@ -707,6 +787,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
+    background: 'linear-gradient(180deg, rgba(var(--accent-gold-rgb), 0.07) 0%, rgba(0, 0, 0, 0) 45%)',
   },
   streakHead: {
     display: 'flex',
