@@ -184,8 +184,18 @@ html[data-theme="mono"] body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   flex-shrink: 0;
+  margin: 0 auto;
+}
+
+/* Centrar verticalmente solo cuando hay espacio; si el contenido es más alto
+   que la pantalla, los auto-margins colapsan y el scroll queda completo */
+.app-shell.auth-shell > .auth-centered > :first-child {
+  margin-top: auto;
+}
+
+.app-shell.auth-shell > .auth-centered > :last-child {
+  margin-bottom: auto;
 }
 
 .app-container {
