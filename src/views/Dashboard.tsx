@@ -132,7 +132,6 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const level = 1 + Math.floor(streak / 5);
   const practiceCompleted = practiceDone >= PRACTICA_META;
   const practicePct = Math.min(100, Math.round((practiceDone / PRACTICA_META) * 100));
-  const avatarInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'A';
 
   if (loading) {
     return (
@@ -156,9 +155,6 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <div style={styles.headerActions}>
           <button onClick={() => navigate('/sos')} title="Emergencias" style={styles.sosCircleBtn}>
             <Shield size={22} color="#ffffff" fill="#ffffff" fillOpacity={0.25} />
-          </button>
-          <button onClick={() => navigate('/profile')} title="Mi perfil" style={styles.avatarCircle}>
-            {avatarInitial}
           </button>
         </div>
       </div>
@@ -463,10 +459,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    background: 'rgba(255, 255, 255, 0.08)',
-    border: '1px solid var(--border-color)',
-    borderRadius: '999px',
-    padding: '5px',
   },
   luchaPicker: {
     display: 'flex',
