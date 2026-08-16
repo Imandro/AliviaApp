@@ -32,6 +32,8 @@ const PROBLEMS = [
   'Irritabilidad o enojo',
   'Falta de concentraciÃ³n',
   'Pensamientos negativos recurrentes',
+  'Consumo o deseos de consumir (adicciones)',
+  'Pensamientos de hacerme daÃ±o o de suicidio',
 ];
 
 const SITUATIONS = [
@@ -44,6 +46,8 @@ const SITUATIONS = [
   'Cambios de vida importantes',
   'Cansancio extremo',
   'Miedo o incertidumbre por el futuro',
+  'Ganas fuertes de consumir o recaÃ­das',
+  'Sentirme sin salida o sin ganas de seguir',
 ];
 
 const STRATEGIES = [

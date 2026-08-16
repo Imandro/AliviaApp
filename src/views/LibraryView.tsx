@@ -3,7 +3,7 @@ import { BookOpen, Mic, FileText, Sparkles, ArrowRight } from 'lucide-react';
 import { getMoodHistory } from '../utils/localDb';
 import { LUCHAS } from '../utils/luchas';
 
-type Category = 'depresion' | 'ansiedad' | 'familia' | 'economia' | 'amistades' | 'noviazgo' | 'bienestar';
+type Category = 'depresion' | 'ansiedad' | 'familia' | 'economia' | 'amistades' | 'noviazgo' | 'adicciones' | 'suicidio' | 'bienestar';
 
 interface LibraryItem {
   id: string;
@@ -105,6 +105,26 @@ const LIBRARY: LibraryItem[] = [
     id: 'l18', type: 'recurso', title: 'Cómo calmar un ataque de pánico',
     desc: 'Pasos concretos para cuando el cuerpo se dispara: agua fría, 4-7-8 y anclaje.',
     category: 'ansiedad', age: '12+',
+  },
+  {
+    id: 'l19', type: 'articulo', title: 'Adicciones y juventud: entender para salir',
+    desc: 'Cómo funciona el ciclo del consumo en el cerebro joven y qué estrategias reales funcionan.',
+    category: 'adicciones', age: '13+',
+  },
+  {
+    id: 'l20', type: 'recurso', title: 'Recursos de apoyo contra las adicciones',
+    desc: 'Centros, líneas y comunidades de Centroamérica donde pedir ayuda sin pena ni juicios.',
+    category: 'adicciones', age: '13+',
+  },
+  {
+    id: 'l21', type: 'recurso', title: 'Líneas de ayuda de Centroamérica ⚠️',
+    desc: 'Teléfonos gratuitos de crisis por país. Si estás en peligro, llama ahora: están para escucharte.',
+    category: 'suicidio', age: '10+',
+  },
+  {
+    id: 'l22', type: 'articulo', title: 'Cómo pedir ayuda: qué decir y a quién',
+    desc: 'Un guion paso a paso para hablar del suicidio con un adulto o profesional, sin quedarte en el intento.',
+    category: 'suicidio', age: '12+',
   },
 ];
 

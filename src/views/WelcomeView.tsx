@@ -20,6 +20,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,10 +33,15 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
     setMode(m);
     setError('');
     setShowPassword(false);
+    setTermsAccepted(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === 'register' && !termsAccepted) {
+      setError('Debes aceptar los términos para continuar');
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -197,10 +203,31 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
               </div>
             </div>
 
+            {!isLogin && (
+              <div style={styles.termsWrap}>
+                <input
+                  type="checkbox"
+                  id="termsAccepted"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  style={styles.termsCheckbox}
+                />
+                <label htmlFor="termsAccepted" style={styles.termsText}>
+                  Acepto que ALIVIA es una herramienta de apoyo emocional y <b>no sustituye</b> atención profesional. Mis datos se guardan de forma privada y segura.
+                </label>
+              </div>
+            )}
+
             <button type="submit" className="btn-primary" style={styles.submit} disabled={loading}>
               {loading ? <Loader2 size={20} className="spin" /> : isLogin ? 'Entrar' : 'Crear mi cuenta'}
             </button>
           </form>
+
+          {!isLogin && (
+            <p style={styles.disclaimer}>
+              Al crear tu cuenta aceptas que ALIVIA te acompaña en tus luchas (depresión, ansiedad, adicciones y más) con herramientas de autoapoyo. En emergencia siempre usa las líneas de crisis del menú SOS.
+            </p>
+          )}
 
           <div style={styles.switchWrap}>
             <p style={styles.switchText}>
@@ -316,7 +343,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   submit: {
     width: '100%',
     padding: '14px',
-    borderRadius: '16px',
+    borderRadius: '999px',
     fontSize: '15px',
     fontWeight: 700,
     letterSpacing: '0.02em',
@@ -325,6 +352,38 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     gap: '8px',
     marginTop: '4px',
+  },
+  termsWrap: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+    marginBottom: '14px',
+    padding: '10px 12px',
+    borderRadius: '12px',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid var(--border-color)',
+  },
+  termsCheckbox: {
+    width: '17px',
+    height: '17px',
+    minWidth: '17px',
+    marginTop: '2px',
+    accentColor: 'var(--accent-gold)',
+    cursor: 'pointer',
+  },
+  termsText: {
+    fontSize: '11.5px',
+    lineHeight: 1.5,
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+  },
+  disclaimer: {
+    margin: 0,
+    textAlign: 'center',
+    fontSize: '10.5px',
+    lineHeight: 1.5,
+    color: 'var(--text-muted)',
+    opacity: 0.75,
   },
   switchWrap: {
     borderTop: '1px solid var(--border-color)',
