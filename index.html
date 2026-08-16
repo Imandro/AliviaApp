@@ -2,7 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/icon-128.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-title" content="ALIVIA" />
     <!-- Viewport optimizado para Apps móviles (APK/Capacitor/Cordova) -->
@@ -57,12 +58,12 @@
       }
       .preloader-logo {
         margin-top: 24px;
-        font-family: 'Quicksand', sans-serif;
-        font-size: 20px;
-        font-weight: 500;
-        letter-spacing: 0.15em;
-        color: #F2E3A0;
-        opacity: 0.8;
+        height: 34px;
+      }
+      .preloader-logo img {
+        height: 100%;
+        width: auto;
+        display: block;
       }
       .preloader-sub {
         margin-top: 8px;
@@ -89,7 +90,7 @@
     <!-- Preloader estético que desaparece al inicializarse la App -->
     <div id="app-preloader">
       <div class="preloader-glow"></div>
-      <div class="preloader-logo">ALIVIA</div>
+      <div class="preloader-logo"><img src="/logo-banner.png" alt="ALIVIA" /></div>
       <div class="preloader-sub">cargando espacio seguro...</div>
     </div>
     

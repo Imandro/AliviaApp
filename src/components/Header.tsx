@@ -1,29 +1,41 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, Phone } from 'lucide-react';
+import { Sun, Moon, Phone, Contrast } from 'lucide-react';
+import logoBanner from '../assets/logo-banner.png';
+
+export type ThemeMode = 'light' | 'dark' | 'mono';
 
 interface HeaderProps {
-  theme: 'light' | 'dark';
-  setTheme: (theme: 'light' | 'dark') => void;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
   onSosClick: () => void;
   userName?: string;
 }
+
+const THEME_ORDER: ThemeMode[] = ['dark', 'light', 'mono'];
+
+const THEME_INFO: Record<ThemeMode, { icon: React.ComponentType<any>; title: string; next: ThemeMode }> = {
+  dark: { icon: Sun, title: 'Modo Salvia Suave (claro)', next: 'light' },
+  light: { icon: Moon, title: 'Modo Calma Profunda (oscuro)', next: 'mono' },
+  mono: { icon: Contrast, title: 'Modo Calma Bicolor (blanco y negro)', next: 'dark' },
+};
 
 export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, userName }) => {
   const navigate = useNavigate();
 
   const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    const nextTheme = THEME_INFO[theme].next;
     setTheme(nextTheme);
     document.documentElement.setAttribute('data-theme', nextTheme);
   };
 
   const initial = (userName || 'A').trim().charAt(0).toUpperCase() || 'A';
+  const ThemeIcon = THEME_INFO[theme].icon;
 
   return (
     <header style={styles.header}>
       <div style={styles.logoArea}>
-        <h1 style={styles.logo}>ALIVIA</h1>
+        <img src={logoBanner} alt="ALIVIA" style={styles.logo} />
         {userName && <span style={styles.greeting}>Hola, {userName.split(' ')[0]}</span>}
       </div>
 
@@ -31,14 +43,10 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
         <button
           onClick={toggleTheme}
           style={styles.iconBtn}
-          title={theme === 'dark' ? "Modo Salvia Suave" : "Modo Calma Profunda"}
+          title={THEME_INFO[theme].title}
         >
           <div style={styles.iconInner}>
-            {theme === 'dark' ? (
-              <Sun size={18} color="var(--text-secondary)" />
-            ) : (
-              <Moon size={18} color="var(--text-secondary)" />
-            )}
+            <ThemeIcon size={18} color="var(--text-secondary)" />
           </div>
         </button>
 
@@ -83,22 +91,15 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   logoArea: {
     display: 'flex',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: '10px',
     minWidth: 0,
   },
   logo: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '19px',
-    fontWeight: 600,
-    letterSpacing: '0.2em',
-    color: 'var(--text-primary)',
-    background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--text-primary) 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    margin: 0,
-    whiteSpace: 'nowrap',
+    height: '26px',
+    width: 'auto',
+    objectFit: 'contain',
+    flexShrink: 0,
   },
   greeting: {
     fontSize: '12px',

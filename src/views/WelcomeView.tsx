@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Loader2, Heart, Lock, User as UserIcon, Mail, Star } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, User as UserIcon, Mail, Star } from 'lucide-react';
 import { register, login, setToken, SafeUser } from '../utils/auth';
 import { CountryPhoneInput, isPhoneComplete } from '../components/CountryPhoneInput';
+import logoVertical from '../assets/logo-vertical.png';
 
 interface WelcomeViewProps {
   onAuthenticated: (user: SafeUser, needsOnboarding: boolean) => void;
@@ -79,10 +80,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
       <div style={styles.centered}>
         <div className="glass-card auth-card fade-in" style={styles.card}>
           <div style={styles.logoWrap}>
-            <div style={styles.logoCircle}>
-              <Heart size={26} color="var(--accent-gold)" fill="rgba(var(--accent-gold-rgb), 0.25)" />
-            </div>
-            <h1 style={styles.logo}>ALIVIA</h1>
+            <img src={logoVertical} alt="ALIVIA" style={styles.logoImg} />
             <p style={styles.tagline}>Tu espacio seguro para sentirte mejor</p>
           </div>
 
@@ -246,29 +244,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '8px',
+    gap: '10px',
   },
-  logoCircle: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(var(--accent-gold-rgb), 0.08)',
-    border: '1px solid rgba(var(--accent-gold-rgb), 0.15)',
-    boxShadow: '0 8px 30px rgba(var(--accent-gold-rgb), 0.12)',
-  },
-  logo: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '24px',
-    fontWeight: 600,
-    letterSpacing: '0.25em',
-    margin: 0,
-    background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--text-primary) 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+  logoImg: {
+    height: '96px',
+    width: 'auto',
+    objectFit: 'contain',
+    filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35))',
   },
   tagline: {
     margin: 0,
