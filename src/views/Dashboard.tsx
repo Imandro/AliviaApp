@@ -4,6 +4,7 @@ import {
   Sparkles,
   Shield,
   ChevronRight,
+  ChevronDown,
   Trophy,
   ArrowRight,
   CheckCircle2,
@@ -60,6 +61,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [savingMood, setSavingMood] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
   const [luchaId, setLuchaId] = useState(() => problemsToLucha(user?.problems));
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [alientoBg, setAlientoBg] = useState(ALIENTO_BG[0]);
 
   const lucha = getLucha(luchaId);
@@ -161,26 +163,60 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       </div>
 
       {/* Selector de luchas */}
-      <div style={styles.luchasRow}>
-        {LUCHAS.map((l) => {
-          const active = l.id === luchaId;
-          return (
-            <button
-              key={l.id}
-              onClick={() => setLuchaId(l.id)}
-              style={{
-                ...styles.luchaChip,
-                background: active ? `rgba(${l.rgb}, 0.16)` : 'var(--bg-base)',
-                borderColor: active ? `rgba(${l.rgb}, 0.45)` : 'var(--border-color)',
-                color: active ? l.color : 'var(--text-muted)',
-              }}
-            >
-              <span style={{ fontSize: 13 }}>{l.emoji}</span>
-              {l.label}
-            </button>
-          );
-        })}
-      </div>
+      <button
+        type="button"
+        onClick={() => setPickerOpen(true)}
+        style={{
+          ...styles.luchaPicker,
+          borderColor: `rgba(${lucha.rgb}, 0.45)`,
+          background: `rgba(${lucha.rgb}, 0.1)`,
+        }}
+      >
+        <span style={{ fontSize: 16 }}>{lucha.emoji}</span>
+        <span style={styles.luchaPickerText}>
+          <small style={styles.luchaPickerLabel}>MI LUCHA PRINCIPAL</small>
+          {lucha.label}
+        </span>
+        <ChevronDown size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+      </button>
+
+      {pickerOpen && (
+        <>
+          <div style={styles.pickerOverlay} onClick={() => setPickerOpen(false)} />
+          <div style={styles.pickerSheet}>
+            <div style={styles.pickerHandle} />
+            <h5 style={styles.pickerTitle}>Elige tu lucha principal</h5>
+            <p style={styles.pickerSub}>Hoy te acompañamos con esto</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {LUCHAS.map((l) => {
+                const active = l.id === luchaId;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => {
+                      setLuchaId(l.id);
+                      setPickerOpen(false);
+                    }}
+                    style={{
+                      ...styles.pickerOption,
+                      background: active ? `rgba(${l.rgb}, 0.14)` : 'var(--bg-base)',
+                      borderColor: active ? `rgba(${l.rgb}, 0.5)` : 'var(--border-color)',
+                    }}
+                  >
+                    <span style={styles.pickerOptionEmoji}>{l.emoji}</span>
+                    <span style={styles.pickerOptionLabel}>
+                      {l.label}
+                      {l.id === 'general' && <small style={styles.pickerOptionSub}>Bienestar y calma general</small>}
+                    </span>
+                    {active && <CheckCircle2 size={18} color={l.color} style={{ flexShrink: 0 }} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Aliento para hoy */}
       <div
@@ -409,25 +445,108 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '999px',
     padding: '5px',
   },
-  luchasRow: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  luchaChip: {
+  luchaPicker: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
-    padding: '7px 12px',
-    borderRadius: '999px',
-    border: '1px solid var(--border-color)',
-    fontFamily: 'var(--font-title)',
-    fontSize: '11px',
-    fontWeight: 600,
+    gap: '10px',
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: '16px',
+    border: '1px solid',
     cursor: 'pointer',
+    fontFamily: 'var(--font-title)',
     transition: 'all 0.2s ease',
-    whiteSpace: 'nowrap',
+    textAlign: 'left',
+  },
+  luchaPickerText: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1px',
+    fontSize: '15px',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+  },
+  luchaPickerLabel: {
+    fontSize: '9.5px',
+    fontWeight: 600,
+    letterSpacing: '0.16em',
+    color: 'var(--text-muted)',
+  },
+  pickerOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.55)',
+    zIndex: 999,
+    animation: 'fadeIn 0.25s ease forwards',
+  },
+  pickerSheet: {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    background: 'var(--bg-elevated)',
+    borderTopLeftRadius: '28px',
+    borderTopRightRadius: '28px',
+    padding: '12px 20px 28px',
+    boxShadow: '0 -12px 40px rgba(0, 0, 0, 0.45)',
+    animation: 'sheetUp 0.35s cubic-bezier(0.32, 0.9, 0.3, 1) forwards',
+    maxHeight: '78vh',
+    overflowY: 'auto',
+  },
+  pickerHandle: {
+    width: '44px',
+    height: '5px',
+    borderRadius: '3px',
+    background: 'var(--border-color)',
+    margin: '0 auto 16px',
+  },
+  pickerTitle: {
+    margin: 0,
+    fontSize: '18px',
+    fontWeight: 800,
+    fontFamily: 'var(--font-title)',
+    color: 'var(--text-primary)',
+    textAlign: 'center',
+  },
+  pickerSub: {
+    margin: '3px 0 16px',
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+    textAlign: 'center',
+  },
+  pickerOption: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 14px',
+    borderRadius: '14px',
+    border: '1px solid',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-title)',
+    transition: 'all 0.2s ease',
+    textAlign: 'left',
+    width: '100%',
+  },
+  pickerOptionEmoji: {
+    fontSize: '22px',
+    flexShrink: 0,
+  },
+  pickerOptionLabel: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    fontSize: '14px',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+  },
+  pickerOptionSub: {
+    fontSize: '11px',
+    fontWeight: 500,
+    color: 'var(--text-muted)',
   },
   sosCircleBtn: {
     width: '40px',
