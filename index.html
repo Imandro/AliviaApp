@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-title" content="ALIVIA" />
+    <!-- Viewport optimizado para Apps móviles (APK/Capacitor/Cordova) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- Meta tags SEO y Web App -->
+    <title>ALIVIA - Tu Espacio de Calma</title>
+    <meta name="description" content="ALIVIA es un espacio seguro y ultra-minimalista para adolescentes y jóvenes. Encuentra calma, realiza ejercicios de respiración, escribe tus pensamientos para dejarlos ir y accede a apoyo inmediato en crisis." />
+    <meta name="theme-color" content="#2C533D" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- Fuentes Google: Quicksand (principal) + Lato (títulos y cuerpo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Estilo rápido para el Preloader estético de la aplicación -->
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #1a2a20;
+        font-family: 'Lato', sans-serif;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #app-preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        background: radial-gradient(circle at center, #2C533D 0%, #1a2a20 100%);
+        transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .preloader-glow {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(242, 227, 160, 0.4) 0%, rgba(140, 176, 141, 0.1) 70%, transparent 100%);
+        box-shadow: 0 0 40px rgba(242, 227, 160, 0.2);
+        animation: pulsePreloader 3s infinite alternate ease-in-out;
+      }
+      .preloader-logo {
+        margin-top: 24px;
+        font-family: 'Quicksand', sans-serif;
+        font-size: 20px;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        color: #F2E3A0;
+        opacity: 0.8;
+      }
+      .preloader-sub {
+        margin-top: 8px;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        color: #8CB08D;
+        opacity: 0.5;
+      }
+      @keyframes pulsePreloader {
+        0% {
+          transform: scale(0.85);
+          box-shadow: 0 0 30px rgba(242, 227, 160, 0.15);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1.15);
+          box-shadow: 0 0 60px rgba(242, 227, 160, 0.4);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Preloader estético que desaparece al inicializarse la App -->
+    <div id="app-preloader">
+      <div class="preloader-glow"></div>
+      <div class="preloader-logo">ALIVIA</div>
+      <div class="preloader-sub">cargando espacio seguro...</div>
+    </div>
+    
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <script>
+      // Ocultar preloader cuando la aplicación esté cargada e inicializada
+      window.addEventListener('load', function() {
+        const preloader = document.getElementById('app-preloader');
+        if (preloader) {
+          setTimeout(() => {
+            preloader.style.opacity = '0';
+            setTimeout(() => {
+              preloader.style.display = 'none';
+            }, 600);
+          }, 350);
+        }
+      });
+    </script>
+  </body>
+</html>
