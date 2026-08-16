@@ -185,7 +185,6 @@ html[data-theme="mono"] body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  margin: 0 auto;
 }
 
 /* Centrar verticalmente solo cuando hay espacio; si el contenido es más alto
@@ -196,6 +195,22 @@ html[data-theme="mono"] body {
 
 .app-shell.auth-shell > .auth-centered > :last-child {
   margin-bottom: auto;
+}
+
+/* En pantallas grandes: marco tipo teléfono, igual que .app-container */
+@media (min-width: 481px) {
+  .app-shell.auth-shell > .auth-centered {
+    width: 480px;
+    min-height: 0;
+    height: 92%;
+    max-height: 860px;
+    margin: auto;
+    border-radius: 40px;
+    background: var(--bg-base);
+    box-shadow: var(--shadow-main);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 }
 
 .app-container {

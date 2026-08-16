@@ -256,7 +256,10 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       {/* Estado y SOS */}
       <div style={styles.statusRow}>
         <div className="cm-card" style={styles.streakCard}>
-          <p style={styles.streakLabel}>TU RACHA</p>
+          <div style={styles.streakHead}>
+            <p style={styles.streakLabel}>TU RACHA</p>
+            <span style={styles.levelBadge}>Nivel {level}</span>
+          </div>
 
           <div style={styles.streakMain}>
             <div style={styles.streakMainLeft}>
@@ -264,33 +267,10 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
                 <div style={styles.sunCircle}>
                   <Sun size={20} color="#10B981" />
                 </div>
-                <span style={styles.streakNumber}>{streak}</span>
-              </div>
-              <h3 style={styles.streakDays}>DÍAS</h3>
-              <div style={styles.weekDots}>
-                {weekHistory.map((item, idx) => {
-                  const detail = item.score ? moodDetails[item.score] : null;
-                  const isToday = idx === weekHistory.length - 1;
-                  return (
-                    <div
-                      key={item.date}
-                      title={item.dayName}
-                      className="cm-dot"
-                      style={{
-                        ...styles.weekDot,
-                        background: detail ? detail.color : 'var(--bg-base)',
-                        border: isToday
-                          ? '1px dashed var(--accent-gold)'
-                          : detail
-                            ? '1px solid var(--border-color)'
-                            : '1px dashed var(--border-color)',
-                        boxShadow: detail ? `0 0 8px ${detail.color}80` : 'none',
-                      }}
-                    >
-                      {detail && <span style={styles.weekDotEmoji}>{detail.emoji}</span>}
-                    </div>
-                  );
-                })}
+                <div style={styles.streakNumBlock}>
+                  <span style={styles.streakNumber}>{streak}</span>
+                  <span style={styles.streakDays}>DÍAS</span>
+                </div>
               </div>
             </div>
 
@@ -298,8 +278,38 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
               <div className="cm-mascot" style={styles.mascotCircle}>
                 <span className="cm-mascot-emoji" style={styles.mascotEmoji}>{lastMoodEmoji}</span>
               </div>
-              <span style={styles.levelBadge}>Nivel {level}</span>
             </div>
+          </div>
+
+          <div style={styles.weekRow}>
+            {weekHistory.map((item, idx) => {
+              const detail = item.score ? moodDetails[item.score] : null;
+              const isToday = idx === weekHistory.length - 1;
+              return (
+                <div
+                  key={item.date}
+                  title={item.dayName}
+                  style={styles.weekCol}
+                >
+                  <div
+                    className="cm-dot"
+                    style={{
+                      ...styles.weekDot,
+                      background: detail ? detail.color : 'var(--bg-base)',
+                      border: isToday
+                        ? '1px dashed var(--accent-gold)'
+                        : detail
+                          ? '1px solid var(--border-color)'
+                          : '1px dashed var(--border-color)',
+                      boxShadow: detail ? `0 0 8px ${detail.color}80` : 'none',
+                    }}
+                  >
+                    {detail && <span style={styles.weekDotEmoji}>{detail.emoji}</span>}
+                  </div>
+                  <span style={styles.weekDay}>{item.dayName.charAt(0).toUpperCase()}</span>
+                </div>
+              );
+            })}
           </div>
 
           <div style={styles.checkinBlock}>
@@ -644,20 +654,28 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'stretch',
   },
   streakCard: {
-    padding: '16px',
+    padding: '20px',
     display: 'flex',
     flexDirection: 'column',
+    gap: '16px',
+  },
+  streakHead: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   streakLabel: {
-    margin: '0 0 10px',
+    margin: 0,
     fontSize: '12px',
     fontWeight: 700,
+    letterSpacing: '0.14em',
     color: 'var(--text-muted)',
   },
   streakMain: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: '12px',
   },
   streakMainLeft: {
     flex: 1,
@@ -666,38 +684,57 @@ const styles: { [key: string]: React.CSSProperties } = {
   streakMainRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '8px',
+    gap: '12px',
   },
   sunCircle: {
-    width: '32px',
-    height: '32px',
+    width: '42px',
+    height: '42px',
     borderRadius: '50%',
     background: 'rgba(16, 185, 129, 0.13)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  streakNumBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
   },
   streakNumber: {
-    fontSize: '40px',
+    fontSize: '38px',
     lineHeight: 1,
     fontWeight: 800,
     color: 'var(--text-primary)',
     fontFamily: 'var(--font-display)',
   },
   streakDays: {
-    margin: '2px 0 0 40px',
-    fontSize: '22px',
-    lineHeight: 1.1,
-    fontWeight: 800,
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-display)',
+    fontSize: '11px',
+    lineHeight: 1,
+    fontWeight: 700,
+    letterSpacing: '0.2em',
+    color: 'var(--text-secondary)',
   },
-  weekDots: {
+  weekRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '3px',
-    marginTop: '10px',
-    maxWidth: '180px',
+    gap: '4px',
+    paddingTop: '14px',
+    borderTop: '1px dashed var(--border-color)',
+  },
+  weekCol: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '5px',
+  },
+  weekDay: {
+    fontSize: '10px',
+    fontWeight: 600,
+    letterSpacing: '0.05em',
+    color: 'var(--text-muted)',
   },
   weekDot: {
     borderRadius: '50%',
