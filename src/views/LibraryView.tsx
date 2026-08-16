@@ -1,148 +1,41 @@
+/* ----------------------------------------------------
+   ALIVIA - BIBLIOTECA INTERACTIVA
+   Catálogo de guías cortas. Al tocar una tarjeta se
+   abre la guía inmersiva con retos, quiz y progreso.
+   ---------------------------------------------------- */
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { BookOpen, Mic, FileText, Sparkles, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Check, Clock, Sparkles } from 'lucide-react';
 import { getMoodHistory } from '../utils/localDb';
-import { LUCHAS } from '../utils/luchas';
+import {
+  LIBRARY,
+  CATEGORY_META,
+  TYPE_ICONS,
+  getGuideMinutes,
+  guidePrimaryCategory,
+} from '../utils/libraryItems';
+import type { GuideCategory } from '../utils/libraryContent';
 
-type Category = 'depresion' | 'ansiedad' | 'familia' | 'economia' | 'amistades' | 'noviazgo' | 'adicciones' | 'suicidio' | 'bienestar';
+const DoneKey = 'alivia-guides-done';
 
-interface LibraryItem {
-  id: string;
-  type: 'libro' | 'articulo' | 'recurso';
-  title: string;
-  desc: string;
-  category: Category[] | Category;
-  age: string;
-  url?: string;
-}
-
-const LIBRARY: LibraryItem[] = [
-  {
-    id: 'l1', type: 'libro', title: 'El arte de no amargarse la vida',
-    desc: 'Una guía práctica sobre cómo afrontar los problemas cotidianos sin que se vuelvan angustia.',
-    category: ['ansiedad', 'bienestar'], age: '12+',
-  },
-  {
-    id: 'l2', type: 'libro', title: 'Tu mente en 18 minutos',
-    desc: 'Cómo calmar la mente acelerada con hábitos breves y diarios.',
-    category: ['ansiedad', 'bienestar'], age: '14+',
-  },
-  {
-    id: 'l3', type: 'articulo', title: 'La tristeza también es una respuesta válida',
-    desc: 'Validar la tristeza y distinguirla de la depresión para saber cuándo pedir ayuda.',
-    category: 'depresion', age: '12+',
-  },
-  {
-    id: 'l4', type: 'recurso', title: 'Guía de primeros auxilios emocionales',
-    desc: 'Respuestas rápidas para momentos de crisis: pánico, enojo y desborde emocional.',
-    category: ['bienestar', 'ansiedad'], age: '12+',
-  },
-  {
-    id: 'l5', type: 'libro', title: 'Cómo hacer amigos incluso siendo tímido(a)',
-    desc: 'Estrategias pequeñas para construir vínculos sanos sin forzarte a ser otra persona.',
-    category: 'amistades', age: '12+',
-  },
-  {
-    id: 'l6', type: 'articulo', title: 'Familias complicadas: límites sin culpa',
-    desc: 'Cómo proteger tu paz dentro de un hogar conflictivo sin dejarte llevar por el caos.',
-    category: 'familia', age: '14+',
-  },
-  {
-    id: 'l7', type: 'recurso', title: 'Técnicas rápidas para dormir (mente en reposo)',
-    desc: 'Protocolo 4-7-8 y rutina para apagar la mente antes de dormir.',
-    category: 'bienestar', age: '10+',
-  },
-  {
-    id: 'l8', type: 'articulo', title: 'Cómo hablar de lo que sientes con alguien de confianza',
-    desc: 'El guion paso a paso para pedir apoyo sin tener que explicarlo todo.',
-    category: ['amistades', 'depresion'], age: '12+',
-  },
-  {
-    id: 'l9', type: 'recurso', title: 'Radar emocional: cómo llevar una bitácora de tu ánimo',
-    desc: 'La ciencia detrás del registro diario de emociones y cómo hacerlo sin agobiarte.',
-    category: 'bienestar', age: '12+',
-  },
-  {
-    id: 'l10', type: 'articulo', title: 'Estrés escolar: el plan de 10 minutos',
-    desc: 'Divide en bloques pequeños la presión académica sin quemarte.',
-    category: ['ansiedad', 'bienestar'], age: '12+',
-  },
-  {
-    id: 'l11', type: 'articulo', title: 'Amistades que drenan: las 8 señales',
-    desc: 'Cómo reconocer la burla disfrazada de cariño, el control y el uso en tus amistades.',
-    category: 'amistades', age: '12+',
-  },
-  {
-    id: 'l12', type: 'articulo', title: 'Banderas rojas en el noviazgo',
-    desc: 'Celos, control del teléfono y aislamiento: por qué no son amor y cómo salir de ahí.',
-    category: 'noviazgo', age: '14+',
-  },
-  {
-    id: 'l13', type: 'libro', title: 'Romper en paz: terminar una relación tóxica',
-    desc: 'Un plan paso a paso para salir acompañado(a), sin volver a caer y con el corazón entero.',
-    category: 'noviazgo', age: '14+',
-  },
-  {
-    id: 'l14', type: 'recurso', title: 'Economía para jóvenes sin morir en el intento',
-    desc: 'Presupuesto simple, ahorro mínimo y primeras ideas para generar ingresos.',
-    category: 'economia', age: '13+',
-  },
-  {
-    id: 'l15', type: 'recurso', title: 'Becas y apoyos que existen en tu país',
-    desc: 'Dónde buscar programas gratuitos de estudio, empleo y emprendimiento juvenil.',
-    category: 'economia', age: '13+',
-  },
-  {
-    id: 'l16', type: 'articulo', title: 'Sobrevivir al ambiente en casa',
-    desc: 'Hipervigilancia, mediación y culpa: cómo cuidarte sin escapar de tu hogar.',
-    category: 'familia', age: '12+',
-  },
-  {
-    id: 'l17', type: 'libro', title: 'Entender la depresión en jóvenes',
-    desc: 'Qué se siente, por qué pasa y cómo se distingue de la tristeza normal.',
-    category: 'depresion', age: '12+',
-  },
-  {
-    id: 'l18', type: 'recurso', title: 'Cómo calmar un ataque de pánico',
-    desc: 'Pasos concretos para cuando el cuerpo se dispara: agua fría, 4-7-8 y anclaje.',
-    category: 'ansiedad', age: '12+',
-  },
-  {
-    id: 'l19', type: 'articulo', title: 'Adicciones y juventud: entender para salir',
-    desc: 'Cómo funciona el ciclo del consumo en el cerebro joven y qué estrategias reales funcionan.',
-    category: 'adicciones', age: '13+',
-  },
-  {
-    id: 'l20', type: 'recurso', title: 'Recursos de apoyo contra las adicciones',
-    desc: 'Centros, líneas y comunidades de Centroamérica donde pedir ayuda sin pena ni juicios.',
-    category: 'adicciones', age: '13+',
-  },
-  {
-    id: 'l21', type: 'recurso', title: 'Líneas de ayuda de Centroamérica ⚠️',
-    desc: 'Teléfonos gratuitos de crisis por país. Si estás en peligro, llama ahora: están para escucharte.',
-    category: 'suicidio', age: '10+',
-  },
-  {
-    id: 'l22', type: 'articulo', title: 'Cómo pedir ayuda: qué decir y a quién',
-    desc: 'Un guion paso a paso para hablar del suicidio con un adulto o profesional, sin quedarte en el intento.',
-    category: 'suicidio', age: '12+',
-  },
-];
-
-const LUCHA_META: Record<string, { emoji: string; color: string }> = {
-  bienestar: { emoji: '🌿', color: 'var(--accent-sage)' },
+const loadDone = (): string[] => {
+  try {
+    const raw = localStorage.getItem(DoneKey);
+    if (raw) return JSON.parse(raw);
+  } catch { /* vacío */ }
+  return [];
 };
-LUCHAS.forEach(l => { LUCHA_META[l.id] = { emoji: l.emoji, color: l.color }; });
 
-const CATEGORY_META = LUCHA_META;
-
-const TYPE_ICONS = { libro: BookOpen, articulo: FileText, recurso: Mic };
+const TYPE_LABEL: Record<string, string> = { libro: 'Libro', articulo: 'Artículo', recurso: 'Guía' };
 
 export const LibraryView: React.FC = () => {
-  const [category, setCategory] = useState<Category | 'todas'>('todas');
-  const [moodBased, setMoodBased] = useState<Category | null>(null);
+  const navigate = useNavigate();
+  const [category, setCategory] = useState<GuideCategory | 'todas'>('todas');
+  const [moodBased, setMoodBased] = useState<GuideCategory | null>(null);
+  const [doneIds, setDoneIds] = useState<string[]>(() => loadDone());
 
   useEffect(() => {
-    // Recomendación inteligente basada en los registros de ánimo recientes
     (async () => {
       try {
         const history = await getMoodHistory();
@@ -158,13 +51,20 @@ export const LibraryView: React.FC = () => {
     })();
   }, []);
 
+  useEffect(() => {
+    const onFocus = () => setDoneIds(loadDone());
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
+
   const filtered = useMemo(() => {
     const base = category === 'todas' ? LIBRARY : LIBRARY.filter(i =>
       Array.isArray(i.category) ? i.category.includes(category) : i.category === category);
-    // La "biblioteca inteligente" ordena primero lo relevante a tu estado actual
     if (!moodBased) return base;
     const scored = base.map(item => {
-      const matches = Array.isArray(item.category) ? item.category.includes(moodBased) : item.category === moodBased;
+      const matches = Array.isArray(item.category)
+        ? item.category.includes(moodBased)
+        : item.category === moodBased;
       return { item, score: matches ? 0 : 1 };
     });
     return scored.sort((a, b) => a.score - b.score).map(s => s.item);
@@ -180,17 +80,19 @@ export const LibraryView: React.FC = () => {
         <p className="body-standard" style={{ fontSize: '12px', opacity: 0.75 }}>
           {moodBased
             ? `Según tus últimos registros de ánimo, destacamos contenido relacionado con "${moodBased}". `
-            : 'Contenido seleccionado por profesionales y validado, ordenado según registras tu ánimo diario. '}
+            : 'Guías cortas, con retos clicables y mini-test. Se guarda tu avance y completas en minutos. '}
           Conocerse y aprender son pasos de cuidado.
         </p>
         <div style={styles.topicRow}>
           {(['todas', ...Object.keys(CATEGORY_META)] as const).map(c => (
             <button
               key={c}
-              onClick={() => setCategory(c as Category | 'todas')}
+              onClick={() => setCategory(c as GuideCategory | 'todas')}
               style={{
                 ...styles.topicBtn,
-                ...(category === c ? { background: 'rgba(var(--accent-gold-rgb), 0.15)', color: 'var(--accent-gold)', borderColor: 'rgba(var(--accent-gold-rgb), 0.25)' } : {}),
+                ...(category === c
+                  ? { background: 'rgba(var(--accent-gold-rgb), 0.15)', color: 'var(--accent-gold)', borderColor: 'rgba(var(--accent-gold-rgb), 0.25)' }
+                  : {}),
               }}
             >
               {c === 'todas' ? '📚 Todas' : `${CATEGORY_META[c].emoji} ${c}`}
@@ -202,45 +104,56 @@ export const LibraryView: React.FC = () => {
       <div className="flex flex-col gap-3">
         {filtered.map(item => {
           const Icon = TYPE_ICONS[item.type];
-          const cat = Array.isArray(item.category) ? item.category[0] : item.category;
+          const cat = guidePrimaryCategory(item);
           const meta = CATEGORY_META[cat];
+          const minutes = getGuideMinutes(item.id);
+          const completed = doneIds.includes(item.id);
           return (
-            <div key={item.id} className="glass-card fade-in" style={styles.itemCard}>
+            <button
+              key={item.id}
+              onClick={() => navigate(`/library/${item.id}`)}
+              className="library-item glass-card fade-in"
+              style={styles.itemCard}
+            >
               <div
                 style={{
                   ...styles.iconBox,
-                  background: `rgba(var(--accent-gold-rgb), 0.08)`,
+                  background: `rgba(${meta ? 'var(--accent-gold-rgb)' : 'var(--accent-gold-rgb)'}, 0.08)`,
                   border: '1px solid rgba(var(--accent-gold-rgb), 0.15)',
                 }}
               >
                 <Icon size={18} color="var(--accent-gold)" />
               </div>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={styles.itemTopRow}>
-                  <h4 className="title-medium" style={{ fontSize: '13.5px', color: 'var(--text-primary)', textTransform: 'none', letterSpacing: 0 }}>
+                  <h4 className="title-medium" style={{ fontSize: '13.5px', color: 'var(--text-primary)', textTransform: 'none', letterSpacing: 0, margin: 0 }}>
                     {item.title}
                   </h4>
-                  <span style={styles.typeChip}>{item.type}</span>
+                  {completed && (
+                    <span style={styles.doneChip}>
+                      <Check size={10} strokeWidth={4} /> Hecha
+                    </span>
+                  )}
                 </div>
-                <p className="body-standard" style={{ fontSize: '11.5px', opacity: 0.7, marginTop: '3px', lineHeight: 1.5 }}>
+                <p className="body-standard" style={{ fontSize: '11.5px', opacity: 0.7, marginTop: '3px', lineHeight: 1.5, marginBottom: 0 }}>
                   {item.desc}
                 </p>
                 <div style={styles.itemMeta}>
-                  <span style={{ ...styles.catTag, color: meta.color, background: `rgba(var(--accent-gold-rgb), 0.08)` }}>
+                  <span style={styles.catTag}>
                     {meta.emoji} {cat}
                   </span>
                   <span style={styles.ageTag}>Edad {item.age}</span>
+                  <span style={styles.typeTag}>{TYPE_LABEL[item.type]}</span>
+                  <span style={styles.minTag}>
+                    <Clock size={10} /> {minutes} min
+                  </span>
                 </div>
               </div>
-              {item.url && (
-                <a href={item.url} target="_blank" rel="noopener noreferrer" style={styles.openBtn} title="Abrir contenido">
-                  <ArrowRight size={14} />
-                </a>
-              )}
-            </div>
+            </button>
           );
         })}
       </div>
+
       <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.55, textAlign: 'center', padding: '0 12px' }}>
         El contenido es orientativo y no sustituye atención profesional. Si algo te sobrepasa, busca ayuda humana.
       </p>
@@ -280,6 +193,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '12px',
     padding: '14px',
     alignItems: 'flex-start',
+    width: '100%',
+    textAlign: 'left',
+    cursor: 'pointer',
   },
   iconBox: {
     width: '40px',
@@ -296,11 +212,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
     flexWrap: 'wrap',
   },
-  typeChip: {
+  doneChip: {
     fontSize: '10px',
     fontFamily: 'var(--font-title)',
-    color: 'var(--text-muted)',
-    border: '1px solid var(--border-color)',
+    fontWeight: 700,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    color: 'var(--accent-sage)',
+    background: 'rgba(140, 176, 141, 0.12)',
+    border: '1px solid rgba(140, 176, 141, 0.3)',
     padding: '2px 7px',
     borderRadius: '8px',
   },
@@ -308,10 +229,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '8px',
     marginTop: '8px',
+    flexWrap: 'wrap',
   },
   catTag: {
     fontSize: '10.5px',
     fontFamily: 'var(--font-title)',
+    color: 'var(--accent-gold)',
+    background: 'rgba(var(--accent-gold-rgb), 0.08)',
     padding: '3px 8px',
     borderRadius: '9px',
   },
@@ -320,16 +244,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: 'var(--text-muted)',
     fontFamily: 'var(--font-title)',
   },
-  openBtn: {
-    width: '30px',
-    height: '30px',
-    borderRadius: '50%',
-    border: '1px solid var(--border-color)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+  typeTag: {
+    fontSize: '10.5px',
     color: 'var(--text-muted)',
-    textDecoration: 'none',
-    cursor: 'pointer',
+    fontFamily: 'var(--font-title)',
+    border: '1px solid var(--border-color)',
+    padding: '3px 8px',
+    borderRadius: '9px',
+  },
+  minTag: {
+    fontSize: '10.5px',
+    color: 'var(--text-muted)',
+    fontFamily: 'var(--font-title)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
   },
 };

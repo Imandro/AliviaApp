@@ -812,3 +812,41 @@ html[data-theme="mono"] body {
 .gap-3 { gap: 12px; }
 .gap-4 { gap: 16px; }
 .text-center { text-align: center; }
+
+/* ===== Pulido estético ===== */
+
+::selection {
+  background: rgba(var(--accent-gold-rgb), 0.25);
+  color: var(--text-primary);
+}
+
+.app-content::-webkit-scrollbar {
+  width: 4px;
+}
+.app-content::-webkit-scrollbar-thumb {
+  background: rgba(var(--accent-gold-rgb), 0.1);
+  border-radius: 10px;
+}
+.app-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--accent-gold-rgb), 0.2);
+}
+
+/* En escritorio (puntero fino): las tarjetas respiran */
+@media (hover: hover) and (pointer: fine) {
+  .glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(var(--accent-gold-rgb), 0.16);
+    box-shadow: var(--shadow-card-hover);
+    transition: transform 0.4s var(--spring-fast),
+                border-color 0.3s ease,
+                box-shadow 0.4s var(--spring-fast);
+  }
+
+  .glass-card:hover:active {
+    transform: scale(0.985);
+  }
+
+  .cm-card.cm-hover:hover {
+    transform: translateY(-3px);
+  }
+}

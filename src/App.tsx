@@ -14,6 +14,7 @@ import { RadarView } from './views/RadarView';
 import { PlansView } from './views/PlansView';
 import { CommunityView } from './views/CommunityView';
 import { LibraryView } from './views/LibraryView';
+import { GuideView } from './views/GuideView';
 import { ConnectView } from './views/ConnectView';
 import { WelcomeView } from './views/WelcomeView';
 import { OnboardingView } from './views/OnboardingView';
@@ -97,6 +98,7 @@ function AppShell({
                 <Route path="/plans" element={<PlansView />} />
                 <Route path="/community" element={<CommunityView />} />
                 <Route path="/library" element={<LibraryView />} />
+                <Route path="/library/:id" element={<GuideView />} />
                 <Route path="/connect" element={<ConnectView />} />
                 <Route
                   path="/profile"
