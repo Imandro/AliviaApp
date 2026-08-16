@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserRound, LogOut, Pencil, Mail, Phone as PhoneIcon, AtSign } from 'lucide-react';
+import { LogOut, Pencil, Mail, Phone as PhoneIcon, AtSign } from 'lucide-react';
 import { SafeUser, logout, setToken } from '../utils/auth';
+import logoVertical from '../assets/logo-vertical.png';
 
 interface ProfileViewProps {
   user: SafeUser;
@@ -48,7 +49,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
     <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '90px' }}>
       <div className="glass-card" style={styles.hero}>
         <div style={styles.avatar}>
-          <UserRound size={30} color="var(--accent-gold)" />
+          <img src={logoVertical} alt="ALIVIA" style={styles.avatarImg} />
         </div>
         <h3 className="title-small" style={styles.name}>{user.name}</h3>
         <p style={styles.username}>@{user.username}</p>
@@ -130,14 +131,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid rgba(var(--accent-gold-rgb), 0.12)',
   },
   avatar: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '50%',
+    width: '72px',
+    height: '72px',
+    borderRadius: '20px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(var(--accent-gold-rgb), 0.10)',
-    border: '1px solid rgba(var(--accent-gold-rgb), 0.25)',
+    padding: '8px',
+    background: 'rgba(255, 255, 255, 0.04)',
+    border: '1px solid var(--border-color)',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'contain',
   },
   name: {
     marginTop: '8px',

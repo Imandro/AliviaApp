@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
-import { Heart } from 'lucide-react';
 import { Header } from './components/Header';
 import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -20,6 +19,7 @@ import { WelcomeView } from './views/WelcomeView';
 import { OnboardingView } from './views/OnboardingView';
 import { ProfileView } from './views/ProfileView';
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
+import logoVertical from './assets/logo-vertical.png';
 
 const ROUTE_MAP: Record<string, TabId> = {
   '/': 'dashboard',
@@ -40,9 +40,9 @@ function AppShell({
   onEditProfile: () => void;
   onLogout: () => void;
 }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  const [theme, setTheme] = useState<'light' | 'dark' | 'mono'>(() => {
     const saved = localStorage.getItem('alivia-theme');
-    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+    return (saved === 'light' || saved === 'dark' || saved === 'mono') ? saved : 'dark';
   });
 
   const location = useLocation();
@@ -131,29 +131,27 @@ function SplashScreen() {
         position: 'relative',
         zIndex: 1,
       }}>
-        <div className="fade-in" style={{
-          width: '72px',
-          height: '72px',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(var(--accent-gold-rgb), 0.08)',
-          border: '1px solid rgba(var(--accent-gold-rgb), 0.2)',
-          boxShadow: '0 8px 30px rgba(var(--accent-gold-rgb), 0.15)',
-        }}>
-          <Heart size={30} color="var(--accent-gold)" fill="rgba(var(--accent-gold-rgb), 0.3)" />
-        </div>
+        <img
+          className="fade-in"
+          src={logoVertical}
+          alt="ALIVIA"
+          style={{
+            height: '110px',
+            width: 'auto',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35))',
+          }}
+        />
         <h1 style={{
           fontFamily: 'var(--font-display)',
-          fontSize: '26px',
-          fontWeight: 600,
+          fontSize: '13px',
+          fontWeight: 500,
           letterSpacing: '0.3em',
           margin: 0,
-          color: 'var(--text-primary)',
+          color: 'var(--text-muted)',
           animation: 'fadeIn 1s ease forwards',
         }}>
-          ALIVIA
+          CARGANDO...
         </h1>
       </div>
     </div>

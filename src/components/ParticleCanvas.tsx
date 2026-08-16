@@ -9,7 +9,7 @@ interface ParticleCanvasProps {
   text: string;
   isDissolving: boolean;
   onComplete: () => void;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'mono';
 }
 
 interface Particle {

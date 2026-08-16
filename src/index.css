@@ -70,6 +70,40 @@
   --shadow-card-hover: 0 12px 40px rgba(35, 52, 45, 0.1);
 }
 
+/* Modo Monocromático: blanco y negro puro */
+[data-theme="mono"] {
+  --bg-base: #050505;
+  --bg-surface: rgba(255, 255, 255, 0.05);
+  --bg-surface-glow: rgba(255, 255, 255, 0.03);
+  --bg-elevated: rgba(255, 255, 255, 0.07);
+  --bg-nav: rgba(10, 10, 10, 0.88);
+
+  --accent-gold: #e8e8e8;
+  --accent-gold-rgb: 232, 232, 232;
+  --accent-sage: #cfcfcf;
+  --accent-sage-rgb: 207, 207, 207;
+  --accent-lavender: #e0e0e0;
+  --accent-lavender-rgb: 224, 224, 224;
+  --accent-rose: #f0f0f0;
+  --accent-rose-rgb: 240, 240, 240;
+  --accent-warm: #d8d8d8;
+  --accent-warm-rgb: 216, 216, 216;
+
+  --border-color: rgba(255, 255, 255, 0.14);
+  --border-color-glow: rgba(255, 255, 255, 0.22);
+  --border-color-active: rgba(255, 255, 255, 0.45);
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #bdbdbd;
+  --text-muted: #858585;
+  --text-active: #ffffff;
+
+  --shadow-main: 0 18px 60px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 12px 48px rgba(0, 0, 0, 0.6);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -127,6 +161,14 @@ body::after {
   background: radial-gradient(circle at top right, #EAEBDD 0%, #d4d8c8 100%);
 }
 
+[data-theme="mono"] .app-shell {
+  background: radial-gradient(circle at top right, #101010 0%, #000000 100%);
+}
+
+html[data-theme="mono"] body {
+  background-color: #050505;
+}
+
 .app-container {
   width: 100%;
   max-width: 480px;
@@ -154,6 +196,15 @@ body::after {
     border: 8px solid rgba(0, 0, 0, 0.05);
     box-shadow: 0 30px 100px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
   }
+}
+
+/* Monocromático: todo a blanco y negro (gráficos, gradientes y colores embebidos) */
+[data-theme="mono"] .app-container {
+  filter: grayscale(1);
+}
+
+[data-theme="mono"] .slider-apple {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .bg-blobs {
@@ -432,6 +483,16 @@ body::after {
 .input-apple:focus {
   border-color: var(--border-color-active);
   box-shadow: 0 0 10px rgba(var(--accent-gold-rgb), 0.05);
+}
+
+[data-theme="mono"] .input-apple {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+[data-theme="mono"] .bg-blob {
+  mix-blend-mode: screen;
+  opacity: 0.06;
 }
 
 /* Responsividad: evita el zoom automático de iOS al enfocar inputs en móviles */

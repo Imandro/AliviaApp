@@ -3,7 +3,7 @@ import { PenTool, Trash2, Heart } from 'lucide-react';
 import { ParticleCanvas } from '../components/ParticleCanvas';
 
 interface BurnJournalProps {
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'mono';
 }
 
 const therapeuticQuotes = [
