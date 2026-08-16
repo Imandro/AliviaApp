@@ -46,7 +46,7 @@ export const BurnJournal: React.FC<BurnJournalProps> = ({ theme }) => {
           <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>DIARIO DE DESAHOGO</h3>
         </div>
         <p className="body-standard" style={{ marginTop: '8px', fontSize: '13px', opacity: 0.8 }}>
-          Escribe lo que te enoja, te asusta o te da ansiedad. Al terminar, presiona **"Dejar Ir"** y observa cómo tus pensamientos se disuelven y se desvanecen para siempre de manera segura.
+          Escribe lo que te enoja, te asusta o te da ansiedad. Al terminar, presiona "Dejar Ir" y observa cómo tus pensamientos se disuelven y se desvanecen para siempre de manera segura.
         </p>
       </div>
 

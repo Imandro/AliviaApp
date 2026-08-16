@@ -110,7 +110,7 @@ export const RadarView: React.FC = () => {
         {loading ? (
           <p className="body-standard" style={{ fontSize: '12px', opacity: 0.6 }}>Cargando radar…</p>
         ) : (
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ filter: 'drop-shadow(0 6px 18px rgba(var(--accent-lavender-rgb), 0.18))' }}>
             {/* Anillos */}
             {[...Array(ringCount)].map((_, idx) => (
               <polygon
