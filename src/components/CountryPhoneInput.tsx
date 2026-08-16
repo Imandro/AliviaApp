@@ -117,7 +117,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid var(--border-color)',
     color: 'var(--text-primary)',
     fontFamily: 'var(--font-body)',
-    fontSize: '15px',
+    fontSize: '16px',
     fontWeight: 600,
     cursor: 'pointer',
     minWidth: '104px',
@@ -136,7 +136,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     minWidth: 0,
     padding: '13px 16px',
     borderRadius: '14px',
-    fontSize: '15px',
+    fontSize: '16px',
     letterSpacing: '0.03em',
   },
 };

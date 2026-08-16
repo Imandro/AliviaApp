@@ -297,7 +297,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '100%',
     padding: '13px 16px',
     borderRadius: '14px',
-    fontSize: '14px',
+    fontSize: '16px',
   },
   passwordWrap: {
     position: 'relative',
