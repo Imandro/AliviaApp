@@ -172,7 +172,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column',
-    border: '1px solid rgba(255, 255, 255, 0.05)',
+    border: '1px solid var(--border-color)',
     transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
     minHeight: '150px',
   },

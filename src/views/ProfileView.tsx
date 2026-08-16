@@ -51,7 +51,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
         <div style={styles.avatar}>
           <img src={logoVertical} alt="ALIVIA" style={styles.avatarImg} />
         </div>
-        <h3 className="title-small" style={styles.name}>{user.name}</h3>
+        <h3 style={styles.name}>{user.name}</h3>
         <p style={styles.username}>@{user.username}</p>
 
         <div style={styles.contactRow}>
@@ -149,7 +149,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   name: {
     marginTop: '8px',
-    fontSize: '18px',
+    fontSize: '22px',
+    fontWeight: 800,
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+    lineHeight: 1.2,
+    color: 'var(--text-primary)',
+    textTransform: 'none',
   },
   username: {
     margin: 0,
