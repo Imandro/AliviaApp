@@ -86,7 +86,7 @@ function AppShell({
           <ErrorBoundary>
             <div className="page-enter" key={location.pathname}>
               <Routes location={location}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<Dashboard user={user} />} />
                 <Route path="/breathe" element={<Breathe />} />
                 <Route path="/journal" element={<BurnJournal theme={theme} />} />
                 <Route path="/coping" element={<Coping />} />

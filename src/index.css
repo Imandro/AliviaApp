@@ -602,6 +602,112 @@ html[data-theme="mono"] body {
   to { transform: rotate(360deg); }
 }
 
+/* ===== Estilo home estilo Conecta+ ===== */
+
+.cm-card {
+  border-radius: 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cm-card.cm-press:active {
+  transform: scale(0.98);
+}
+
+.cm-card.cm-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.cm-glass {
+  background: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="light"] .cm-glass {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="mono"] .cm-glass {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cm-rise {
+  animation: cmFadeUp 0.5s var(--spring-fast) both;
+}
+
+@keyframes cmFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cm-float {
+  animation: cmFloat 3s ease-in-out infinite;
+}
+
+@keyframes cmFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.cm-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.09) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: cmShimmer 2s ease-in-out infinite;
+}
+
+@keyframes cmShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Escala responsive del home estilo Conecta+ */
+.cm-dot {
+  width: 22px;
+  height: 22px;
+}
+
+.cm-mood-btn {
+  width: 38px;
+  height: 38px;
+}
+
+.cm-mascot {
+  width: 76px;
+  height: 76px;
+}
+
+.cm-mascot .cm-mascot-emoji {
+  font-size: 40px;
+}
+
+@media (max-width: 420px) {
+  .cm-dot {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cm-mood-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .cm-mascot {
+    width: 62px;
+    height: 62px;
+  }
+
+  .cm-mascot .cm-mascot-emoji {
+    font-size: 32px;
+  }
+}
+
 .fade-in {
   animation: fadeIn 0.45s var(--spring-fast) forwards;
 }
