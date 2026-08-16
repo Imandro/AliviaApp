@@ -152,7 +152,9 @@ body::after {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at top right, #1a2a20 0%, #0d1810 100%);
+  background:
+    radial-gradient(1100px 600px at 85% -10%, rgba(var(--accent-lavender-rgb), 0.08), transparent 60%),
+    radial-gradient(circle at top right, #1a2a20 0%, #0d1810 100%);
   position: relative;
   overflow: hidden;
 }
@@ -225,6 +227,19 @@ html[data-theme="mono"] body {
   overflow: hidden;
   box-shadow: var(--shadow-main);
   transition: background-color 0.5s ease;
+}
+
+/* Línea de luz superior: detalle premium del frame */
+.app-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--accent-gold-rgb), 0.4) 50%, transparent 100%);
+  z-index: 20;
+  pointer-events: none;
 }
 
 @media (min-width: 481px) {
@@ -747,6 +762,16 @@ html[data-theme="mono"] body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.88) translateY(16px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes fadeInFast {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 [data-theme="light"] .pickerSheet {
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
 }
@@ -848,5 +873,34 @@ html[data-theme="mono"] body {
 
   .cm-card.cm-hover:hover {
     transform: translateY(-3px);
+  }
+
+  .cm-press:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .cm-press:hover:active {
+    transform: scale(0.985);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* Botones de cabecera: hover vivificado */
+.hdr-btn {
+  transition: transform 0.3s var(--spring-fast),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.hdr-btn:active {
+  transform: scale(0.92);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hdr-btn:hover {
+    transform: translateY(-1px) scale(1.05);
+    border-color: rgba(var(--accent-gold-rgb), 0.35);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
   }
 }

@@ -43,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
         <button
           onClick={toggleTheme}
           style={styles.iconBtn}
+          className="hdr-btn"
           title={THEME_INFO[theme].title}
         >
           <div style={styles.iconInner}>
@@ -53,6 +54,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
         <button
           onClick={() => navigate('/profile')}
           style={styles.avatarBtn}
+          className="hdr-btn"
           title="Mi perfil"
         >
           <div style={styles.avatarInner}>{initial}</div>
@@ -86,6 +88,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backdropFilter: 'blur(20px)',
     WebkitBackdropFilter: 'blur(20px)',
     borderBottom: '1px solid var(--border-color)',
+    boxShadow: '0 10px 30px -18px rgba(0, 0, 0, 0.55)',
     position: 'relative',
     zIndex: 10,
   },
@@ -100,10 +103,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: 'auto',
     objectFit: 'contain',
     flexShrink: 0,
+    filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35))',
   },
   greeting: {
-    fontSize: '12px',
-    color: 'var(--text-muted)',
+    fontSize: '13px',
+    fontWeight: 600,
+    fontFamily: 'var(--font-display)',
+    color: 'var(--text-secondary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
