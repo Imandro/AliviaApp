@@ -70,14 +70,14 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
   const isLogin = mode === 'login';
 
   return (
-    <div className="app-shell">
+    <div className="app-shell auth-shell">
       <div className="bg-blobs" aria-hidden="true">
         <div className="bg-blob bg-blob-1" />
         <div className="bg-blob bg-blob-2" />
         <div className="bg-blob bg-blob-3" />
       </div>
 
-      <div style={styles.centered}>
+      <div className="auth-centered" style={styles.centered}>
         <div className="glass-card auth-card fade-in" style={styles.card}>
           <div style={styles.logoWrap}>
             <img src={logoVertical} alt="ALIVIA" style={styles.logoImg} />
@@ -223,11 +223,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
 
 const styles: { [key: string]: React.CSSProperties } = {
   centered: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '24px 20px',
+    padding: '28px 20px',
     position: 'relative',
     zIndex: 1,
   },

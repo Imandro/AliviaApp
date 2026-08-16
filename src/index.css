@@ -169,6 +169,25 @@ html[data-theme="mono"] body {
   background-color: #050505;
 }
 
+/* --- Pantallas de autenticación (login, registro, onboarding, splash) ---
+   Scrollable en pantallas pequeñas: el contenido crece y se desliza en vez de cortarse */
+.app-shell.auth-shell {
+  align-items: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.app-shell.auth-shell > .auth-centered {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .app-container {
   width: 100%;
   max-width: 480px;
@@ -511,6 +530,12 @@ html[data-theme="mono"] body {
 @media (max-width: 420px) {
   .auth-card {
     padding: 18px 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .header-greeting {
+    display: none;
   }
 }
 

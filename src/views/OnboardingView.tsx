@@ -192,14 +192,14 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
   );
 
   return (
-    <div className="app-shell">
+    <div className="app-shell auth-shell">
       <div className="bg-blobs" aria-hidden="true">
         <div className="bg-blob bg-blob-1" />
         <div className="bg-blob bg-blob-2" />
         <div className="bg-blob bg-blob-3" />
       </div>
 
-      <div style={styles.centered}>
+      <div className="auth-centered" style={styles.centered}>
         <div className="glass-card auth-card fade-in" style={styles.card}>
           <div style={styles.topBar}>
             {step > 0 ? (
@@ -479,11 +479,7 @@ export const OnboardingView: React.FC<OnboardingViewProps> = ({ initial, onSaved
 
 const styles: { [key: string]: React.CSSProperties } = {
   centered: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '20px 16px',
+    padding: '24px 16px 40px',
     position: 'relative',
     zIndex: 1,
   },

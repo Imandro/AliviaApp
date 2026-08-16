@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
     <header style={styles.header}>
       <div style={styles.logoArea}>
         <img src={logoBanner} alt="ALIVIA" style={styles.logo} />
-        {userName && <span style={styles.greeting}>Hola, {userName.split(' ')[0]}</span>}
+        {userName && <span className="header-greeting" style={styles.greeting}>Hola, {userName.split(' ')[0]}</span>}
       </div>
 
       <div style={styles.actions}>

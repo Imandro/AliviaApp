@@ -115,21 +115,18 @@ function AppShell({
 
 function SplashScreen() {
   return (
-    <div className="app-shell">
+    <div className="app-shell auth-shell">
       <div className="bg-blobs" aria-hidden="true">
         <div className="bg-blob bg-blob-1" />
         <div className="bg-blob bg-blob-2" />
         <div className="bg-blob bg-blob-3" />
       </div>
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '16px',
+      <div className="auth-centered" style={{
+        padding: '24px 20px',
         position: 'relative',
         zIndex: 1,
+        gap: '16px',
+        alignItems: 'center',
       }}>
         <img
           className="fade-in"
