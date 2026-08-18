@@ -11,7 +11,7 @@ export interface AiReply {
 }
 
 export interface AiTurn {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
@@ -53,9 +53,48 @@ const trimReply = (content: string): string => {
 
 const sanitizeForLLM = (turn: AiTurn): AiTurn => {
   if (turn.role === 'user' && detectCrisis(turn.content)) {
-    return { role: 'user', content: '[Mensaje omitido por privacidad: contenido de crisis; el usuario fue derivado a líneas de ayuda humanas.]' };
+    return { role: 'user', content: '[Mensaje omitido por privacidad: la persona mencionó riesgo de suicidio o autolesión.]' };
   }
   return turn;
+};
+
+const CRISIS_SYSTEM_PROMPT = [
+  'CONTEXTO ACTUAL: la persona está en una conversación de crisis (acaba de mencionar suicidio, autolesión o no querer seguir viviendo).',
+  'Reglas ESTRICTAS de este modo:',
+  '- PERMANECE en el tema de la crisis. NO cambies de rumbo, no ofrezcas actividades recreativas, juegos ni herramientas de bienestar hasta que la persona diga claramente que está a salvo y fuera de peligro.',
+  '- Valida su dolor sin minimizar ni dramatizar. Pregunta directamente y con cuidado por su seguridad y la de los demás, por ejemplo: "¿Estás a salvo en este momento?" o "¿Puedes poner tus pies en el suelo ahora mismo?".',
+  '- Recuérdale siempre la posibilidad real de hablar HOY con una persona de confianza o con una línea de crisis gratuita (SOS en la app). Nunca prometas guardar silencio ni le pidas esperar sin apoyo.',
+  '- Si ya hay un plan o intención inmediata, repite con seriedad que busque apoyo humano urgente (línea de crisis o emergencias).',
+  '- Si la persona dice explícitamente que ya está en un lugar seguro y tranquilo, reconócelo con calidez, y solo entonces cierra suavemente con los recursos de apoyo. Nunca des por hecho la seguridad sin que ella lo diga.',
+  '- Sé breve: 2 o 3 frases. Nunca agregues temas nuevos ni preguntas de otra índole.',
+].join('\n');
+
+const SUGGEST_SOS = { label: 'Ver líneas de ayuda (SOS)', path: '/sos' };
+const SUGGEST_CONNECT = { label: 'Conecta con alguien de confianza', path: '/connect' };
+
+const TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
+const WHISPER_MODEL = 'whisper-large-v3-turbo';
+
+export const transcribeWithGroq = async (blob: Blob): Promise<string> => {
+  const key = getGroqKey();
+  if (!key) return '';
+  const form = new FormData();
+  form.append('file', blob, 'audio.webm');
+  form.append('model', WHISPER_MODEL);
+  form.append('language', 'es');
+  form.append('temperature', '0');
+  try {
+    const res = await fetch(TRANSCRIBE_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}` },
+      body: form,
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    return (data?.text ?? '').trim();
+  } catch {
+    return '';
+  }
 };
 
 const queryGroq = async (history: AiTurn[]): Promise<string | null> => {
@@ -103,7 +142,7 @@ const queryGroq = async (history: AiTurn[]): Promise<string | null> => {
   }
 };
 
-export const getAiReplyHybrid = async (message: string, history: AiTurn[]): Promise<AiReply> => {
+export const getAiReplyHybrid = async (message: string, history: AiTurn[], crisisMode = false): Promise<AiReply> => {
   const isCrisis = detectCrisis(message);
 
   if (isCrisis) {
@@ -113,6 +152,23 @@ export const getAiReplyHybrid = async (message: string, history: AiTurn[]): Prom
 
   const ruledSuggest = getIntentSuggest(message);
   const lastTurns = history.slice(-MAX_HISTORY_TURNS);
+
+  if (crisisMode) {
+    const llmText = await queryGroq(
+      [{ role: 'system', content: CRISIS_SYSTEM_PROMPT }, ...lastTurns.map(sanitizeForLLM), { role: 'user', content: message }],
+    );
+    if (llmText) {
+      return {
+        text: llmText,
+        topics: [],
+        isCrisis: false,
+        suggest: [SUGGEST_SOS, SUGGEST_CONNECT],
+        source: 'groq',
+      };
+    }
+    const rules = getAiReply(message);
+    return { ...rules, suggest: [SUGGEST_SOS, SUGGEST_CONNECT], source: 'rules' };
+  }
 
   const llmText = await queryGroq([...lastTurns.map(sanitizeForLLM), { role: 'user', content: message }]);
   if (llmText) {

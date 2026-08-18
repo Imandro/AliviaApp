@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw, Mic, Volume2, VolumeX } from 'lucide-react';
+import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
 import { getAiIntro } from '../utils/empatheticAI';
-import { getAiReplyHybrid, hasOnlineAI, AiReply, AiTurn } from '../utils/aiProvider';
+import { getAiReplyHybrid, hasOnlineAI, transcribeWithGroq, AiReply, AiTurn } from '../utils/aiProvider';
+import { speakNatural, stopSpeaking, preloadVoices } from '../utils/tts';
 
 interface ChatMessage {
   role: 'user' | 'ai';
@@ -23,6 +24,15 @@ const QUICK_PROMPTS = [
   'Tengo presión por un examen',
 ];
 
+type VoiceSession = 'idle' | 'listening' | 'transcribing';
+
+declare global {
+  interface Window {
+    SpeechRecognition?: any;
+    webkitSpeechRecognition?: any;
+  }
+}
+
 const loadHistory = (): ChatMessage[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -34,13 +44,6 @@ const loadHistory = (): ChatMessage[] => {
   }
 };
 
-declare global {
-  interface Window {
-    SpeechRecognition?: any;
-    webkitSpeechRecognition?: any;
-  }
-}
-
 export const ChatView: React.FC = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -48,7 +51,9 @@ export const ChatView: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [onlineMode, setOnlineMode] = useState<boolean>(false);
   const [lastSource, setLastSource] = useState<'groq' | 'rules' | null>(null);
-  const [listening, setListening] = useState(false);
+  const [crisisMode, setCrisisMode] = useState(false);
+  const [voiceSession, setVoiceSession] = useState<VoiceSession>('idle');
+  const [orbScale, setOrbScale] = useState(1);
   const [voiceOn, setVoiceOn] = useState<boolean>(() => {
     try {
       return localStorage.getItem(VOICE_KEY) !== 'off';
@@ -58,7 +63,14 @@ export const ChatView: React.FC = () => {
   });
   const [toast, setToast] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const nativeRecRef = useRef<any>(null);
+  const finishedRef = useRef(false);
+  const handleSendRef = useRef<(textArg?: string) => Promise<void> | undefined>(() => undefined);
 
   const showToast = useCallback((text: string) => {
     setToast(text);
@@ -67,37 +79,23 @@ export const ChatView: React.FC = () => {
 
   useEffect(() => {
     setOnlineMode(hasOnlineAI());
+    preloadVoices();
     const saved = loadHistory();
-    const context = (() => {
-      try {
-        return sessionStorage.getItem('alivia-assessment-context');
-      } catch {
-        return null;
-      }
-    })();
     const t = setTimeout(() => {
       if (saved.length > 0) {
         setMessages(saved);
+        if (saved.some(m => m.isCrisis)) setCrisisMode(true);
       } else {
         const intro = getAiIntro();
-        const wrapContext = (text: string) =>
-          `Vi tu chequeo de bienestar reciente. Quiero que sepas que esto no te define y que cuidarte hoy es lo más valioso. ${text}`;
-        setMessages(context
-          ? [{ role: 'ai', text: wrapContext(intro.text), suggest: intro.suggest, source: 'rules' }]
-          : [{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
+        setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
       }
     }, 300);
-    try {
-      sessionStorage.removeItem('alivia-assessment-context');
-    } catch {
-      /* noop */
-    }
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, isTyping, listening]);
+  }, [messages, isTyping, voiceSession]);
 
   useEffect(() => {
     try {
@@ -121,8 +119,11 @@ export const ChatView: React.FC = () => {
 
   useEffect(() => {
     const last = messages[messages.length - 1];
-    if (voiceOn && last && last.role === 'ai' && !last.isCrisis && !last.text.startsWith('Lo que me estás compartiendo')) {
-      const t = setTimeout(() => speak(last.text), 350);
+    if (
+      voiceOn && last && last.role === 'ai' && !last.isCrisis &&
+      !last.text.startsWith('Lo que me estás compartiendo')
+    ) {
+      const t = setTimeout(() => { speakNatural(last.text); }, 350);
       return () => clearTimeout(t);
     }
     return undefined;
@@ -130,80 +131,158 @@ export const ChatView: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      try {
-        recognitionRef.current?.abort();
-        window.speechSynthesis?.cancel();
-      } catch {
-        /* noop */
-      }
+      stopSpeaking();
+      stopVoiceInternals();
     };
   }, []);
 
-  const loadSpanishVoice = useCallback((): SpeechSynthesisVoice | null => {
-    const synth = window.speechSynthesis;
-    if (!synth) return null;
-    const voices = synth.getVoices();
-    if (voices.length === 0) return null;
-    return (
-      voices.find(v => v.lang.startsWith('es') && /google/i.test(v.name)) ||
-      voices.find(v => v.lang.startsWith('es') && v.localService) ||
-      voices.find(v => v.lang.startsWith('es')) ||
-      null
-    );
-  }, []);
-
-  const speak = useCallback((text: string) => {
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    synth.cancel();
-    const clean = text.replace(/[♥✦✓]/gu, '').replace(/\s+/g, ' ').trim();
-    if (!clean) return;
-    const utter = new SpeechSynthesisUtterance(clean);
-    utter.lang = 'es-ES';
-    const voice = loadSpanishVoice();
-    if (voice) utter.voice = voice;
-    utter.rate = 0.94;
-    utter.pitch = 0.95;
-    utter.volume = 1;
-    synth.speak(utter);
-  }, [loadSpanishVoice]);
-
-  const toggleMic = useCallback(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      showToast('Tu navegador no soporta voz. Prueba Chrome o Edge.');
-      return;
+  const stopVoiceInternals = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-    const rec = new SR();
-    rec.lang = 'es-ES';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    recognitionRef.current = rec;
-    rec.onresult = (event: any) => {
-      const transcript: string = event?.results?.[0]?.[0]?.transcript ?? '';
-      if (transcript) {
-        setInput(transcript);
-        setTimeout(() => handleSend(transcript), 150);
-      }
-    };
-    rec.onerror = (event: any) => {
-      setListening(false);
-      if (event?.error === 'not-allowed') showToast('Permite el micrófono para hablar con VIA.');
-      else if (event?.error === 'no-speech') showToast('No te escuché. Intenta de nuevo.');
-    };
-    rec.onend = () => setListening(false);
+    analyserRef.current = null;
     try {
-      rec.start();
-      setListening(true);
+      nativeRecRef.current?.abort();
+    } catch {
+      /* noop */
+    }
+    nativeRecRef.current = null;
+    try {
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        recorderRef.current.stop();
+      }
+    } catch {
+      /* noop */
+    }
+    recorderRef.current = null;
+    chunksRef.current = [];
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+  }, []);
+
+  const startVolumeLoop = useCallback((stream: MediaStream) => {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const loop = () => {
+        analyser.getByteFrequencyData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) sum += data[i];
+        const vol = Math.min(1, sum / data.length / 85);
+        const breath = 0.5 + 0.5 * Math.sin(Date.now() / 1900);
+        setOrbScale(0.92 + vol * 0.5 + breath * 0.09);
+        rafRef.current = requestAnimationFrame(loop);
+      };
+      loop();
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  const finishVoice = useCallback(async (transcript: string) => {
+    finishedRef.current = true;
+    stopVoiceInternals();
+    setVoiceSession('idle');
+    const text = transcript.trim();
+    if (!text) {
+      showToast('No te escuché. Intenta de nuevo.');
+      return;
+    }
+    await handleSendRef.current(text);
+  }, [showToast, stopVoiceInternals]);
+
+  const startVoice = useCallback(async () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const canMic = !!(navigator.mediaDevices?.getUserMedia) || !!SR;
+    if (!canMic) {
+      showToast('Tu navegador no soporta el micrófono.');
+      return;
+    }
+
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      showToast('Permite el micrófono para hablar con VIA.');
+      return;
+    }
+    streamRef.current = stream;
+    finishedRef.current = false;
+    setOrbScale(1);
+
+    if (SR) {
+      const rec = new SR();
+      rec.lang = 'es-ES';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      nativeRecRef.current = rec;
+      rec.onresult = (event: any) => {
+        const transcript: string = event?.results?.[0]?.[0]?.transcript ?? '';
+        if (transcript) finishVoice(transcript);
+      };
+      rec.onerror = (event: any) => {
+        if (event?.error === 'no-speech' || event?.error === 'aborted') {
+          if (!finishedRef.current) finishVoice('');
+        } else if (event?.error === 'not-allowed') {
+          showToast('Permite el micrófono para hablar con VIA.');
+          finishVoice('');
+        }
+      };
+      rec.onend = () => {
+        if (!finishedRef.current) finishVoice('');
+      };
+      try {
+        rec.start();
+        setVoiceSession('listening');
+        startVolumeLoop(stream);
+      } catch {
+        finishVoice('');
+      }
+      return;
+    }
+
+    try {
+      const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', ''].find(t => MediaRecorder.isTypeSupported(t)) ?? '';
+      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      recorderRef.current = rec;
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = async () => {
+        if (finishedRef.current) return;
+        const blob = new Blob(chunksRef.current, { type: mime || 'audio/webm' });
+        if (blob.size < 500) {
+          finishVoice('');
+          return;
+        }
+        setVoiceSession('transcribing');
+        const transcript = await transcribeWithGroq(blob);
+        finishVoice(transcript);
+      };
+      rec.start(500);
+      setVoiceSession('listening');
+      startVolumeLoop(stream);
     } catch {
       showToast('No se pudo iniciar el micrófono.');
+      stopVoiceInternals();
+      setVoiceSession('idle');
     }
-  }, [listening, showToast]);
+  }, [finishVoice, showToast, startVolumeLoop, stopVoiceInternals]);
+
+  const cancelVoice = useCallback(() => {
+    finishedRef.current = true;
+    stopVoiceInternals();
+    setVoiceSession('idle');
+  }, [stopVoiceInternals]);
 
   const handleSend = useCallback(async (textArg?: string) => {
     const text = (textArg ?? input).trim();
@@ -215,15 +294,16 @@ export const ChatView: React.FC = () => {
       .slice(-12)
       .map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.role === 'user' ? m.text : m.text,
+        content: m.text,
       }));
 
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
 
-    const reply: AiReply = await getAiReplyHybrid(text, history);
+    const reply: AiReply = await getAiReplyHybrid(text, history, crisisMode);
     setLastSource(reply.source);
+    if (reply.isCrisis) setCrisisMode(true);
 
     setTimeout(() => {
       setMessages(prev => [...prev, {
@@ -235,7 +315,9 @@ export const ChatView: React.FC = () => {
       }]);
       setIsTyping(false);
     }, TYPING_MS + Math.min(text.length * 25, 800));
-  }, [input, isTyping, messages]);
+  }, [input, isTyping, messages, crisisMode]);
+
+  handleSendRef.current = handleSend;
 
   const handleReset = () => {
     try {
@@ -246,24 +328,61 @@ export const ChatView: React.FC = () => {
     const intro = getAiIntro();
     setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
     setLastSource(null);
+    setCrisisMode(false);
   };
 
-  const statusLabel = lastSource === 'groq'
-    ? 'IA en línea'
-    : lastSource === 'rules'
-      ? 'Modo guiado'
-      : onlineMode
-        ? 'IA en línea'
-        : 'Modo guiado';
+  const statusLabel = crisisMode
+    ? 'Acompañando en crisis'
+    : lastSource === 'groq'
+      ? 'IA en línea'
+      : lastSource === 'rules'
+        ? 'Modo guiado'
+        : onlineMode
+          ? 'IA en línea'
+          : 'Modo guiado';
 
-  const statusColor = lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
-    ? '#7fd6a1'
-    : 'var(--accent-gold)';
+  const statusColor = crisisMode
+    ? '#ff8a80'
+    : lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
+      ? '#7fd6a1'
+      : 'var(--accent-gold)';
 
-  const speechSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const speechSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition || navigator.mediaDevices?.getUserMedia);
 
   return (
     <div className="fade-in flex flex-col" style={{ height: '100%', minHeight: 'calc(100dvh - 280px)' }}>
+      {voiceSession !== 'idle' && (
+        <div style={styles.orbOverlay}>
+          <div style={styles.orbBg}/>
+          <div style={styles.orbHalo1} />
+          <div style={styles.orbHalo2} />
+          <button
+            onClick={cancelVoice}
+            style={styles.orbClose}
+            aria-label="Cancelar voz"
+          >
+            <X size={20} color="rgba(255,255,255,0.85)" />
+          </button>
+          <div
+            style={{
+              ...styles.orbCore,
+              transform: `scale(${orbScale})`,
+              opacity: voiceSession === 'transcribing' ? 0.8 : 1,
+            }}
+          >
+            <div style={styles.orbInner} />
+          </div>
+          <div
+            style={{
+              ...styles.orbRing,
+              borderColor: voiceSession === 'transcribing' ? 'rgba(246, 211, 101, 0.5)' : 'rgba(167, 139, 250, 0.4)',
+            }}
+          />
+          <div style={styles.orbRing2} />
+          {voiceSession === 'transcribing' && <div style={styles.orbPulse} />}
+        </div>
+      )}
+
       <div className="glass-card flex flex-col gap-3" style={styles.introCard}>
         <div style={styles.introHeader}>
           <div style={styles.badgeGlow}>
@@ -274,7 +393,7 @@ export const ChatView: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
               <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.7 }}>
-                {statusLabel} · Puedes escribir • o hablar ●
+                {statusLabel} · Escribe • o habla 🎙️
               </p>
             </div>
           </div>
@@ -341,13 +460,6 @@ export const ChatView: React.FC = () => {
           </div>
         ))}
 
-        {listening && (
-          <div style={styles.listeningChip}>
-            <span style={styles.listeningDot} />
-            <span>Escuchándote…</span>
-          </div>
-        )}
-
         {isTyping && (
           <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
             <div style={{ ...styles.bubble, ...styles.aiBubble }} className="fade-in">
@@ -374,7 +486,7 @@ export const ChatView: React.FC = () => {
       <div style={styles.inputBar}>
         <input
           type="text"
-          placeholder={listening ? 'Te estoy escuchando…' : 'Escribe o habla con VIA…'}
+          placeholder="Escribe o habla con VIA…"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
@@ -382,17 +494,17 @@ export const ChatView: React.FC = () => {
           style={{ flex: 1, padding: '12px 16px', fontSize: '13.5px' }}
         />
         <button
-          onClick={toggleMic}
+          onClick={startVoice}
           disabled={!speechSupported}
           title="Hablar con VIA"
           style={{
             ...styles.micBtn,
-            background: listening ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'rgba(255, 255, 255, 0.06)',
-            border: `1px solid ${listening ? 'rgba(244, 63, 94, 0.6)' : 'var(--border-color)'}`,
-            boxShadow: listening ? '0 0 20px rgba(244, 63, 94, 0.45)' : 'none',
+            background: voiceSession !== 'idle' ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'rgba(255, 255, 255, 0.06)',
+            border: `1px solid ${voiceSession !== 'idle' ? 'rgba(244, 63, 94, 0.6)' : 'var(--border-color)'}`,
+            boxShadow: voiceSession !== 'idle' ? '0 0 20px rgba(244, 63, 94, 0.45)' : 'none',
           }}
         >
-          <Mic size={16} color={listening ? '#fff' : 'var(--text-secondary)'} />
+          <Mic size={16} color={voiceSession !== 'idle' ? '#fff' : 'var(--text-secondary)'} />
         </button>
         <button onClick={() => handleSend()} disabled={!input.trim() || isTyping} style={styles.sendBtn}>
           <Send size={16} color="#fff" />
@@ -416,6 +528,98 @@ export const ChatView: React.FC = () => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
+  orbOverlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 1200,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    background: 'radial-gradient(circle at 50% 42%, #241d4d 0%, #14102b 55%, #0a0818 100%)',
+    animation: 'fadeInFast 0.3s ease forwards',
+  },
+  orbBg: {
+    position: 'absolute',
+    inset: 0,
+    background: 'radial-gradient(circle at 50% 45%, rgba(167,139,250,0.16) 0%, rgba(124,111,232,0.06) 45%, transparent 70%)',
+  },
+  orbHalo1: {
+    position: 'absolute',
+    width: '420px',
+    height: '420px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(246,211,101,0.10) 0%, rgba(127,214,161,0.05) 40%, transparent 70%)',
+    animation: 'spinSlow 26s linear infinite',
+  },
+  orbHalo2: {
+    position: 'absolute',
+    width: '560px',
+    height: '560px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(244,168,195,0.06) 0%, transparent 65%)',
+    animation: 'spinSlowRev 34s linear infinite',
+  },
+  orbClose: {
+    position: 'absolute',
+    top: 'max(18px, env(safe-area-inset-top))',
+    right: '18px',
+    width: '42px',
+    height: '42px',
+    borderRadius: '50%',
+    border: '1px solid rgba(255,255,255,0.16)',
+    background: 'rgba(255,255,255,0.07)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    zIndex: 5,
+  },
+  orbCore: {
+    position: 'relative',
+    zIndex: 2,
+    width: '180px',
+    height: '180px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle at 34% 28%, #f6d365 0%, #a78bfa 55%, #7fd6a1 100%)',
+    boxShadow: '0 0 90px rgba(167,139,250,0.55), 0 0 180px rgba(246,211,101,0.25), inset 0 0 40px rgba(255,255,255,0.25)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'opacity 0.4s ease',
+    willChange: 'transform',
+  },
+  orbInner: {
+    width: '110px',
+    height: '110px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.15) 60%, transparent 100%)',
+  },
+  orbRing: {
+    position: 'absolute',
+    width: '280px',
+    height: '280px',
+    borderRadius: '50%',
+    border: '1.5px solid rgba(167,139,250,0.4)',
+    animation: 'spinSlow 14s linear infinite',
+    transition: 'border-color 0.4s ease',
+  },
+  orbRing2: {
+    position: 'absolute',
+    width: '340px',
+    height: '340px',
+    borderRadius: '50%',
+    border: '1px dashed rgba(246,211,101,0.22)',
+    animation: 'spinSlowRev 22s linear infinite',
+  },
+  orbPulse: {
+    position: 'absolute',
+    width: '200px',
+    height: '200px',
+    borderRadius: '50%',
+    background: 'rgba(167,139,250,0.2)',
+    animation: 'orbPing 1.1s ease-out infinite',
+  },
   introCard: {
     padding: '14px 16px',
   },
@@ -521,28 +725,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '50%',
     background: 'var(--text-muted)',
     animation: 'typingBounce 1.2s infinite',
-  },
-  listeningChip: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    alignSelf: 'center',
-    padding: '7px 16px',
-    borderRadius: '999px',
-    background: 'rgba(244, 63, 94, 0.1)',
-    border: '1px solid rgba(244, 63, 94, 0.3)',
-    fontSize: '12px',
-    fontWeight: 700,
-    color: '#fb7185',
-    animation: 'fadeInFast 0.25s ease forwards',
-  },
-  listeningDot: {
-    width: '9px',
-    height: '9px',
-    borderRadius: '50%',
-    background: '#f43f5e',
-    animation: 'pulseSoft 1.1s infinite',
   },
   quickRow: {
     display: 'flex',
