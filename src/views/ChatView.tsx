@@ -1,29 +1,51 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Sparkles, Phone, ShieldAlert, ArrowRight } from 'lucide-react';
-import { getAiReply, getAiIntro } from '../utils/empatheticAI';
+import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw } from 'lucide-react';
+import { getAiIntro } from '../utils/empatheticAI';
+import { getAiReplyHybrid, hasOnlineAI, AiReply, AiTurn } from '../utils/aiProvider';
 
 interface ChatMessage {
   role: 'user' | 'ai';
   text: string;
   suggest?: { label: string; path: string }[];
   isCrisis?: boolean;
+  source?: 'groq' | 'rules';
 }
 
-const TYPING_MS = 1400;
+const TYPING_MS = 900;
+const STORAGE_KEY = 'alivia-chat-v1';
+
+const loadHistory = (): ChatMessage[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
 
 export const ChatView: React.FC = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [onlineMode, setOnlineMode] = useState<boolean>(false);
+  const [lastSource, setLastSource] = useState<'groq' | 'rules' | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setOnlineMode(hasOnlineAI());
+    const saved = loadHistory();
     const t = setTimeout(() => {
-      const intro = getAiIntro();
-      setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest }]);
-    }, 400);
+      if (saved.length > 0) {
+        setMessages(saved);
+      } else {
+        const intro = getAiIntro();
+        setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
+      }
+    }, 300);
     return () => clearTimeout(t);
   }, []);
 
@@ -31,14 +53,37 @@ export const ChatView: React.FC = () => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-40)));
+      } catch {
+        /* noop */
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [messages]);
+
+  const handleSend = useCallback(async () => {
     const text = input.trim();
     if (!text || isTyping) return;
 
-    const reply = getAiReply(text);
-    setMessages(prev => [...prev, { role: 'user', text }]);
+    const userMsg: ChatMessage = { role: 'user', text };
+    const history: AiTurn[] = messages
+      .filter(m => m.role === 'user' || (m.role === 'ai' && m.text))
+      .slice(-12)
+      .map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.role === 'user' ? m.text : m.text,
+      }));
+
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
     setIsTyping(true);
+
+    const reply: AiReply = await getAiReplyHybrid(text, history);
+    setLastSource(reply.source);
 
     setTimeout(() => {
       setMessages(prev => [...prev, {
@@ -46,10 +91,34 @@ export const ChatView: React.FC = () => {
         text: reply.text,
         suggest: reply.suggest,
         isCrisis: reply.isCrisis,
+        source: reply.source,
       }]);
       setIsTyping(false);
-    }, TYPING_MS + Math.min(text.length * 40, 1200));
+    }, TYPING_MS + Math.min(text.length * 25, 800));
+  }, [input, isTyping, messages]);
+
+  const handleReset = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* noop */
+    }
+    const intro = getAiIntro();
+    setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
+    setLastSource(null);
   };
+
+  const statusLabel = lastSource === 'groq'
+    ? 'IA en línea'
+    : lastSource === 'rules'
+      ? 'Modo guiado'
+      : onlineMode
+        ? 'IA en línea'
+        : 'Modo guiado';
+
+  const statusColor = lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
+    ? '#7fd6a1'
+    : 'var(--accent-gold)';
 
   return (
     <div className="fade-in flex flex-col" style={{ height: '100%', minHeight: 'calc(100dvh - 280px)' }}>
@@ -58,12 +127,20 @@ export const ChatView: React.FC = () => {
           <div style={styles.badgeGlow}>
             <Sparkles size={15} color="var(--accent-gold)" />
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>ORIENTACIÓN EMOCIONAL</h3>
-            <p className="body-standard" style={{ fontSize: '11px', opacity: 0.7, marginTop: '2px' }}>
-              Conversa libremente. No soy un profesional clínico: soy un acompañamiento digital.
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
+              <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.7 }}>
+                {statusLabel} · Conversa libremente. No soy un profesional clínico: soy un acompañamiento digital.
+              </p>
+            </div>
           </div>
+          {messages.length > 1 && (
+            <button onClick={handleReset} style={styles.resetBtn} title="Reiniciar conversación">
+              <RotateCcw size={14} color="var(--text-muted)" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -100,6 +177,12 @@ export const ChatView: React.FC = () => {
                     </button>
                   ))}
                 </div>
+              )}
+
+              {msg.role === 'ai' && msg.source && (
+                <span style={styles.sourceTag}>
+                  {msg.source === 'groq' ? 'IA en línea' : 'Modo guiado'}
+                </span>
               )}
             </div>
           </div>
@@ -162,6 +245,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     boxShadow: '0 0 14px rgba(var(--accent-gold-rgb), 0.15)',
   },
+  resetBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '6px',
+    borderRadius: '10px',
+    opacity: 0.75,
+  },
   chatScroll: {
     flex: 1,
     overflowY: 'auto',
@@ -176,6 +267,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
+    position: 'relative',
   },
   aiBubble: {
     background: 'rgba(255, 255, 255, 0.05)',
@@ -196,6 +288,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
+  },
+  sourceTag: {
+    fontSize: '9.5px',
+    color: 'var(--text-muted)',
+    opacity: 0.65,
+    alignSelf: 'flex-start',
+    letterSpacing: '0.4px',
   },
   suggestWrap: {
     display: 'flex',
