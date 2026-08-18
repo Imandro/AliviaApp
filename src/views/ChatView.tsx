@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
-import { getAiIntro } from '../utils/empatheticAI';
+import { getAiIntro, getNavigationIntent } from '../utils/empatheticAI';
 import { getAiReplyHybrid, hasOnlineAI, transcribeWithGroq, AiReply, AiTurn } from '../utils/aiProvider';
 import { speakNatural, stopSpeaking, preloadVoices, unlockAudio } from '../utils/tts';
 
@@ -106,6 +106,7 @@ export const ChatView: React.FC = () => {
   const messagesRef = useRef<ChatMessage[]>([]);
   const crisisRef = useRef(false);
   const sendNowRef = useRef<(() => void) | null>(null);
+  const pendingNavRef = useRef<{ path: string; label: string } | null>(null);
   messagesRef.current = messages;
   crisisRef.current = crisisMode;
 
@@ -396,8 +397,20 @@ export const ChatView: React.FC = () => {
       source: reply.source,
     }]);
     setIsTyping(false);
+
+    const nav = !crisisRef.current && !reply.isCrisis ? getNavigationIntent(trimmed) : null;
+    pendingNavRef.current = nav;
+    if (nav && !voiceRunRef.current) {
+      setTimeout(() => {
+        if (pendingNavRef.current === nav) {
+          pendingNavRef.current = null;
+          navigate(nav.path);
+          showToast(`Te llevo al ${nav.label} ahora mismo.`);
+        }
+      }, 1400);
+    }
     return reply.text;
-  }, []);
+  }, [navigate, showToast]);
 
   const handleSend = useCallback(async (textArg?: string) => {
     const text = (textArg ?? input).trim();
@@ -446,6 +459,13 @@ export const ChatView: React.FC = () => {
       setVoiceSession('speaking');
       spokenRef.current = replyText;
       await speakNatural(replyText);
+      if (pendingNavRef.current) {
+        const nav = pendingNavRef.current;
+        pendingNavRef.current = null;
+        navigate(nav.path);
+        showToast(`Te llevo al ${nav.label} ahora mismo.`);
+        break;
+      }
     }
 
     stopVoiceInternals();
