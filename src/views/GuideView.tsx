@@ -136,7 +136,7 @@ export const GuideView: React.FC = () => {
   const bigEmoji = CATEGORY_BIG_EMOJI[cat];
   const minutes = getGuideMinutes(id);
   const catMeta = CATEGORY_META[cat];
-  const catLabel = catMeta ? `${catMeta.emoji} ${cat}` : cat;
+  const catLabel = catMeta ? cat : cat;
   const progBarColor = cat === 'suicidio' || cat === 'depresion'
     ? '#e57373'
     : cat === 'bienestar' || cat === 'amistades'

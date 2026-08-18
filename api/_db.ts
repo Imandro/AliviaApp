@@ -86,6 +86,33 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+CREATE TABLE IF NOT EXISTS assessments (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL DEFAULT 'bienestar',
+  stress INTEGER NOT NULL DEFAULT 0,
+  anxiety INTEGER NOT NULL DEFAULT 0,
+  depression INTEGER NOT NULL DEFAULT 0,
+  level TEXT NOT NULL DEFAULT 'baja',
+  crisis BOOLEAN NOT NULL DEFAULT FALSE,
+  recommendations TEXT[] NOT NULL DEFAULT '{}',
+  ai_advice TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_assessments_user ON assessments(user_id);
+
+CREATE TABLE IF NOT EXISTS crisis_contact_log (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assessment_id INTEGER REFERENCES assessments(id) ON DELETE SET NULL,
+  channel TEXT NOT NULL DEFAULT 'helpline',
+  detail TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_crisis_log_user ON crisis_contact_log(user_id);
 `;
 
 const FUNCTIONS_SQL = (() => {

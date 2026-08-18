@@ -13,16 +13,18 @@ import {
   Users,
   Target,
   Bot,
+  HeartPulse,
 } from 'lucide-react';
 import {
   saveTodayMood,
   getMoodHistory,
   getLastWeekMoods,
   getTodayString,
-  getCompletedActivities,
   getPlans,
 } from '../utils/localDb';
 import { LUCHAS, getLucha, problemsToLucha, dayOfYear } from '../utils/luchas';
+import { getChallengeLog, isDoneOn, getChallengeStreak, type ChallengeRecord } from '../utils/retosDb';
+import { getMyAssessments, assessmentDueState, type AssessmentRecord } from '../utils/assessment';
 import type { SafeUser } from '../utils/auth';
 
 interface MoodInfo {
@@ -49,8 +51,6 @@ const ALIENTO_BG = [
   'linear-gradient(135deg, #1E40AF 0%, #172554 100%)',
 ];
 
-const PRACTICA_META = 3;
-
 export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -58,13 +58,14 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [weekHistory, setWeekHistory] = useState<{ date: string; dayName: string; score: number | null }[]>([]);
   const [todayScore, setTodayScore] = useState<number | null>(null);
   const [todayLabel, setTodayLabel] = useState<string>('');
-  const [practiceDone, setPracticeDone] = useState(0);
+  const [challengeLog, setChallengeLog] = useState<ChallengeRecord[]>([]);
   const [savingMood, setSavingMood] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
   const [luchaId, setLuchaId] = useState(() => problemsToLucha(user?.problems));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewLucha, setPreviewLucha] = useState<string | null>(null);
   const [alientoBg, setAlientoBg] = useState(ALIENTO_BG[0]);
+  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
 
   const lucha = getLucha(luchaId);
   const day = dayOfYear();
@@ -76,14 +77,14 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
     setCurrentDate(new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' }));
     setAlientoBg(ALIENTO_BG[day % ALIENTO_BG.length]);
     refreshData();
+    getMyAssessments().then(setAssessments);
   }, []);
 
   const refreshData = async () => {
     try {
-      const [history, week, activities] = await Promise.all([
+      const [history, week] = await Promise.all([
         getMoodHistory(),
         getLastWeekMoods(),
-        getCompletedActivities(),
       ]);
 
       setWeekHistory(week);
@@ -109,7 +110,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         setTodayLabel('');
       }
 
-      setPracticeDone(activities.filter((a) => a.date === today).length);
+      setChallengeLog(getChallengeLog());
     } finally {
       setLoading(false);
     }
@@ -131,8 +132,9 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const firstName = user?.name ? user.name.split(' ')[0] : 'amigo(a)';
   const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '▄';
   const level = 1 + Math.floor(streak / 5);
-  const practiceCompleted = practiceDone >= PRACTICA_META;
-  const practicePct = Math.min(100, Math.round((practiceDone / PRACTICA_META) * 100));
+  const today = getTodayString();
+  const challengeDoneToday = isDoneOn(challengeLog, today);
+  const challengeStreak = getChallengeStreak(challengeLog, today);
 
   if (loading) {
     return (
@@ -190,6 +192,56 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Chequeo de bienestar — cada 5 días */}
+      {(() => {
+        const dueState = assessmentDueState(assessments);
+        if (dueState.due) {
+          return (
+            <div
+              className="cm-card cm-press"
+              style={styles.checkupCard}
+              onClick={() => navigate('/assessment')}
+              role="button"
+              aria-label="Hacer tu chequeo de bienestar"
+            >
+              <div style={styles.checkupIconWrap}>
+                <HeartPulse size={22} color="#0c1810" />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={styles.checkupLabel}><Sparkles size={10} /> CHEQUEO DE BIENESTAR</div>
+                <h3 style={styles.checkupTitle}>{dueState.last ? '¡Es momento de tu chequeo!' : 'Tu primer chequeo te espera'}</h3>
+                <p style={styles.checkupSub}>15 preguntas · Estrés, ansiedad y depresión · Cada 5 días</p>
+              </div>
+              <div style={styles.checkupArrow}><ArrowRight size={16} color="#0c1810" /></div>
+            </div>
+          );
+        }
+        return (
+          <div
+            className="cm-card cm-press"
+            style={styles.checkupQuiet}
+            onClick={() => navigate('/assessment')}
+            role="button"
+            aria-label="Ver mi chequeo de bienestar"
+          >
+            <div style={styles.checkupQuietIcon}>
+              <HeartPulse size={16} color="var(--accent-sage)" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={styles.checkupQuietTitle}>
+                Chequeo: próximo en <b style={{ color: 'var(--accent-sage)' }}>{dueState.daysLeft} día{dueState.daysLeft === 1 ? '' : 's'}</b>
+              </p>
+              {dueState.last && (
+                <p style={styles.checkupQuietSub}>
+                  Último: {new Date(dueState.last.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                </p>
+              )}
+            </div>
+            <ChevronRight size={16} color="var(--text-muted)" />
+          </div>
+        );
+      })()}
 
       {/* Selector de luchas */}
       <button
@@ -290,36 +342,40 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <span style={styles.alientoBrand}>ALIVIA</span>
       </div>
 
-      {/* Reto de hoy */}
+{/* Reto de hoy */}
       <div
         className="cm-card cm-press"
-        style={{ ...styles.challengeCard, background: practiceCompleted ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #7C6FE8 0%, #5B4FD0 100%)' }}
-        onClick={() => navigate('/coping')}
+        style={{ ...styles.challengeCard, background: challengeDoneToday ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #7C6FE8 0%, #5B4FD0 100%)' }}
+        onClick={() => navigate('/retos')}
       >
         <div style={styles.challengeTop}>
           <div style={styles.challengeTitleRow}>
-            <Trophy size={18} color={practiceCompleted ? '#ffffff' : 'var(--accent-gold)'} />
+            <Trophy size={18} color={challengeDoneToday ? '#ffffff' : 'var(--accent-gold)'} />
             <span style={styles.challengeTitle}>RETO DE HOY</span>
           </div>
-          <span style={styles.challengeBadge}>{practiceDone}/{PRACTICA_META}</span>
+          <span style={styles.challengeBadge}>
+            {challengeDoneToday ? '✓ Cumplido' : `Racha ${challengeStreak} día${challengeStreak === 1 ? '' : 's'}`}
+          </span>
         </div>
 
         <h4 style={styles.challengeHeadline}>
-          {practiceCompleted ? 'Reto completado ' : retoHoy}
+          {challengeDoneToday ? 'Reto completado ' : `${retoHoy.emoji} ${retoHoy.title}`}
         </h4>
 
-        {!practiceCompleted && (
+        {!challengeDoneToday && (
           <div style={styles.challengeTrack}>
-            <div style={{ ...styles.challengeFill, width: `${practicePct}%` }} />
+            <div style={{ ...styles.challengeFill, width: '100%' }} />
           </div>
         )}
 
-        <div style={styles.challengeBottom}>          
+        <div style={styles.challengeBottom}>
           <span style={styles.challengeCircle}>
-            {practiceCompleted ? <CheckCircle2 size={18} color="#10B981" /> : <ArrowRight size={18} color="#5B4FD0" />}
+            {challengeDoneToday ? <CheckCircle2 size={18} color="#10B981" /> : <ArrowRight size={18} color="#5B4FD0" />}
           </span>
           <span style={styles.challengeText}>
-            {practiceCompleted ? 'Vuelve mañana por más' : `Lucha: ${lucha.label} · 2-5 min`}
+            {challengeDoneToday
+              ? 'Vuelve mañana por más'
+              : `${lucha.emoji} ${lucha.label} · ${retoHoy.steps.length} pasos · Tócalo para empezar`}
           </span>
         </div>
       </div>
@@ -440,6 +496,13 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </div>
           <h5 style={styles.actionTitle}>Planes</h5>
           <small style={styles.actionSub}>Luchas paso a paso</small>
+        </div>
+        <div className="cm-card cm-press" style={styles.actionCard} onClick={() => navigate('/games')}>
+          <div style={{ ...styles.actionIcon, background: 'rgba(var(--accent-rose-rgb), 0.12)' }}>
+            <Gamepad2 size={30} color="var(--accent-rose)" />
+          </div>
+          <h5 style={styles.actionTitle}>Juegos</h5>
+          <small style={styles.actionSub}>Calman tu mente</small>
         </div>
       </div>
 
@@ -578,6 +641,93 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  },
+
+  checkupCard: {
+    overflow: 'hidden',
+    cursor: 'pointer',
+    position: 'relative',
+    padding: '14px 15px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    background: 'linear-gradient(135deg, var(--accent-sage) 0%, var(--accent-gold) 130%)',
+    color: '#0c1810',
+    boxShadow: '0 12px 30px rgba(16, 185, 129, 0.22)',
+  },
+  checkupIconWrap: {
+    width: '42px',
+    height: '42px',
+    borderRadius: '14px',
+    background: 'rgba(255, 255, 255, 0.9)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.16)',
+  },
+  checkupLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '9px',
+    fontWeight: 800,
+    letterSpacing: '0.16em',
+    opacity: 0.8,
+  },
+  checkupTitle: {
+    margin: '3px 0 1px',
+    fontSize: '16px',
+    lineHeight: 1.2,
+    fontWeight: 800,
+    fontFamily: 'var(--font-display)',
+    color: '#0c1810',
+  },
+  checkupSub: {
+    margin: 0,
+    fontSize: '10.5px',
+    lineHeight: 1.35,
+    fontWeight: 600,
+    color: 'rgba(12, 24, 16, 0.72)',
+  },
+  checkupArrow: {
+    flexShrink: 0,
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.85)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkupQuiet: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 14px',
+    cursor: 'pointer',
+  },
+  checkupQuietIcon: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '11px',
+    background: 'rgba(var(--accent-sage-rgb), 0.12)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  checkupQuietTitle: {
+    margin: 0,
+    fontSize: '12.5px',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-title)',
+  },
+  checkupQuietSub: {
+    margin: '2px 0 0',
+    fontSize: '10.5px',
+    color: 'var(--text-muted)',
   },
 
   luchaPicker: {
@@ -1087,7 +1237,7 @@ const styles: { [key: string]: React.CSSProperties } = {
 
   actionsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: '12px',
   },
   actionCard: {

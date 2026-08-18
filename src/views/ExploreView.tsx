@@ -10,6 +10,7 @@ import {
   Handshake,
   CircleUser,
   ChevronRight,
+  Gamepad2,
 } from 'lucide-react';
 import type { SafeUser } from '../utils/auth';
 
@@ -77,6 +78,15 @@ const FEATURES: FeatureCard[] = [
     path: '/library',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-gold-rgb), 0.10) 0%, rgba(var(--accent-lavender-rgb), 0.05) 100%)',
     color: 'var(--accent-gold)',
+  },
+  {
+    id: 'games',
+    title: 'Juegos Mente-Activos',
+    desc: 'Mini-juegos para momentos difíciles: burbujas, memoria, grounding y secuencias para calmar la mente.',
+    icon: Gamepad2,
+    path: '/games',
+    gradient: 'linear-gradient(135deg, rgba(var(--accent-rose-rgb), 0.10) 0%, rgba(var(--accent-lavender-rgb), 0.05) 100%)',
+    color: 'var(--accent-rose)',
   },
   {
     id: 'connect',

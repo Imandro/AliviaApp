@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Pencil, Mail, Phone as PhoneIcon, AtSign } from 'lucide-react';
+import { LogOut, Pencil, Mail, Phone as PhoneIcon, AtSign, HeartPulse, ChevronRight } from 'lucide-react';
 import { SafeUser, logout, setToken } from '../utils/auth';
+import { getMyAssessments, DIMENSION_INFO, LEVEL_INFO, type AssessmentRecord } from '../utils/assessment';
 import logoVertical from '../assets/logo-vertical.png';
 
 interface ProfileViewProps {
@@ -33,6 +34,11 @@ const RenderList = ({ items }: { items: string[] }) => {
 export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout }) => {
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
+  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
+
+  useEffect(() => {
+    getMyAssessments().then(setAssessments);
+  }, []);
 
   const handleLogout = async () => {
     setSigningOut(true);

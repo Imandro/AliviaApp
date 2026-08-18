@@ -7,6 +7,7 @@ import { Dashboard } from './views/Dashboard';
 import { Breathe } from './views/Breathe';
 import { BurnJournal } from './views/BurnJournal';
 import { Coping } from './views/Coping';
+import { RetosView } from './views/RetosView';
 import { SosScreen } from './views/SosScreen';
 import { ExploreView } from './views/ExploreView';
 import { ChatView } from './views/ChatView';
@@ -19,6 +20,7 @@ import { ConnectView } from './views/ConnectView';
 import { WelcomeView } from './views/WelcomeView';
 import { OnboardingView } from './views/OnboardingView';
 import { ProfileView } from './views/ProfileView';
+import { AssessmentView } from './views/AssessmentView';
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import logoVertical from './assets/logo-vertical.png';
 
@@ -27,6 +29,7 @@ const ROUTE_MAP: Record<string, TabId> = {
   '/breathe': 'breathe',
   '/journal': 'journal',
   '/coping': 'coping',
+  '/retos': 'retos',
   '/explore': 'explore',
 };
 
@@ -91,6 +94,7 @@ function AppShell({
                 <Route path="/breathe" element={<Breathe />} />
                 <Route path="/journal" element={<BurnJournal theme={theme} />} />
                 <Route path="/coping" element={<Coping />} />
+                <Route path="/retos" element={<RetosView user={user} />} />
                 <Route path="/sos" element={<SosScreen />} />
                 <Route path="/explore" element={<ExploreView user={user} />} />
                 <Route path="/chat" element={<ChatView />} />
@@ -99,7 +103,10 @@ function AppShell({
                 <Route path="/community" element={<CommunityView />} />
                 <Route path="/library" element={<LibraryView />} />
                 <Route path="/library/:id" element={<GuideView />} />
+                <Route path="/games" element={<GamesView />} />
+                <Route path="/games/:id" element={<GameView />} />
                 <Route path="/connect" element={<ConnectView />} />
+                <Route path="/assessment" element={<AssessmentView />} />
                 <Route
                   path="/profile"
                   element={<ProfileView user={user} onEdit={onEditProfile} onLogout={onLogout} />}
