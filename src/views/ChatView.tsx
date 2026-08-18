@@ -67,6 +67,12 @@ const ORB_LABEL: Record<Exclude<VoiceSession, 'idle'>, string> = {
   speaking: 'VIA está respondiendo…',
 };
 
+const ORB_HINT: Record<Exclude<VoiceSession, 'idle'>, string> = {
+  listening: 'Toca la burbuja para enviar',
+  transcribing: 'Un momento…',
+  speaking: 'Escucho cuando termines',
+};
+
 export const ChatView: React.FC = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -99,8 +105,11 @@ export const ChatView: React.FC = () => {
   const spokenRef = useRef('');
   const messagesRef = useRef<ChatMessage[]>([]);
   const crisisRef = useRef(false);
+  const sendNowRef = useRef<(() => void) | null>(null);
   messagesRef.current = messages;
   crisisRef.current = crisisMode;
+
+  const [voiceEngaged, setVoiceEngaged] = useState(false);
 
   const showToast = useCallback((text: string) => {
     setToast(text);
@@ -150,7 +159,7 @@ export const ChatView: React.FC = () => {
   useEffect(() => {
     const last = messages[messages.length - 1];
     if (
-      voiceOn && voiceSession === 'idle' &&
+      voiceOn && voiceEngaged && voiceSession === 'idle' &&
       last && last.role === 'ai' && !last.isCrisis &&
       last.text !== spokenRef.current &&
       !last.text.startsWith('Lo que me estás compartiendo')
@@ -162,7 +171,7 @@ export const ChatView: React.FC = () => {
       return () => clearTimeout(t);
     }
     return undefined;
-  }, [messages, voiceOn, voiceSession]);
+  }, [messages, voiceOn, voiceEngaged, voiceSession]);
 
   useEffect(() => {
     return () => {
@@ -174,6 +183,7 @@ export const ChatView: React.FC = () => {
 
   const stopVoiceInternals = useCallback(() => {
     voiceRunRef.current?.abort();
+    sendNowRef.current = null;
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -239,23 +249,35 @@ export const ChatView: React.FC = () => {
   const listenOnce = useCallback((ac: AbortSignal): Promise<string | null> => {
     return new Promise((resolve) => {
       let done = false;
+      let triggerSend: (() => void) | null = null;
       const settle = (v: string | null) => {
         if (done) return;
         done = true;
+        sendNowRef.current = null;
         resolve(v);
       };
 
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SR) {
+        let lastInterim = '';
         const rec = new SR();
         rec.lang = 'es-ES';
-        rec.interimResults = false;
+        rec.interimResults = true;
         rec.maxAlternatives = 1;
         nativeRecRef.current = rec;
         rec.onresult = (event: any) => {
-          const transcript: string = event?.results?.[0]?.[0]?.transcript ?? '';
-          settle(transcript || null);
-          try { rec.abort(); } catch { /* noop */ }
+          let interim = '';
+          for (let i = 0; i < (event?.results?.length ?? 0); i++) {
+            const r = event.results[i];
+            if (r?.isFinal) {
+              const t: string = r[0]?.transcript ?? '';
+              settle(t || null);
+              try { rec.abort(); } catch { /* noop */ }
+              return;
+            }
+            interim += r[0]?.transcript ?? '';
+          }
+          if (interim) lastInterim = interim;
         };
         rec.onerror = (event: any) => {
           if (event?.error === 'not-allowed') {
@@ -268,6 +290,14 @@ export const ChatView: React.FC = () => {
           try { rec.abort(); } catch { /* noop */ }
           settle(null);
         }, { once: true });
+        triggerSend = () => {
+          if (done) return;
+          if (lastInterim.trim()) {
+            try { rec.abort(); } catch { /* noop */ }
+            settle(lastInterim.trim());
+          }
+        };
+        sendNowRef.current = triggerSend;
         try {
           rec.start();
         } catch {
@@ -305,6 +335,12 @@ export const ChatView: React.FC = () => {
         const transcript = await transcribeWithGroq(blob);
         settle(transcript || null);
       };
+      triggerSend = () => {
+        if (done || !rec || rec.state !== 'recording') return;
+        quietMsRef.current = 0;
+        rec.stop();
+      };
+      sendNowRef.current = triggerSend;
       const silentCheck = window.setInterval(() => {
         if (done || !rec || rec.state !== 'recording') return;
         if (isQuiet()) {
@@ -390,6 +426,7 @@ export const ChatView: React.FC = () => {
     streamRef.current = stream;
     setOrbScale(1);
     setOrbTheme(getOrbTheme());
+    setVoiceEngaged(true);
     const ac = new AbortController();
     voiceRunRef.current = ac;
     startVolumeLoop(stream);
@@ -468,10 +505,13 @@ export const ChatView: React.FC = () => {
             <X size={20} color="var(--text-primary)" />
           </button>
           <div
+            onClick={() => sendNowRef.current?.()}
             style={{
               ...styles.orbCore,
               transform: `scale(${orbScale})`,
               opacity: voiceSession === 'transcribing' ? 0.8 : 1,
+              cursor: voiceSession === 'listening' ? 'pointer' : 'default',
+              animation: voiceSession === 'listening' ? 'orbPulse 2.4s ease-out infinite' : 'none',
             }}
           >
             <div style={{ ...styles.orbInner, animation: voiceSession === 'speaking' ? 'softFloat 2.2s ease-in-out infinite' : 'none' }} />
@@ -492,6 +532,9 @@ export const ChatView: React.FC = () => {
           <div style={styles.orbLabel}>
             {ORB_LABEL[voiceSession as Exclude<VoiceSession, 'idle'>]}
           </div>
+          <div style={styles.orbHint}>
+            {ORB_HINT[voiceSession as Exclude<VoiceSession, 'idle'>]}
+          </div>
         </div>
       )}
 
@@ -510,7 +553,7 @@ export const ChatView: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => setVoiceOn(v => !v)}
+            onClick={() => { setVoiceOn(v => !v); setVoiceEngaged(true); }}
             style={{
               ...styles.iconBtn,
               background: voiceOn ? 'rgba(var(--accent-gold-rgb), 0.14)' : 'rgba(0,0,0,0.12)',
@@ -743,6 +786,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     letterSpacing: '0.04em',
     color: 'var(--text-primary)',
     opacity: 0.85,
+  },
+  orbHint: {
+    position: 'absolute',
+    top: '76%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontFamily: 'var(--font-title)',
+    fontSize: '11px',
+    letterSpacing: '0.03em',
+    color: 'var(--text-primary)',
+    opacity: 0.55,
   },
   introCard: {
     padding: '14px 16px',

@@ -25,6 +25,7 @@ import {
 } from '../utils/localDb';
 import { LUCHAS, getLucha, problemsToLucha, dayOfYear } from '../utils/luchas';
 import { getChallengeLog, isDoneOn, getChallengeStreak, type ChallengeRecord } from '../utils/retosDb';
+import { GAMES } from '../utils/gamesCatalog';
 import { getMyAssessments, assessmentDueState, type AssessmentRecord } from '../utils/assessment';
 import type { SafeUser } from '../utils/auth';
 
@@ -36,11 +37,11 @@ interface MoodInfo {
 }
 
 const moodDetails: { [key: number]: MoodInfo } = {
-  1: { score: 1, emoji: '▁', label: 'Muy abrumado(a)', color: 'var(--accent-rose)' },
-  2: { score: 2, emoji: '▂', label: 'Algo inestable', color: 'var(--accent-warm)' },
-  3: { score: 3, emoji: '▄', label: 'Estable / Neutral', color: 'var(--accent-sage)' },
-  4: { score: 4, emoji: '▆', label: 'Tranquilo(a) y bien', color: 'var(--accent-gold)' },
-  5: { score: 5, emoji: '█', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
+  1: { score: 1, emoji: '☂', label: 'Muy abrumado(a)', color: 'var(--accent-rose)' },
+  2: { score: 2, emoji: '☁', label: 'Algo inestable', color: 'var(--accent-warm)' },
+  3: { score: 3, emoji: '✾', label: 'Estable / Neutral', color: 'var(--accent-sage)' },
+  4: { score: 4, emoji: '☼', label: 'Tranquilo(a) y bien', color: 'var(--accent-gold)' },
+  5: { score: 5, emoji: '❀', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
 };
 
 const ALIENTO_BG = [
@@ -131,7 +132,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   };
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'amigo(a)';
-  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '▄';
+  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '✾';
   const level = 1 + Math.floor(streak / 5);
   const today = getTodayString();
   const challengeDoneToday = isDoneOn(challengeLog, today);
@@ -355,12 +356,12 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             <span style={styles.challengeTitle}>RETO DE HOY</span>
           </div>
           <span style={styles.challengeBadge}>
-            {challengeDoneToday ? '✓ Cumplido' : `Racha ${challengeStreak} día${challengeStreak === 1 ? '' : 's'}`}
+            {challengeDoneToday ? '✓ Cumplido' : `✦ Racha ${challengeStreak} día${challengeStreak === 1 ? '' : 's'}`}
           </span>
         </div>
 
         <h4 style={styles.challengeHeadline}>
-          {challengeDoneToday ? 'Reto completado ' : `${retoHoy.emoji} ${retoHoy.title}`}
+          {challengeDoneToday ? 'Reto completado ✦' : `${retoHoy.emoji} ${retoHoy.title}`}
         </h4>
 
         {!challengeDoneToday && (
@@ -385,7 +386,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       <div style={styles.statusRow}>
         <div className="cm-card" style={styles.streakCard}>
           <div style={styles.streakHead}>
-            <p style={styles.streakLabel}>TU RACHA</p>
+            <p style={styles.streakLabel}>✦ TU RACHA</p>
             <span style={styles.levelBadge}>Nivel {level}</span>
           </div>
 
@@ -442,7 +443,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
           <div style={styles.checkinBlock}>
             <p style={styles.checkinLabel}>
-              {todayScore ? <>Hoy te sientes: <b style={{ color: moodDetails[todayScore].color }}>{todayLabel} ✓</b></> : '¿Cómo te sientes en este instante?'}
+              {todayScore ? <>Hoy te sientes: <b style={{ color: moodDetails[todayScore].color }}>{moodDetails[todayScore].emoji} {todayLabel} ✓</b></> : '¿Cómo te sientes en este instante?'}
             </p>
             <div style={styles.moodRow}>
               {Object.values(moodDetails).map((m) => (
@@ -504,6 +505,41 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </div>
           <h5 style={styles.actionTitle}>Juegos</h5>
           <small style={styles.actionSub}>Calman tu mente</small>
+        </div>
+      </div>
+
+      {/* Juegos Mente-Activos */}
+      <div className="flex flex-col" style={{ gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h4 className="title-small" style={{ fontSize: '12px', color: 'var(--text-primary)', margin: 0 }}>
+            ✦ JUEGOS MENTE-ACTIVOS
+          </h4>
+          <span
+            style={{ fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 700 }}
+            onClick={() => navigate('/games')}
+          >
+            Ver todos ›
+          </span>
+        </div>
+        <div style={styles.gamesGrid}>
+          {GAMES.map(game => (
+            <div
+              key={game.id}
+              className="cm-card cm-press"
+              style={styles.gameCard}
+              onClick={() => navigate(`/games/${game.id}`)}
+              role="button"
+            >
+              <div className="cm-float" style={{ ...styles.gameEmojiBox, background: game.gradient }}>
+                {game.emoji}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h5 style={styles.gameTitle}>{game.title}</h5>
+                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{game.minutes}</span>
+              </div>
+              <span style={styles.gamePlay}>▶</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -1272,6 +1308,49 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '10px',
     fontWeight: 700,
     color: 'var(--text-muted)',
+  },
+
+  gamesGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px',
+  },
+  gameCard: {
+    padding: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    cursor: 'pointer',
+    minWidth: 0,
+  },
+  gameEmojiBox: {
+    width: '46px',
+    height: '46px',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '24px',
+    flexShrink: 0,
+  },
+  gameTitle: {
+    margin: 0,
+    fontSize: '12.5px',
+    fontWeight: 800,
+    color: 'var(--text-primary)',
+    lineHeight: 1.3,
+  },
+  gamePlay: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'rgba(0,0,0,0.10)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--text-muted)',
+    fontSize: '11px',
+    flexShrink: 0,
   },
 
   wisdomIcon: {
