@@ -130,8 +130,8 @@ const RULES: TopicRule[] = [
   {
     keywords: ['hola', 'hey', 'buenas', 'que tal', 'holi'],
     response: [
-      'Hola, qué gusto que estés aquí. 💛 Soy tu espacio de orientación emocional: puedes contarme cómo te sientes (ansiedad, tristeza, enojo, estrés…) o pedir una herramienta para este momento.',
-      'No soy un profesional clínico, pero puedo orientarte con pasos concretos y llevarte a los recursos de Alivia. ¿Qué traes hoy?',
+      'Hola, soy VIA. 💛 ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
+      '¡Hola! Soy VIA, tu acompañamiento emocional. Cuéntame cómo va tu día o qué necesitas en este momento.',
     ],
     suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
   },
@@ -236,7 +236,6 @@ export const getAiIntro = (): { text: string; topics: string[]; isCrisis: boolea
   isCrisis: false,
   topics: [],
   text:
-    'Hola, soy Alivia. 💛 Puedes contarme cómo te sientes o qué te está pasando: te ofrezco orientación emocional, herramientas y recursos, siempre sin juicios. ' +
-    'Recuerda que soy un apoyo digital, no un profesional clínico — si estás en crisis, es importante hablar con una persona real.',
+    'Hola, soy VIA. 💛 Cuéntame cómo te sientes y te acompaño con pasos pequeños y sin juicios. Si estás en crisis, hablar con una persona real es importante.',
   suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_SOS],
 });
