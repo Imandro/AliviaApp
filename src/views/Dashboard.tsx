@@ -37,11 +37,11 @@ interface MoodInfo {
 }
 
 const moodDetails: { [key: number]: MoodInfo } = {
-  1: { score: 1, emoji: '☂', label: 'Muy abrumado(a)', color: 'var(--accent-rose)' },
-  2: { score: 2, emoji: '☁', label: 'Algo inestable', color: 'var(--accent-warm)' },
-  3: { score: 3, emoji: '✾', label: 'Estable / Neutral', color: 'var(--accent-sage)' },
-  4: { score: 4, emoji: '☼', label: 'Tranquilo(a) y bien', color: 'var(--accent-gold)' },
-  5: { score: 5, emoji: '❀', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
+  1: { score: 1, emoji: '◌', label: 'Muy abrumado(a)', color: 'var(--accent-rose)' },
+  2: { score: 2, emoji: '◔', label: 'Algo inestable', color: 'var(--accent-warm)' },
+  3: { score: 3, emoji: '◑', label: 'Estable / Neutral', color: 'var(--accent-sage)' },
+  4: { score: 4, emoji: '◕', label: 'Tranquilo(a) y bien', color: 'var(--accent-gold)' },
+  5: { score: 5, emoji: '●', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
 };
 
 const ALIENTO_BG = [
@@ -132,7 +132,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   };
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'amigo(a)';
-  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '✾';
+  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '◑';
   const level = 1 + Math.floor(streak / 5);
   const today = getTodayString();
   const challengeDoneToday = isDoneOn(challengeLog, today);
@@ -148,19 +148,25 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
   return (
     <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '8px' }}>
-      {/* Header — estilo Conecta+ */}
-      <div className="cm-card cm-glass cm-press" style={styles.header}>
-        <div>
-          <div style={styles.headerDate}>
-            <Sparkles size={13} color="var(--accent-gold)" />
-            <span className="capitalize" style={styles.headerDateText}>{currentDate}</span>
+      {/* Header — hero */}
+      <div className="cm-card cm-press" style={styles.heroHeader}>
+        <div style={styles.heroGlowTop} />
+        <div style={styles.heroGlowBot} />
+        <div style={styles.heroBody}>
+          <div style={{ minWidth: 0, position: 'relative', zIndex: 1 }}>
+            <div style={styles.heroDate}>
+              <Sparkles size={12} color="rgba(205, 173, 63, 0.95)" />
+              <span className="capitalize" style={styles.heroDateText}>{currentDate}</span>
+            </div>
+            <h2 style={styles.heroGreeting}>Hola, {firstName}</h2>
+            <p style={styles.heroSub}>Hoy es un buen día para cuidarte.</p>
           </div>
-          <h2 style={styles.headerGreeting}>Hola, {firstName}</h2>
-        </div>
-        <div style={styles.headerActions}>
-          <button onClick={() => navigate('/sos')} title="Emergencias" style={styles.sosCircleBtn}>
-            <Shield size={22} color="#ffffff" fill="#ffffff" fillOpacity={0.25} />
-          </button>
+          <div style={styles.heroRight}>
+            <span style={styles.heroLevel}>✦ Nivel {level}</span>
+            <button onClick={() => navigate('/sos')} title="Emergencias" style={styles.sosCircleBtn}>
+              <Shield size={20} color="#ffffff" fill="#ffffff" fillOpacity={0.3} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -409,74 +415,85 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
               </div>
             </div>
           </div>
-
-          <div style={styles.weekRow}>
-            {weekHistory.map((item, idx) => {
-              const detail = item.score ? moodDetails[item.score] : null;
-              const isToday = idx === weekHistory.length - 1;
-              return (
-                <div
-                  key={item.date}
-                  title={item.dayName}
-                  style={styles.weekCol}
-                >
-                  <div
-                    className="cm-dot"
-                    style={{
-                      ...styles.weekDot,
-                      background: detail ? detail.color : 'var(--bg-base)',
-                      border: isToday
-                        ? '1px dashed var(--accent-gold)'
-                        : detail
-                          ? '1px solid var(--border-color)'
-                          : '1px dashed var(--border-color)',
-                      boxShadow: detail ? `0 0 8px ${detail.color}80` : 'none',
-                    }}
-                  >
-                    {detail && <span style={styles.weekDotEmoji}>{detail.emoji}</span>}
-                  </div>
-                  <span style={styles.weekDay}>{item.dayName.charAt(0).toUpperCase()}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={styles.checkinBlock}>
-            <p style={styles.checkinLabel}>
-              {todayScore ? <>Hoy te sientes: <b style={{ color: moodDetails[todayScore].color }}>{moodDetails[todayScore].emoji} {todayLabel} ✓</b></> : '¿Cómo te sientes en este instante?'}
-            </p>
-            <div style={styles.moodRow}>
-              {Object.values(moodDetails).map((m) => (
-                <button
-                  key={m.score}
-                  onClick={() => handleQuickMood(m.score)}
-                  disabled={savingMood}
-                  title={m.label}
-                  className="cm-mood-btn"
-                  style={{
-                    ...styles.moodBtn,
-                    background: todayScore === m.score ? m.color : 'var(--bg-base)',
-                    boxShadow: todayScore === m.score ? `0 0 10px ${m.color}80` : 'none',
-                    border: todayScore === m.score ? `2px solid ${m.color}` : '1px solid var(--border-color)',
-                  }}
-                >
-                  <span style={{ fontSize: 17 }}>{m.emoji}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="cm-card cm-press" style={styles.sosCard} onClick={() => navigate('/sos')}>
           <div style={styles.sosGlow} />
           <div style={styles.sosInner}>
-            <Shield size={72} color="#ffffff" fill="#ffffff" fillOpacity={0.22} />
-            <h1 style={styles.sosTitle}>SOS</h1>
+            <div style={styles.sosIconCircle}>
+              <Shield size={20} color="#ffffff" fill="#ffffff" fillOpacity={0.35} />
+            </div>
+            <span style={styles.sosTitle}>SOS</span>
+            <span style={styles.sosSub}>Líneas de crisis</span>
           </div>
         </div>
       </div>
 
-      {/* Grilla de acciones */}
+      {/* Registro de emociones — tu semana */}
+      <div className="cm-card" style={styles.moodCard}>
+        <div style={styles.moodCardHead}>
+          <span style={styles.moodCardBadge}>◑</span>
+          <p style={styles.moodCardLabel}>TU RITMO DE HOY</p>
+        </div>
+        <p style={styles.checkinLabel}>
+          {todayScore ? <>Hoy te sientes: <b style={{ color: moodDetails[todayScore].color }}>{moodDetails[todayScore].emoji} {todayLabel} ✓</b></> : '¿Cómo te sientes en este instante?'}
+        </p>
+        <div style={styles.moodRow}>
+          {Object.values(moodDetails).map((m) => (
+            <button
+              key={m.score}
+              onClick={() => handleQuickMood(m.score)}
+              disabled={savingMood}
+              title={m.label}
+              className="cm-mood-btn"
+              style={{
+                ...styles.moodBtn,
+                background: todayScore === m.score ? m.color : 'var(--bg-base)',
+                boxShadow: todayScore === m.score ? `0 0 12px ${m.color}80` : 'none',
+                border: todayScore === m.score ? `2px solid ${m.color}` : '1px solid var(--border-color)',
+              }}
+            >
+              <span style={{ fontSize: 22 }}>{m.emoji}</span>
+            </button>
+          ))}
+        </div>
+        <div style={styles.weekRow}>
+          {weekHistory.map((item, idx) => {
+            const detail = item.score ? moodDetails[item.score] : null;
+            const isToday = idx === weekHistory.length - 1;
+            return (
+              <div
+                key={item.date}
+                title={item.dayName}
+                style={styles.weekCol}
+              >
+                <div
+                  className="cm-dot"
+                  style={{
+                    ...styles.weekDot,
+                    background: detail ? detail.color : 'var(--bg-base)',
+                    border: isToday
+                      ? '1px dashed var(--accent-gold)'
+                      : detail
+                        ? '1px solid var(--border-color)'
+                        : '1px dashed var(--border-color)',
+                    boxShadow: detail ? `0 0 8px ${detail.color}80` : 'none',
+                  }}
+                >
+                  {detail && <span style={styles.weekDotEmoji}>{detail.emoji}</span>}
+                </div>
+                <span style={styles.weekDay}>{item.dayName.charAt(0).toUpperCase()}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Herramientas */}
+      <div style={styles.sectionHead}>
+        <span style={styles.sectionHeadIcon}>✦</span>
+        <span style={styles.sectionHeadTitle}>HERRAMIENTAS</span>
+      </div>
       <div style={styles.actionsGrid}>
         <div className="cm-card cm-press" style={styles.actionCard} onClick={() => navigate('/explore')}>
           <div style={{ ...styles.actionIcon, background: 'rgba(var(--accent-sage-rgb), 0.12)' }}>
@@ -561,36 +578,83 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  header: {
+  heroHeader: {
+    position: 'relative',
+    overflow: 'hidden',
+    padding: '20px 18px',
+    background: 'linear-gradient(140deg, #213328 0%, #101b13 62%, #0c1510 100%)',
+    border: '1px solid rgba(205, 173, 63, 0.22)',
+  },
+  heroGlowTop: {
+    position: 'absolute',
+    top: '-70px',
+    right: '-40px',
+    width: '200px',
+    height: '200px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(205, 173, 63, 0.22) 0%, rgba(16, 185, 129, 0.12) 55%, transparent 75%)',
+  },
+  heroGlowBot: {
+    position: 'absolute',
+    bottom: '-80px',
+    left: '-50px',
+    width: '210px',
+    height: '210px',
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(16, 185, 129, 0.16) 0%, transparent 70%)',
+  },
+  heroBody: {
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '16px',
+    gap: '12px',
   },
-  headerDate: {
+  heroDate: {
     display: 'flex',
     alignItems: 'center',
     gap: '7px',
-    marginBottom: '4px',
+    marginBottom: '6px',
   },
-  headerDateText: {
-    fontSize: '15px',
+  heroDateText: {
+    fontSize: '13px',
     fontWeight: 700,
-    color: 'var(--text-secondary)',
+    letterSpacing: '0.04em',
+    color: 'rgba(226, 232, 240, 0.75)',
   },
-  headerGreeting: {
+  heroGreeting: {
     margin: 0,
-    fontSize: '34px',
+    fontSize: '31px',
     lineHeight: 1.1,
     fontWeight: 800,
     fontFamily: 'var(--font-display)',
     letterSpacing: '-0.5px',
-    color: 'var(--accent-gold)',
+    color: '#ffffff',
   },
-  headerActions: {
+  heroSub: {
+    margin: '6px 0 0',
+    fontSize: '12px',
+    fontWeight: 500,
+    color: 'rgba(226, 232, 240, 0.6)',
+  },
+  heroRight: {
     display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '10px',
+    position: 'relative',
+    zIndex: 1,
+  },
+  heroLevel: {
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    color: '#f4e3a9',
+    background: 'rgba(205, 173, 63, 0.14)',
+    border: '1px solid rgba(205, 173, 63, 0.35)',
+    borderRadius: '999px',
+    padding: '5px 12px',
+    whiteSpace: 'nowrap',
   },
   viaBanner: {
     overflow: 'hidden',
@@ -1181,7 +1245,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexShrink: 0,
   },
   weekDotEmoji: {
-    fontSize: '11px',
+    fontSize: '13px',
   },
   mascotCol: {
     display: 'flex',
@@ -1210,20 +1274,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '999px',
     padding: '3px 12px',
   },
-  checkinBlock: {
-    marginTop: 'auto',
-    paddingTop: '14px',
-    borderTop: '1px dashed var(--border-color)',
-  },
   checkinLabel: {
-    margin: '0 0 8px',
-    fontSize: '11px',
-    color: 'var(--text-muted)',
+    margin: 0,
+    fontSize: '12.5px',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
   },
   moodRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    gap: '6px',
+    gap: '8px',
   },
   moodBtn: {
     borderRadius: '50%',
@@ -1259,18 +1319,87 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: '6px',
     position: 'relative',
     padding: '14px',
     textAlign: 'center',
   },
+  sosIconCircle: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.18)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   sosTitle: {
-    margin: '6px 0 0',
-    fontSize: '38px',
+    fontSize: '18px',
     lineHeight: 1,
-    letterSpacing: '-1px',
+    letterSpacing: '0.04em',
     fontWeight: 800,
     color: '#ffffff',
     fontFamily: 'var(--font-display)',
+  },
+  sosSub: {
+    fontSize: '9px',
+    lineHeight: 1.15,
+    fontWeight: 600,
+    letterSpacing: '0.06em',
+    color: 'rgba(255, 255, 255, 0.82)',
+  },
+
+  moodCard: {
+    padding: '18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '14px',
+    background: 'linear-gradient(180deg, rgba(124, 129, 135, 0.06) 0%, rgba(0, 0, 0, 0) 50%)',
+  },
+  moodCardHead: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  moodCardBadge: {
+    width: '26px',
+    height: '26px',
+    borderRadius: '50%',
+    background: 'rgba(205, 173, 63, 0.15)',
+    border: '1px solid rgba(205, 173, 63, 0.35)',
+    color: 'var(--accent-gold)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    flexShrink: 0,
+  },
+  moodCardLabel: {
+    margin: 0,
+    fontSize: '12px',
+    fontWeight: 700,
+    letterSpacing: '0.14em',
+    color: 'var(--text-muted)',
+  },
+
+  sectionHead: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '2px 4px 0',
+  },
+  sectionHeadIcon: {
+    color: 'var(--accent-gold)',
+    fontSize: '12px',
+    lineHeight: 1,
+  },
+  sectionHeadTitle: {
+    fontSize: '11.5px',
+    fontWeight: 700,
+    letterSpacing: '0.16em',
+    color: 'var(--text-secondary)',
   },
 
   actionsGrid: {

@@ -160,9 +160,8 @@ export const ChatView: React.FC = () => {
     const last = messages[messages.length - 1];
     if (
       voiceOn && voiceEngaged && voiceSession === 'idle' &&
-      last && last.role === 'ai' && !last.isCrisis &&
-      last.text !== spokenRef.current &&
-      !last.text.startsWith('Lo que me estás compartiendo')
+      last && last.role === 'ai' &&
+      last.text !== spokenRef.current
     ) {
       const t = setTimeout(() => {
         spokenRef.current = last.text;
@@ -442,7 +441,7 @@ export const ChatView: React.FC = () => {
       setVoiceSession('transcribing');
       const replyText = await sendCore(transcript);
       if (ac.signal.aborted) break;
-      if (!replyText || replyText.startsWith('Lo que me estás compartiendo')) continue;
+      if (!replyText) continue;
 
       setVoiceSession('speaking');
       spokenRef.current = replyText;
