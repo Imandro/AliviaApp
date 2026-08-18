@@ -108,9 +108,9 @@ export const logCrisisContact = async (
   detail?: string
 ): Promise<void> => {
   try {
-    await request('/contact', {
+    await request('', {
       method: 'POST',
-      body: JSON.stringify({ assessmentId, channel, detail }),
+      body: JSON.stringify({ action: 'contact', assessmentId, channel, detail }),
     });
   } catch {
     /* el registro es best-effort: nunca bloquea al usuario */

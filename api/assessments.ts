@@ -35,7 +35,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json(assessments);
     }
 
-    const { id = null, type = 'bienestar', stress = 0, anxiety = 0, depression = 0, level = 'baja', crisis = false, recommendations = [], ai_advice = null } = req.body ?? {};
+    const { id = null, type = 'bienestar', stress = 0, anxiety = 0, depression = 0, level = 'baja', crisis = false, recommendations = [], ai_advice = null, action = null, assessmentId = null, channel = 'helpline', detail = null } = req.body ?? {};
+
+    if (action === 'contact') {
+      const { rows } = await pool.query(
+        `SELECT * FROM fn_log_crisis_contact($1, $2, $3, $4)`,
+        [
+          user.id,
+          assessmentId && Number.isFinite(Number(assessmentId)) ? Number(assessmentId) : null,
+          ['helpline', 'via'].includes(String(channel)) ? String(channel) : 'helpline',
+          detail ? String(detail).slice(0, 300) : null,
+        ]
+      );
+      return res.status(201).json(rows[0]);
+    }
 
     if ([stress, anxiety, depression].some((s) => typeof s !== 'number' || s < 0 || s > 15)) {
       return res.status(400).json({ error: 'Puntuaciones inválidas (0-15)' });
