@@ -6,6 +6,7 @@ let audioCtx: AudioContext | null = null;
 let currentSource: AudioBufferSourceNode | null = null;
 let currentWs: WebSocket | null = null;
 let fallbackTimer: number | null = null;
+let activePlayResolver: (() => void) | null = null;
 
 const uuid = (): string => {
   const p = (x: number) => (x < 16 ? '0' : '') + x.toString(16);
@@ -66,10 +67,13 @@ const bestFallbackVoice = (): SpeechSynthesisVoice | null => {
 export const stopSpeaking = () => {
   try {
     if (currentSource) {
+      const r = activePlayResolver;
+      activePlayResolver = null;
       currentSource.onended = null;
-      currentSource.stop();
-      currentSource.disconnect();
+      try { currentSource.stop(); } catch { /* noop */ }
+      try { currentSource.disconnect(); } catch { /* noop */ }
       currentSource = null;
+      if (r) r();
     }
     if (currentWs) {
       currentWs.onclose = null;
@@ -83,6 +87,9 @@ export const stopSpeaking = () => {
     }
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
+      const r = activePlayResolver;
+      activePlayResolver = null;
+      if (r) r();
     }
   } catch {
     /* noop */
@@ -102,7 +109,11 @@ const playMp3 = async (bytes: ArrayBuffer): Promise<'ok' | 'fail'> => {
     gain.connect(ctx.destination);
     currentSource = source;
     await new Promise<void>((resolve) => {
-      source.onended = () => resolve();
+      activePlayResolver = resolve;
+      source.onended = () => {
+        if (activePlayResolver === resolve) activePlayResolver = null;
+        resolve();
+      };
       source.start();
     });
     if (currentSource === source) currentSource = null;
@@ -218,34 +229,49 @@ const speakViaEdge = (text: string): Promise<'ok' | 'fail'> => {
   });
 };
 
-const speakViaFallback = (text: string) => {
-  const synth = window.speechSynthesis;
-  if (!synth) return;
-  synth.cancel();
-  const clean = text.replace(/[💛🎉✅⭐]/gu, '').replace(/\s+/g, ' ').trim();
-  if (!clean) return;
-  const utter = new SpeechSynthesisUtterance(clean);
-  utter.lang = 'es-MX';
-  const voice = bestFallbackVoice();
-  if (voice) utter.voice = voice;
-  utter.rate = 0.92;
-  utter.pitch = 1;
-  synth.speak(utter);
+const speakViaFallback = (text: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const synth = window.speechSynthesis;
+    if (!synth) {
+      resolve(false);
+      return;
+    }
+    synth.cancel();
+    const clean = text.replace(/[💛🎉✅⭐]/gu, '').replace(/\s+/g, ' ').trim();
+    if (!clean) {
+      resolve(false);
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(clean);
+    utter.lang = 'es-MX';
+    const voice = bestFallbackVoice();
+    if (voice) utter.voice = voice;
+    utter.rate = 0.92;
+    utter.pitch = 1;
+    activePlayResolver = () => resolve(false);
+    utter.onend = () => {
+      if (activePlayResolver) activePlayResolver = null;
+      resolve(true);
+    };
+    utter.onerror = () => {
+      if (activePlayResolver) activePlayResolver = null;
+      resolve(false);
+    };
+    synth.speak(utter);
+  });
 };
 
-export const speakNatural = async (text: string) => {
+export const speakNatural = async (text: string): Promise<boolean> => {
   if (currentSource || currentWs) {
     stopSpeaking();
   }
-  let ok = 'fail';
   try {
-    ok = await speakViaEdge(text);
+    const ok = await speakViaEdge(text);
+    if (ok === 'ok') return true;
   } catch {
-    ok = 'fail';
+    /* noop */
   }
-  if (ok !== 'ok') {
-    speakViaFallback(text);
-  }
+  return speakViaFallback(text);
 };
 
 export const preloadVoices = () => {
