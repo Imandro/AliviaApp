@@ -12,6 +12,7 @@ import {
   Compass,
   Users,
   Target,
+  Bot,
 } from 'lucide-react';
 import {
   saveTodayMood,
@@ -156,6 +157,37 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           <button onClick={() => navigate('/sos')} title="Emergencias" style={styles.sosCircleBtn}>
             <Shield size={22} color="#ffffff" fill="#ffffff" fillOpacity={0.25} />
           </button>
+        </div>
+      </div>
+
+      {/* Banner VIA — chat IA siempre a la vista */}
+      <div
+        className="cm-card cm-press"
+        style={styles.viaBanner}
+        onClick={() => navigate('/chat')}
+        role="button"
+        aria-label="Abrir VIA, chat de orientación emocional"
+      >
+        <div style={styles.viaGlowTop} />
+        <div style={styles.viaGlowBot} />
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={styles.viaIconWrap}>
+            <div style={styles.viaIcon} className="cm-float">
+              <Bot size={26} color="#0c1810" />
+            </div>
+            <span style={styles.viaPing} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={styles.viaLabel}>
+              <Sparkles size={11} color="rgba(12, 24, 16, 0.75)" />
+              <span>VIA · IA DE ORIENTACIÓN</span>
+            </div>
+            <h3 style={styles.viaTitle}>¿Cómo te sientes hoy?</h3>
+            <p style={styles.viaSub}>Conversa con Alivia: te escucha y te acompaña sin juicios.</p>
+          </div>
+          <div style={styles.viaArrow}>
+            <ArrowRight size={18} color="#0c1810" />
+          </div>
         </div>
       </div>
 
@@ -460,6 +492,94 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '8px',
   },
+  viaBanner: {
+    overflow: 'hidden',
+    cursor: 'pointer',
+    position: 'relative',
+    padding: '18px 16px',
+    background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-sage) 130%)',
+    color: '#0c1810',
+    boxShadow: '0 14px 34px rgba(205, 173, 63, 0.28)',
+  },
+  viaGlowTop: {
+    position: 'absolute',
+    top: '-60px',
+    left: '-30px',
+    width: '160px',
+    height: '160px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.25)',
+  },
+  viaGlowBot: {
+    position: 'absolute',
+    bottom: '-70px',
+    right: '-40px',
+    width: '180px',
+    height: '180px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.18)',
+  },
+  viaIconWrap: {
+    position: 'relative',
+    flexShrink: 0,
+  },
+  viaIcon: {
+    width: '52px',
+    height: '52px',
+    borderRadius: '18px',
+    background: 'rgba(255, 255, 255, 0.92)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.18)',
+  },
+  viaPing: {
+    position: 'absolute',
+    top: '-3px',
+    right: '-3px',
+    width: '13px',
+    height: '13px',
+    borderRadius: '50%',
+    background: '#22c55e',
+    border: '2.5px solid var(--accent-gold)',
+  },
+  viaLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+    fontSize: '9.5px',
+    fontWeight: 800,
+    letterSpacing: '0.18em',
+    opacity: 0.85,
+  },
+  viaTitle: {
+    margin: '4px 0 2px',
+    fontSize: '21px',
+    lineHeight: 1.15,
+    fontWeight: 800,
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.3px',
+    color: '#0c1810',
+  },
+  viaSub: {
+    margin: 0,
+    fontSize: '11.5px',
+    lineHeight: 1.4,
+    fontWeight: 600,
+    color: 'rgba(12, 24, 16, 0.75)',
+  },
+  viaArrow: {
+    flexShrink: 0,
+    width: '34px',
+    height: '34px',
+    borderRadius: '50%',
+    background: 'rgba(255, 255, 255, 0.85)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  },
+
   luchaPicker: {
     display: 'flex',
     alignItems: 'center',
