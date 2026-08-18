@@ -8,8 +8,9 @@ import {
   Users,
   BookOpen,
   Handshake,
-  CircleUser,
+CircleUser,
   ChevronRight,
+  HeartPulse,
   Gamepad2,
 } from 'lucide-react';
 import type { SafeUser } from '../utils/auth';
@@ -25,6 +26,15 @@ interface FeatureCard {
 }
 
 const FEATURES: FeatureCard[] = [
+  {
+    id: 'assessment',
+    title: 'Chequeo de Bienestar',
+    desc: 'Test interactivo de estrés, ansiedad y depresión cada 5 días, con recomendaciones para tus planes.',
+    icon: HeartPulse,
+    path: '/assessment',
+    gradient: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.12) 0%, rgba(var(--accent-gold-rgb), 0.06) 100%)',
+    color: 'var(--accent-sage)',
+  },
   {
     id: 'ai',
     title: 'IA de Orientación',

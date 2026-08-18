@@ -74,11 +74,11 @@ export const BubblePop: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     return (
       <div style={shell}>
         <div className="glass-card" style={{ padding: '26px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">🫧</div>
+          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">✦</div>
           <h4 className="title-small" style={{ fontSize: '19px' }}>Tirada terminada</h4>
           <div style={{ fontSize: '40px', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-gold)' }}>{pops}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.14em' }}>BURBUJAS REVENTADAS</div>
-          <div style={{ fontSize: '20px', letterSpacing: '4px' }}>{'⭐'.repeat(rating)}{'☆'.repeat(3 - rating)}</div>
+          <div style={{ fontSize: '20px', letterSpacing: '4px' }}>{'✦'.repeat(rating)}{'✦'.repeat(3 - rating)}</div>
           <p className="body-standard" style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>{affirmation}</p>
           <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '6px' }}>
             <button className="cm-press" style={{ flex: 1, padding: '13px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.15)', color: 'var(--text-secondary)', fontFamily: 'var(--font-title)', fontWeight: 700, cursor: 'pointer' }} onClick={onExit}>Volver</button>
@@ -145,7 +145,7 @@ export const BubblePop: React.FC<{ onExit: () => void }> = ({ onExit }) => {
 
       {pops >= 10 && (
         <div className="fade-in" style={{ textAlign: 'center', fontSize: '12.5px', fontWeight: 700, color: 'var(--accent-sage)' }}>
-          ¡Ya llevas {pops}! Tu foco está en el presente. 🌿
+          ¡Ya llevas {pops}! Tu foco está en el presente. ✦
         </div>
       )}
     </div>

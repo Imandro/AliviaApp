@@ -51,9 +51,9 @@ const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
 const DIMENSION_MAX = 15;
 
 export const DIMENSION_INFO: Record<DimensionKey, { label: string; short: string; emoji: string }> = {
-  stress: { label: 'Estrés', short: 'ESTRÉS', emoji: '⚡' },
-  anxiety: { label: 'Ansiedad', short: 'ANSIEDAD', emoji: '🌊' },
-  depression: { label: 'Depresión', short: 'DEPRESIÓN', emoji: '🌧️' },
+  stress: { label: 'Estrés', short: 'ESTRÉS', emoji: '✦' },
+  anxiety: { label: 'Ansiedad', short: 'ANSIEDAD', emoji: '≋' },
+  depression: { label: 'Depresión', short: 'DEPRESIÓN', emoji: '✦' },
 };
 
 export const levelOf = (score: number): LevelKey => {

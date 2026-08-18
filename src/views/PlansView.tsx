@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, Trash2, CheckCircle2, Circle, Target, ListChecks, X, Lightbulb } from 'lucide-react';
 import { getPlans, createPlan, deletePlan, addPlanGoal, togglePlanGoal, deletePlanGoal, type Plan } from '../utils/localDb';
 import { LUCHAS, getLucha, GENERAL } from '../utils/luchas';
@@ -6,9 +7,13 @@ import { LUCHAS, getLucha, GENERAL } from '../utils/luchas';
 const ALL_LUCHAS = [...LUCHAS, GENERAL];
 
 export const PlansView: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>('todas');
+  const [filter, setFilter] = useState<string>(() => {
+    const area = searchParams.get('area');
+    return area && (area === 'general' || ALL_LUCHAS.some((l) => l.id === area)) ? area : 'todas';
+  });
   const [showNew, setShowNew] = useState(false);
   const [newLuchaId, setNewLuchaId] = useState(LUCHAS[0].id);
   const [newTitle, setNewTitle] = useState('');
@@ -254,7 +259,7 @@ export const PlansView: React.FC = () => {
               </div>
 
               <div style={{ ...styles.ideasBox, padding: '10px 12px' }}>
-                <p style={{ ...styles.ideasTitle, margin: 0 }}>Ideas para esta lucha:</p>
+                <p style={{ ...styles.ideasTitle, margin: 0 }}>✦ Ideas para esta lucha:</p>
                 <div style={styles.ideasRow}>
                   {lucha.ideas.map(idea => (
                     <button key={idea} onClick={() => handleAddGoal(plan.id, idea)} style={styles.ideaChip}>

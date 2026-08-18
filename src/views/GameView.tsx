@@ -23,7 +23,7 @@ export const GameView: React.FC = () => {
   if (!game || !Game) {
     return (
       <div className="glass-card fade-in" style={{ padding: '30px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-        <div style={{ fontSize: '44px' }}>🎮</div>
+        <div style={{ fontSize: '44px' }}>✦</div>
         <h4 className="title-small">Juego no encontrado</h4>
         <button className="cm-press" style={{ padding: '12px 22px', borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-sage))', color: '#0c1810', fontFamily: 'var(--font-title)', fontWeight: 800, cursor: 'pointer' }} onClick={() => navigate('/games')}>
           Ver todos los juegos

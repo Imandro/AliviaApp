@@ -4,6 +4,15 @@ import { getPosts, createPost, likePost, type CommunityPost } from '../utils/loc
 
 const TOPICS = ['todos', 'bienestar', 'ansiedad', 'tristeza', 'hábitos', 'historias', 'consejos'];
 
+const TOPIC_SYMBOL: Record<string, string> = {
+  bienestar: '✧',
+  ansiedad: '〰',
+  tristeza: '☾',
+  'hábitos': '↻',
+  historias: '❝',
+  consejos: '✦',
+};
+
 export const CommunityView: React.FC = () => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [topic, setTopic] = useState('todos');
@@ -71,7 +80,7 @@ export const CommunityView: React.FC = () => {
                 ...(topic === t ? { background: 'rgba(var(--accent-rose-rgb), 0.15)', color: 'var(--accent-rose)', borderColor: 'rgba(var(--accent-rose-rgb), 0.25)' } : {}),
               }}
             >
-              {t === 'todos' ? 'Todos' : t}
+              {t === 'todos' ? 'Todos' : `${TOPIC_SYMBOL[t] ?? '✦'} ${t}`}
             </button>
           ))}
         </div>

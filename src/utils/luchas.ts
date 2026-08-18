@@ -35,7 +35,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'dep-1',
-        emoji: '🌅',
+        emoji: '◐',
         title: 'Sal a la luz del sol',
         sub: '10 minutos de aire antes del mediodía, sin necesitar ganas.',
         steps: [
@@ -46,7 +46,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-2',
-        emoji: '✍️',
+        emoji: '✎',
         title: 'Mini bitácora de logros',
         sub: 'Escribe 3 cosas que sí lograste hoy, aunque parezcan mínimas.',
         steps: [
@@ -57,7 +57,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-3',
-        emoji: '📞',
+        emoji: '✆',
         title: 'Rompe el silencio',
         sub: 'Cuéntale a alguien de confianza cómo te sientes hoy.',
         steps: [
@@ -68,7 +68,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-4',
-        emoji: '🚶',
+        emoji: '⇢',
         title: 'Plan de 10 minutos',
         sub: 'Una sola tarea pequeña, hecha al 50%, sin buscar perfección.',
         steps: [
@@ -79,7 +79,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-5',
-        emoji: '🛏️',
+        emoji: '☾',
         title: 'Ancla de sueño',
         sub: 'Hoy duermes a horario: el sueño regular es tu mejor medicina.',
         steps: [
@@ -90,7 +90,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-6',
-        emoji: '👀',
+        emoji: '◉',
         title: 'Cazador de momentos buenos',
         sub: 'Atrapa 3 detalles buenos de tu día, aunque sean diminutos.',
         steps: [
@@ -101,7 +101,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-7',
-        emoji: '🤝',
+        emoji: '❦',
         title: 'Apoyo visible',
         sub: 'Avisa a un adulto de confianza que hoy es un día difícil.',
         steps: [
@@ -145,7 +145,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'ans-1',
-        emoji: '🌬️',
+        emoji: '≋',
         title: 'Respira 4-7-8 por 2 minutos',
         sub: 'La técnica que activa tu modo calma en menos de 60 segundos.',
         steps: [
@@ -157,7 +157,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ans-2',
-        emoji: '🚫',
+        emoji: '⊘',
         title: 'Día sin cafeína',
         sub: 'El cuerpo confunde "energía" con "peligro": hoy le das calma.',
         steps: [
@@ -168,7 +168,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ans-3',
-        emoji: '📝',
+        emoji: '✎',
         title: 'Caja de preocupaciones',
         sub: 'Planea 10 minutos y cierra el tema: planear no es rumiar.',
         steps: [
@@ -179,7 +179,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ans-4',
-        emoji: '👓',
+        emoji: '◔',
         title: 'Anclaje 5-4-3-2-1',
         sub: 'Vuelve a tus sentidos para salir del torbellino mental.',
         steps: [
@@ -191,7 +191,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ans-5',
-        emoji: '🚶',
+        emoji: '⇢',
         title: 'Paseo de 10 minutos',
         sub: 'Caminar al aire libre baja el cortisol y aclara la mente.',
         steps: [
@@ -202,7 +202,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ans-6',
-        emoji: '🛡️',
+        emoji: '✧',
         title: 'Escenario catastrófico',
         sub: 'Escribe tu peor escenario: al verlo en papel, pierde poder.',
         steps: [
@@ -213,7 +213,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ans-7',
-        emoji: '📉',
+        emoji: '↘',
         title: 'Una sola cosa a la vez',
         sub: 'Baja el volumen mental haciendo una sola tarea por bloque.',
         steps: [
@@ -257,7 +257,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'fam-1',
-        emoji: '🚪',
+        emoji: '⇥',
         title: 'Un límite claro',
         sub: 'Di tu frase límite una vez y con calma, sin entrar al grito.',
         steps: [
@@ -268,7 +268,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'fam-2',
-        emoji: '🏝️',
+        emoji: '◯',
         title: 'Espacio seguro',
         sub: 'Hazte 10 minutos de refugio: tu cuarto, un parque o tu app.',
         steps: [
@@ -279,7 +279,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'fam-3',
-        emoji: '✍️',
+        emoji: '✎',
         title: 'Lo que siento en casa',
         sub: 'Escríbelo aunque todavía no lo digas: es tu brújula.',
         steps: [
@@ -290,7 +290,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'fam-4',
-        emoji: '🎧',
+        emoji: '♫',
         title: 'Sal del medio',
         sub: 'Las peleas de adultos casi nunca son tuyas: no participes.',
         steps: [
@@ -301,7 +301,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'fam-5',
-        emoji: '📞',
+        emoji: '✆',
         title: 'Un adulto fuera de casa',
         sub: 'Amplía tu red: quien te escuche fuera del hogar también te cuida.',
         steps: [
@@ -312,7 +312,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'fam-6',
-        emoji: '🕊️',
+        emoji: '❂',
         title: 'Sin cargar culpas ajenas',
         sub: 'Hoy no asumes responsabilidades que no son tuyas.',
         steps: [
@@ -323,7 +323,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'fam-7',
-        emoji: '🕰️',
+        emoji: '◷',
         title: 'Propón un acuerdo pacífico',
         sub: 'Un tema pequeño, una regla sencilla de convivencia.',
         steps: [
@@ -367,7 +367,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'eco-1',
-        emoji: '🧾',
+        emoji: '❋',
         title: 'Caza de gastos',
         sub: 'Revisa tu semana e identifica 1 gasto que puedes reducir hoy.',
         steps: [
@@ -378,7 +378,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'eco-2',
-        emoji: '💡',
+        emoji: '❋',
         title: 'Idea de ingreso',
         sub: 'Escribe 1 idea realista para ahorrar o generar esta semana.',
         steps: [
@@ -389,7 +389,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'eco-3',
-        emoji: '🗣️',
+        emoji: '❝',
         title: 'Rompe el silencio',
         sub: 'Hablar del tema lo encoge: el silencio lo agranda.',
         steps: [
@@ -400,7 +400,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'eco-4',
-        emoji: '🛒',
+        emoji: '◈',
         title: 'Compra con escudo',
         sub: 'Una lista escrita es tu protección contra los impulsos.',
         steps: [
@@ -411,7 +411,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'eco-5',
-        emoji: '📚',
+        emoji: '❏',
         title: 'Explora 1 beca o apoyo',
         sub: 'Hay programas gratuitos para jóvenes que aún no conoces.',
         steps: [
@@ -422,7 +422,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'eco-6',
-        emoji: '✅',
+        emoji: '✓',
         title: 'Gratitud financiera',
         sub: 'Cuenta lo que sí tienes: nadie termina donde empezó.',
         steps: [
@@ -433,7 +433,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'eco-7',
-        emoji: '🌱',
+        emoji: '✾',
         title: 'Semilla semanal',
         sub: 'Ahorra aunque sea mínimo: cada peso cuenta.',
         steps: [
@@ -477,7 +477,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'ami-1',
-        emoji: '🔍',
+        emoji: '⌕',
         title: 'Autopsia social',
         sub: 'Anota 1 interacción de hoy que te dejó mal, y por qué.',
         steps: [
@@ -488,7 +488,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ami-2',
-        emoji: '🚫',
+        emoji: '⊘',
         title: 'El no sin drama',
         sub: 'Di "no" a un plan que no quieres, sin dar mil explicaciones.',
         steps: [
@@ -499,7 +499,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ami-3',
-        emoji: '💬',
+        emoji: '❝',
         title: 'Mensaje a tu red',
         sub: 'Conecta hoy con alguien con quien te sientas valorado(a).',
         steps: [
@@ -510,7 +510,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ami-4',
-        emoji: '📵',
+        emoji: '⊘',
         title: 'Distancia suave',
         sub: 'Responde menos y programa menos: sin drama, sin explicaciones.',
         steps: [
@@ -521,7 +521,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ami-5',
-        emoji: '👀',
+        emoji: '◉',
         title: 'Detector de señales',
         sub: 'Identifica 1 señal de drenaje: burla, culpa o puro favor.',
         steps: [
@@ -532,7 +532,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ami-6',
-        emoji: '🧭',
+        emoji: '◎',
         title: 'Tu grupo nuevo',
         sub: 'Busca 1 actividad donde te valoren por quien eres.',
         steps: [
@@ -543,7 +543,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'ami-7',
-        emoji: '🗝️',
+        emoji: '✕',
         title: 'Secreto guardado',
         sub: 'Protege tu información íntima de quien ya te traicionó.',
         steps: [
@@ -587,7 +587,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'nov-1',
-        emoji: '🪞',
+        emoji: '◍',
         title: 'Espejo honesto',
         sub: 'Evalúa: ¿en esta relación eres más tú o menos tú?',
         steps: [
@@ -598,7 +598,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'nov-2',
-        emoji: '🎬',
+        emoji: '▶',
         title: 'Amigo consejero',
         sub: 'Si tu mejor amigo(a) estuviera en tu relación, ¿qué le diría?',
         steps: [
@@ -609,7 +609,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'nov-3',
-        emoji: '💬',
+        emoji: '❝',
         title: 'Confidente',
         sub: 'Cuéntale a alguien de confianza cómo te trata tu pareja.',
         steps: [
@@ -620,7 +620,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'nov-4',
-        emoji: '🚩',
+        emoji: '⚠',
         title: 'Caza la bandera roja',
         sub: 'Identifica 1 señal de control o desgaste y nómbrala.',
         steps: [
@@ -631,7 +631,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'nov-5',
-        emoji: '🏁',
+        emoji: '⚑',
         title: 'Salida con red',
         sub: 'Si la relación duele, prepara tu salida acompañado(a).',
         steps: [
@@ -642,7 +642,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'nov-6',
-        emoji: '🌊',
+        emoji: '≋',
         title: 'Reconoce el ciclo',
         sub: 'Discusión intensa, luego "luna de miel": eso no es un arreglo.',
         steps: [
@@ -653,7 +653,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'nov-7',
-        emoji: '❤️',
+        emoji: '♥',
         title: 'Tu lista de merecimientos',
         sub: 'Escribe qué mereces y qué no aceptarás en una relación.',
         steps: [
@@ -697,7 +697,7 @@ export const LUCHAS: Lucha[] = [
     retos: [
       {
         id: 'adi-1',
-        emoji: '🎯',
+        emoji: '⌖',
         title: 'Detector de disparadores',
         sub: 'Anota hoy 1 disparador de tu consumo: lugar, hora o emoción.',
         steps: [
@@ -708,7 +708,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'adi-2',
-        emoji: '🔁',
+        emoji: '↻',
         title: 'El reemplazo',
         sub: 'Cambia un momento de consumo por otra actividad: caminar o hablar.',
         steps: [
@@ -719,7 +719,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'adi-3',
-        emoji: '☎️',
+        emoji: '✆',
         title: 'Verdad a alguien',
         sub: 'Cuéntale la verdad sobre tu consumo a una persona de confianza.',
         steps: [
@@ -730,7 +730,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'adi-4',
-        emoji: '⏱️',
+        emoji: '◷',
         title: 'El craving de 20 minutos',
         sub: 'El deseo dura en promedio 15-20 min: surfea la ola.',
         steps: [
@@ -741,7 +741,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'adi-5',
-        emoji: '🚪',
+        emoji: '⇥',
         title: 'Tu respuesta de escape',
         sub: 'Inventa tu frase para cuando te ofrezcan: "no, gracias".',
         steps: [
@@ -752,7 +752,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'adi-6',
-        emoji: '🔒',
+        emoji: '❐',
         title: 'Zona libre',
         sub: 'Define un lugar u hora sin consumo y protégela como prioridad.',
         steps: [
@@ -763,7 +763,7 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'adi-7',
-        emoji: '🤝',
+        emoji: '❦',
         title: 'Busca tu red',
         sub: 'Encuentra 1 recurso de apoyo: centro, grupo o línea de ayuda.',
         steps: [
@@ -807,7 +807,7 @@ export const LUCHAS: Lucha[] = [
 retos: [
       {
         id: 'sui-1',
-        emoji: '☎️',
+        emoji: '✆',
         title: 'Guarda una línea de ayuda',
         sub: 'Si el pensamiento de hacerte daño aparece, hay a quién llamar.',
         steps: [
@@ -818,7 +818,7 @@ retos: [
       },
       {
         id: 'sui-2',
-        emoji: '👤',
+        emoji: '●',
         title: 'No estés solo(a) hoy',
         sub: 'El dolor se alivia con compañía real: avisa a alguien.',
         steps: [
@@ -829,7 +829,7 @@ retos: [
       },
       {
         id: 'sui-3',
-        emoji: '⏸️',
+        emoji: '‖',
         title: 'Pausa de 24 horas',
         sub: 'Pospón cualquier decisión: la crisis es una tormenta, no una verdad.',
         steps: [
@@ -840,7 +840,7 @@ retos: [
       },
       {
         id: 'sui-4',
-        emoji: '🧹',
+        emoji: '✦',
         title: 'Zona segura',
         sub: 'Retira objetos con los que podrías hacerte daño: es protección real.',
         steps: [
@@ -851,7 +851,7 @@ retos: [
       },
       {
         id: 'sui-5',
-        emoji: '📝',
+        emoji: '✎',
         title: 'Plan de seguridad',
         sub: 'Escribe tu plan para cuando la crisis llegue.',
         steps: [
@@ -862,7 +862,7 @@ retos: [
       },
       {
         id: 'sui-6',
-        emoji: '🫂',
+        emoji: '❦',
         title: 'Sesión de realidad',
         sub: 'El dolor habla con voz alta: hoy le respondes con hechos.',
         steps: [
@@ -873,7 +873,7 @@ retos: [
       },
       {
         id: 'sui-7',
-        emoji: '🌄',
+        emoji: '◐',
         title: 'Una meta para mañana',
         sub: 'Define 1 cosa diminuta para mañana y avisa a alguien.',
         steps: [
@@ -921,7 +921,7 @@ export const GENERAL: Lucha = {
   retos: [
     {
       id: 'gen-1',
-      emoji: '🌬️',
+      emoji: '≋',
       title: 'Pausa consciente',
       sub: '5 minutos sin pantallas, solo respirando.',
       steps: [
@@ -932,7 +932,7 @@ export const GENERAL: Lucha = {
     },
     {
       id: 'gen-2',
-      emoji: '📓',
+      emoji: '❏',
       title: 'Línea de desahogo',
       sub: 'Escribe 1 línea de lo que ronda tu cabeza y libérala.',
       steps: [
@@ -943,7 +943,7 @@ export const GENERAL: Lucha = {
     },
     {
       id: 'gen-3',
-      emoji: '✨',
+      emoji: '✦',
       title: 'Estrella del día',
       sub: 'Identifica 1 cosa buena de hoy, aunque sea diminuta.',
       steps: [
@@ -954,7 +954,7 @@ export const GENERAL: Lucha = {
     },
     {
       id: 'gen-4',
-      emoji: '🚶',
+      emoji: '⇢',
       title: '10 minutos afuera',
       sub: 'Caminar al aire libre aclara los pensamientos.',
       steps: [
@@ -965,7 +965,7 @@ export const GENERAL: Lucha = {
     },
     {
       id: 'gen-5',
-      emoji: '📱',
+      emoji: '✆',
       title: 'Nombra la emoción',
       sub: '"Esto es ansiedad": ponerle nombre le quita poder.',
       steps: [
@@ -976,7 +976,7 @@ export const GENERAL: Lucha = {
     },
     {
       id: 'gen-6',
-      emoji: '🛌',
+      emoji: '☾',
       title: 'Noche de recuperación',
       sub: 'Hora fija de dormir: tu mejor inversión de bienestar.',
       steps: [
@@ -987,7 +987,7 @@ export const GENERAL: Lucha = {
     },
     {
       id: 'gen-7',
-      emoji: '💌',
+      emoji: '✉',
       title: 'Amable contigo',
       sub: 'Hoy te tratas con el cariño que das a los demás.',
       steps: [

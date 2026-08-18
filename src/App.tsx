@@ -21,6 +21,8 @@ import { WelcomeView } from './views/WelcomeView';
 import { OnboardingView } from './views/OnboardingView';
 import { ProfileView } from './views/ProfileView';
 import { AssessmentView } from './views/AssessmentView';
+import { GamesView } from './views/GamesView';
+import { GameView } from './views/GameView';
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import logoVertical from './assets/logo-vertical.png';
 

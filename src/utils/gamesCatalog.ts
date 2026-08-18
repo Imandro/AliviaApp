@@ -12,7 +12,7 @@ export interface GameMeta {
 export const GAMES: GameMeta[] = [
   {
     id: 'burbujas',
-    emoji: '🫧',
+    emoji: '✦',
     title: 'Burbujas Calma',
     desc: 'Revienta burbujas durante 30 segundos: tu atención se ancla en el presente y la ansiedad baja sola.',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-lavender-rgb), 0.12) 0%, rgba(var(--accent-sage-rgb), 0.06) 100%)',
@@ -22,7 +22,7 @@ export const GAMES: GameMeta[] = [
   },
   {
     id: 'memoria',
-    emoji: '🧠',
+    emoji: '✦',
     title: 'Memoria de Emociones',
     desc: 'Encuentra los pares de emojis. Concentrarte con suavidad le da descanso a los pensamientos repetitivos.',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.12) 0%, rgba(var(--accent-gold-rgb), 0.06) 100%)',
@@ -32,7 +32,7 @@ export const GAMES: GameMeta[] = [
   },
   {
     id: 'grounding',
-    emoji: '🧘',
+    emoji: '✦',
     title: 'Ancla 5-4-3-2-1',
     desc: 'Técnica guiada de enraizamiento para ataques de ansiedad o pánico: ver, tocar, oír, oler y saborear.',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-warm-rgb), 0.12) 0%, rgba(var(--accent-rose-rgb), 0.06) 100%)',
@@ -42,7 +42,7 @@ export const GAMES: GameMeta[] = [
   },
   {
     id: 'secuencia',
-    emoji: '🎯',
+    emoji: '⌖',
     title: 'Secuencia VIA',
     desc: 'Observa, memoriza y repite secuencias de colores. Entrena tu atención cuando la mente da vueltas.',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-rose-rgb), 0.12) 0%, rgba(var(--accent-lavender-rgb), 0.06) 100%)',

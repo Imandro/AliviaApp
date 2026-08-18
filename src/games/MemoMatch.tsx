@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { flipSound, goodSound, badSound, fanfareSound } from '../utils/sounds';
 
-const EMOJIS = ['🌿', '🌸', '🌙', '💛', '⭐', '🍃', '🕊️', '💧'];
+const EMOJIS = ['✦', '✦', '♥', '♥', '❂', '❂', '◈', '◈'];
 const PAIRS = [...EMOJIS, ...EMOJIS];
 
 const AFFIRMATIONS = [
@@ -73,7 +73,7 @@ export const MemoMatch: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div className="glass-card" style={{ padding: '26px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">🧠</div>
+          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">✦</div>
           <h4 className="title-small" style={{ fontSize: '19px' }}>¡Memoria completa!</h4>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
             Lo lograste en <b style={{ color: 'var(--accent-gold)' }}>{moves} movimientos</b>
