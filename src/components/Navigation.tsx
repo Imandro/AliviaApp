@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Home, Wind, PenTool, Compass, LayoutGrid } from 'lucide-react';
+import { Home, Wind, PenTool, Compass, Trophy, LayoutGrid } from 'lucide-react';
 
-export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'explore';
+export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'retos' | 'explore';
 
 interface NavigationProps {
   activeTab: TabId;
@@ -14,19 +14,20 @@ interface NavItem {
   icon: React.ComponentType<any>;
 }
 
-const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping', 'explore'];
+const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping', 'retos', 'explore'];
 
-export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
-  const navRef = useRef<HTMLDivElement>(null);
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
-
-  const navItems: NavItem[] = [
+const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Inicio', icon: Home },
     { id: 'breathe', label: 'Respirar', icon: Wind },
     { id: 'journal', label: 'Desahogo', icon: PenTool },
     { id: 'coping', label: 'Apoyo', icon: Compass },
+    { id: 'retos', label: 'Retos', icon: Trophy },
     { id: 'explore', label: 'Explorar', icon: LayoutGrid },
   ];
+
+export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
+  const navRef = useRef<HTMLDivElement>(null);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   useEffect(() => {
     if (!navRef.current) return;

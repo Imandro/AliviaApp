@@ -20,6 +20,10 @@ DROP FUNCTION IF EXISTS fn_toggle_goal(INTEGER);
 DROP FUNCTION IF EXISTS fn_delete_goal(INTEGER);
 DROP FUNCTION IF EXISTS fn_delete_plan(INTEGER);
 DROP FUNCTION IF EXISTS fn_get_crisis_help();
+DROP FUNCTION IF EXISTS fn_save_assessment(UUID, TEXT, INTEGER, INTEGER, INTEGER, TEXT, BOOLEAN, TEXT[], TEXT);
+DROP FUNCTION IF EXISTS fn_get_user_assessments(UUID);
+DROP FUNCTION IF EXISTS fn_log_crisis_contact(UUID, INTEGER, TEXT, TEXT);
+DROP FUNCTION IF EXISTS fn_set_assessment_advice(INTEGER, TEXT);
 
 -- ---------- ÁNIMO (mood_entries) ----------
 
@@ -241,6 +245,81 @@ BEGIN
     (SELECT COUNT(*) FROM completed_activities),
     COALESCE((SELECT AVG(score) FROM mood_entries), 0);
 END $$;
+-- ---------- CHEQUEOS DE BIENESTAR (assessments) ----------
+
+CREATE OR REPLACE FUNCTION fn_save_assessment(
+  p_user_id UUID,
+  p_type TEXT DEFAULT 'bienestar',
+  p_stress INTEGER DEFAULT 0,
+  p_anxiety INTEGER DEFAULT 0,
+  p_depression INTEGER DEFAULT 0,
+  p_level TEXT DEFAULT 'baja',
+  p_crisis BOOLEAN DEFAULT FALSE,
+  p_recommendations TEXT[] DEFAULT '{}',
+  p_ai_advice TEXT DEFAULT NULL
+) RETURNS TABLE(
+  id INTEGER, user_id UUID, type TEXT, stress INTEGER, anxiety INTEGER,
+  depression INTEGER, level TEXT, crisis BOOLEAN, recommendations TEXT[],
+  ai_advice TEXT, created_at TEXT
+) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  INSERT INTO assessments (user_id, type, stress, anxiety, depression, level, crisis, recommendations, ai_advice)
+  VALUES (p_user_id, p_type, p_stress, p_anxiety, p_depression, p_level, p_crisis, p_recommendations, p_ai_advice)
+  RETURNING assessments.id, assessments.user_id, assessments.type,
+            assessments.stress, assessments.anxiety, assessments.depression,
+            assessments.level, assessments.crisis, assessments.recommendations,
+            assessments.ai_advice,
+            to_char(assessments.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
+END $$;
+
+CREATE OR REPLACE FUNCTION fn_get_user_assessments(p_user_id UUID)
+RETURNS TABLE(
+  id INTEGER, user_id UUID, type TEXT, stress INTEGER, anxiety INTEGER,
+  depression INTEGER, level TEXT, crisis BOOLEAN, recommendations TEXT[],
+  ai_advice TEXT, created_at TEXT
+) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  SELECT a.id, a.user_id, a.type, a.stress, a.anxiety, a.depression,
+         a.level, a.crisis, a.recommendations, a.ai_advice,
+         to_char(a.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+  FROM assessments a
+  WHERE a.user_id = p_user_id
+  ORDER BY a.created_at DESC;
+END $$;
+
+CREATE OR REPLACE FUNCTION fn_set_assessment_advice(p_id INTEGER, p_advice TEXT)
+RETURNS TABLE(id INTEGER, ai_advice TEXT) LANGUAGE plpgsql AS $$
+DECLARE
+  v_id INTEGER;
+BEGIN
+  UPDATE assessments SET ai_advice = p_advice
+  WHERE id = p_id
+  RETURNING id INTO v_id;
+  IF v_id IS NULL THEN
+    RETURN;
+  END IF;
+  RETURN QUERY SELECT v_id, p_advice;
+END $$;
+
+CREATE OR REPLACE FUNCTION fn_log_crisis_contact(
+  p_user_id UUID,
+  p_assessment_id INTEGER DEFAULT NULL,
+  p_channel TEXT DEFAULT 'helpline',
+  p_detail TEXT DEFAULT NULL
+) RETURNS TABLE(id INTEGER, user_id UUID, assessment_id INTEGER, channel TEXT, detail TEXT, created_at TEXT)
+LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  INSERT INTO crisis_contact_log (user_id, assessment_id, channel, detail)
+  VALUES (p_user_id, p_assessment_id, p_channel, p_detail)
+  RETURNING crisis_contact_log.id, crisis_contact_log.user_id,
+            crisis_contact_log.assessment_id, crisis_contact_log.channel,
+            crisis_contact_log.detail,
+            to_char(crisis_contact_log.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
+END $$;
+
 -- ---------- CUENTAS Y SESIONES (users / sessions) ----------
 
 DROP FUNCTION IF EXISTS fn_create_user(TEXT, TEXT, TEXT, TEXT, TEXT);

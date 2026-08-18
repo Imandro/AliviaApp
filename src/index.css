@@ -786,6 +786,11 @@ html[data-theme="mono"] body {
   50% { opacity: 0.45; transform: scale(1.25); }
 }
 
+@keyframes bubbleFloat {
+  from { transform: translateY(0); }
+  to { transform: translateY(-340px); }
+}
+
 @keyframes pulseSOS {
   0% { transform: scale(1); opacity: 1; }
   100% { transform: scale(1.15); opacity: 0; }
