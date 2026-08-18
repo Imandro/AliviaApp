@@ -19,7 +19,10 @@ interface TopicRule {
 
 const CRISIS_KEYWORDS = [
   'suicid', 'matarme', 'querer morir', 'no quiero vivir', 'acabar con mi vida',
-  'lastimarme', 'autolesion', 'cortarme', 'autoneterse',
+  'lastimarme', 'autolesion', 'cortarme', 'autoneterse', 'quitarme la vida',
+  'acabar con todo', 'no quiero seguir', 'no quiero seguir existiendo',
+  'desaparecer para siempre', 'hacerme daño', 'hacerme dano', 'ahorcarme',
+  'sobredosis', 'tomar pastillas para no despertar', 'no aguanto más', 'no aguanto mas',
 ];
 
 const SUGGEST_SOS = { label: 'Ver líneas de ayuda (SOS)', path: '/sos' };
@@ -109,6 +112,22 @@ const RULES: TopicRule[] = [
     suggest: [],
   },
   {
+    keywords: ['feo', 'fea', 'no me gusto', 'odio mi cuerpo', 'no valgo', 'inutil', 'estupido', 'estupida', 'fracaso', 'no sirvo para nada', 'avergonzado', 'avergonzada'],
+    response: [
+      'Esa voz interna que te dice que no vales está mintiendo con volumen. La autocrítica tan dura casi nunca describe quién eres: describe cuánto has estado cargando.',
+      'Hoy haz esto: escribe UNA cosa que lograste esta semana, por pequeña que sea, y léela en voz alta. Repite la que quieras dejar de creer: eso la desactiva poco a poco.',
+    ],
+    suggest: [SUGGEST_JOURNAL, SUGGEST_RADAR, SUGGEST_PLANS],
+  },
+  {
+    keywords: ['miedo', 'miedo de', 'asustado', 'asustada', 'terror', 'panico', 'panico', 'fobia', 'paralizado', 'paralizada'],
+    response: [
+      'El miedo es una alarma que a veces se queda encendida aunque no haya peligro real. No te hace débil: te hace humano, y la alarma se puede calmar.',
+      'Para este momento: nombra el miedo en voz baja ("tengo miedo de…"), pon una mano en el pecho y respira largo. El miedo baja cuando lo observas, no cuando lo pelea.',
+    ],
+    suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
+  },
+  {
     keywords: ['hola', 'hey', 'buenas', 'que tal', 'holi'],
     response: [
       'Hola, qué gusto que estés aquí. 💛 Soy tu espacio de orientación emocional: puedes contarme cómo te sientes (ansiedad, tristeza, enojo, estrés…) o pedir una herramienta para este momento.',
@@ -128,7 +147,19 @@ const FALLBACK_RESPONSES = [
 const WITH_TOPIC_REPLY = (topic: string) =>
   `He notado que mencionas "${topic}". Quiero reconocer lo que estás diciendo y ofrecerte un espacio seguro para seguirlo: ¿cómo se siente físicamente tu cuerpo ahora mismo?`;
 
-export const getAiReply = (message: string): { text: string; topics: string[]; isCrisis: boolean; suggest: { label: string; path: string }[] } => {
+const CONTINUE_TOPIC_REPLY = (topic: string) =>
+  `Sigo aquí contigo. Me cuentas de "${topic}" y quiero seguir escuchándote: ¿qué ha cambiado desde que hablamos? Respira profundo: acompañarte no es apresurarte.`;
+
+const LAST_TOPIC = (lastTopic: string): string | null => {
+  const topic = getTopicByText(lastTopic);
+  if (!topic) return null;
+  if (FALLBACK_ROUTES.some(k => lastTopic.includes(k))) return null;
+  return topic;
+};
+
+const FALLBACK_ROUTES = ['no se', 'no sé', 'no lo se', 'no lo sé', 'no quiero hablar', 'nada', 'no se que'];
+
+export const getAiReply = (message: string, lastTopic?: string): { text: string; topics: string[]; isCrisis: boolean; suggest: { label: string; path: string }[] } => {
   const lower = message.toLowerCase();
   const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
 
@@ -158,14 +189,17 @@ export const getAiReply = (message: string): { text: string; topics: string[]; i
   }
 
   const detectedTopic = getTopicByText(text);
+  const last = lastTopic ? LAST_TOPIC(lastTopic) : null;
 
   return {
     isCrisis: false,
     topics: detectedTopic ? [detectedTopic] : [],
     text: detectedTopic
       ? WITH_TOPIC_REPLY(detectedTopic)
-      : FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)],
-    suggest: detectedTopic ? [SUGGEST_JOURNAL, SUGGEST_RADAR] : [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
+      : last
+        ? CONTINUE_TOPIC_REPLY(last)
+        : FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)],
+    suggest: detectedTopic ? [SUGGEST_JOURNAL, SUGGEST_RADAR] : last ? [SUGGEST_JOURNAL, SUGGEST_RADAR] : [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
   };
 };
 
@@ -178,6 +212,22 @@ const TOPIC_LABELS: [string, string][] = [
 const getTopicByText = (text: string): string | null => {
   for (const [key, label] of TOPIC_LABELS) {
     if (text.includes(key)) return label;
+  }
+  return null;
+};
+
+export const detectCrisis = (message: string): boolean => {
+  const lower = message.toLowerCase();
+  const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
+  return CRISIS_KEYWORDS.some(k => text.includes(k));
+};
+
+export const getIntentSuggest = (message: string): { label: string; path: string }[] | null => {
+  const lower = message.toLowerCase();
+  const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
+  if (detectCrisis(message)) return [SUGGEST_SOS, SUGGEST_CONNECT];
+  for (const rule of RULES) {
+    if (rule.keywords.some(k => text.includes(k))) return rule.suggest ?? null;
   }
   return null;
 };
