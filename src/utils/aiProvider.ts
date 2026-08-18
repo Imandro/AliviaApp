@@ -16,7 +16,7 @@ export interface AiTurn {
 }
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODELS = ['openai/gpt-oss-120b', 'qwen/qwen3.6-27b', 'openai/gpt-oss-20b'];
 const LLM_TIMEOUT_MS = 18000;
 const MAX_HISTORY_TURNS = 8;
 
@@ -56,28 +56,37 @@ const queryGroq = async (history: AiTurn[]): Promise<string | null> => {
   const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS);
 
   try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        temperature: 0.85,
-        max_tokens: 320,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
-      }),
-      signal: controller.signal,
-    });
+    const models = (import.meta.env.VITE_GROQ_MODEL as string)
+      ? [import.meta.env.VITE_GROQ_MODEL as string]
+      : GROQ_MODELS;
 
-    if (res.status === 429) return null;
-    if (!res.ok) return null;
+    for (const model of models) {
+      try {
+        const res = await fetch(GROQ_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model,
+            temperature: 0.85,
+            max_tokens: 320,
+            messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history],
+          }),
+          signal: controller.signal,
+        });
 
-    const data = await res.json();
-    const content: string = data?.choices?.[0]?.message?.content?.trim() ?? '';
-    return content.length > 0 ? content : null;
-  } catch {
+        if (res.status === 429) return null;
+        if (!res.ok) continue;
+
+        const data = await res.json();
+        const content: string = data?.choices?.[0]?.message?.content?.trim() ?? '';
+        if (content.length > 0) return content;
+      } catch {
+        return null;
+      }
+    }
     return null;
   } finally {
     clearTimeout(timer);
