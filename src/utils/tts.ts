@@ -1,6 +1,6 @@
 const EDGE_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
-const EDGE_VOICE = 'es-MX-DaliaNeural';
-const EDGE_OUTPUT = 'audio-24khz-48kbitrate-mono-mp3';
+const EDGE_VOICE = 'es-AR-ElenaNeural';
+const EDGE_OUTPUT = 'audio-24khz-96kbitrate-mono-mp3';
 
 let audioCtx: AudioContext | null = null;
 let currentSource: AudioBufferSourceNode | null = null;
@@ -49,19 +49,26 @@ const getCtx = (): AudioContext | null => {
 };
 
 const bestFallbackVoice = (): SpeechSynthesisVoice | null => {
-  const synth = window.speechSynthesis;
-  if (!synth) return null;
-  const voices = synth.getVoices();
-  if (voices.length === 0) return null;
-  const es = voices.filter(v => v.lang.toLowerCase().startsWith('es'));
-  if (es.length === 0) return null;
-  return (
-    es.find(v => /google/i.test(v.name) && !v.localService) ||
-    es.find(v => /google/i.test(v.name)) ||
-    es.find(v => v.name.includes('Natural') && !v.localService) ||
-    es.find(v => !v.localService) ||
-    es[0]
-  );
+  try {
+    const synth = window.speechSynthesis;
+    if (!synth) return null;
+    const voices = synth.getVoices();
+    if (voices.length === 0) return null;
+    const es = voices.filter(v => v.lang.toLowerCase().startsWith('es'));
+    if (es.length === 0) return null;
+    const calm = /elen|dalia|helena|sabina|m[oó]nica|paulina|mia|sof[íi]a|valentina|marisol|angelica|gabriela|laura|clara|andrea|luci|silvia|rosa|ana/i;
+    const isCalm = (v: SpeechSynthesisVoice) => calm.test(v.name);
+    return (
+      es.find(v => !v.localService && isCalm(v)) ||
+      es.find(v => isCalm(v)) ||
+      es.find(v => !v.localService && /google/i.test(v.name)) ||
+      es.find(v => /google/i.test(v.name)) ||
+      es.find(v => !v.localService) ||
+      es[0]
+    );
+  } catch {
+    return null;
+  }
 };
 
 export const stopSpeaking = () => {
@@ -163,7 +170,7 @@ const speakViaEdge = (text: string): Promise<'ok' | 'fail'> => {
 
       const clean = text.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ¿¡\s.,;:!?()'’-]/gu, ' ').replace(/\s+/g, ' ').trim();
       const safe = clean.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='es-MX'><voice name='${EDGE_VOICE}'><prosody rate='+4%' pitch='-3%' volume='loud'>${safe || 'Hola'}</prosody></voice></speak>`;
+      const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='es-AR'><voice name='${EDGE_VOICE}'><prosody rate='-12%' pitch='-2%' volume='loud'>${safe || 'Hola'}</prosody></voice></speak>`;
       const ts2 = gmtNow();
       sha256Hex(ts2 + EDGE_TOKEN).then((gec) => {
         const speechMsg = `X-RequestId:${uuid()}\r\nContent-Type:application/ssml+xml\r\nX-Timestamp:${ts2}\r\nPath:ssml\r\nSec-MS-GEC:${gec}\r\nSec-MS-GEC-Version:1\r\n\r\n${ssml}`;
@@ -225,7 +232,7 @@ const speakViaEdge = (text: string): Promise<'ok' | 'fail'> => {
 
     window.setTimeout(() => {
       finish('fail');
-    }, 15000);
+    }, 10000);
   });
 };
 
@@ -243,11 +250,11 @@ const speakViaFallback = (text: string): Promise<boolean> => {
       return;
     }
     const utter = new SpeechSynthesisUtterance(clean);
-    utter.lang = 'es-MX';
+    utter.lang = 'es-AR';
     const voice = bestFallbackVoice();
     if (voice) utter.voice = voice;
-    utter.rate = 0.92;
-    utter.pitch = 1;
+    utter.rate = 0.82;
+    utter.pitch = 0.9;
     activePlayResolver = () => resolve(false);
     utter.onend = () => {
       if (activePlayResolver) activePlayResolver = null;
@@ -265,11 +272,13 @@ export const speakNatural = async (text: string): Promise<boolean> => {
   if (currentSource || currentWs) {
     stopSpeaking();
   }
-  try {
-    const ok = await speakViaEdge(text);
-    if (ok === 'ok') return true;
-  } catch {
-    /* noop */
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const ok = await speakViaEdge(text);
+      if (ok === 'ok') return true;
+    } catch {
+      /* noop */
+    }
   }
   return speakViaFallback(text);
 };
