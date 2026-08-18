@@ -95,7 +95,7 @@ export const LibraryView: React.FC = () => {
                   : {}),
               }}
             >
-              {c === 'todas' ? '📚 Todas' : `${CATEGORY_META[c].emoji} ${c}`}
+              {c === 'todas' ? 'Todas' : c}
             </button>
           ))}
         </div>
@@ -140,7 +140,7 @@ export const LibraryView: React.FC = () => {
                 </p>
                 <div style={styles.itemMeta}>
                   <span style={styles.catTag}>
-                    {meta.emoji} {cat}
+                    {cat}
                   </span>
                   <span style={styles.ageTag}>Edad {item.age}</span>
                   <span style={styles.typeTag}>{TYPE_LABEL[item.type]}</span>

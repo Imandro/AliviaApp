@@ -227,12 +227,12 @@ export const SosScreen: React.FC = () => {
             onChange={(e) => setCountry(e.target.value as any)} 
             style={styles.countrySelector}
           >
-            <option value="NI">🇳🇮 Nicaragua</option>
-            <option value="SV">🇸🇻 El Salvador</option>
-            <option value="GT">🇬🇹 Guatemala</option>
-            <option value="HN">🇭🇳 Honduras</option>
-            <option value="CR">🇨🇷 Costa Rica</option>
-            <option value="PA">🇵🇦 Panamá</option>
+            <option value="NI">Nicaragua</option>
+            <option value="SV">El Salvador</option>
+            <option value="GT">Guatemala</option>
+            <option value="HN">Honduras</option>
+            <option value="CR">Costa Rica</option>
+            <option value="PA">Panamá</option>
           </select>
         </div>
 

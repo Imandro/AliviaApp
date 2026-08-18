@@ -16,7 +16,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'depresion',
     label: 'Depresión y tristeza',
-    emoji: '🌧️',
+    emoji: '✦',
     color: 'var(--accent-rose)',
     rgb: 'var(--accent-rose-rgb)',
     frases: [
@@ -52,7 +52,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'ansiedad',
     label: 'Ansiedad',
-    emoji: '🌫️',
+    emoji: '✦',
     color: 'var(--accent-warm)',
     rgb: 'var(--accent-warm-rgb)',
     frases: [
@@ -88,7 +88,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'familia',
     label: 'Problemas familiares',
-    emoji: '🏡',
+    emoji: '✦',
     color: 'var(--accent-sage)',
     rgb: 'var(--accent-sage-rgb)',
     frases: [
@@ -124,7 +124,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'economia',
     label: 'Problemas económicos',
-    emoji: '💰',
+    emoji: '✦',
     color: 'var(--accent-gold)',
     rgb: 'var(--accent-gold-rgb)',
     frases: [
@@ -160,7 +160,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'amistades',
     label: 'Amistades tóxicas',
-    emoji: '🤝',
+    emoji: '✦',
     color: 'var(--accent-lavender)',
     rgb: 'var(--accent-lavender-rgb)',
     frases: [
@@ -196,7 +196,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'noviazgo',
     label: 'Noviazgos tóxicos',
-    emoji: '💔',
+    emoji: '✦',
     color: 'var(--accent-rose)',
     rgb: 'var(--accent-rose-rgb)',
     frases: [
@@ -232,7 +232,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'adicciones',
     label: 'Adicciones',
-    emoji: '🌀',
+    emoji: '✦',
     color: 'var(--accent-warm)',
     rgb: 'var(--accent-warm-rgb)',
     frases: [
@@ -268,7 +268,7 @@ export const LUCHAS: Lucha[] = [
   {
     id: 'suicidio',
     label: 'Pensamientos de suicidio',
-    emoji: '🫂',
+    emoji: '✦',
     color: 'var(--accent-rose)',
     rgb: 'var(--accent-rose-rgb)',
     frases: [
@@ -277,7 +277,7 @@ export const LUCHAS: Lucha[] = [
       { text: 'No tienes que sentirte fuerte hoy: solo tienes que no estar solo(a) hoy.', ref: 'Compañía' },
     ],
     retos: [
-      'Si tienes pensamientos de hacerte daño: llama ahora a una línea de ayuda (menú SOS ⚠️).',
+      'Si tienes pensamientos de hacerte daño: llama ahora a una línea de ayuda (menú SOS).',
       'Cuéntale a alguien de confianza lo que estás sintiendo hoy.',
       'Pospón cualquier decisión por 24 horas y busca apoyo profesional esta semana.',
     ],
@@ -306,7 +306,7 @@ export const LUCHAS: Lucha[] = [
 export const GENERAL: Lucha = {
   id: 'general',
   label: 'Bienestar general',
-  emoji: '🌿',
+  emoji: '✦',
   color: 'var(--text-secondary)',
   rgb: 'var(--accent-sage-rgb)',
   frases: [

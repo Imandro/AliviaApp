@@ -33,11 +33,11 @@ interface MoodInfo {
 }
 
 const moodDetails: { [key: number]: MoodInfo } = {
-  1: { score: 1, emoji: '🌧️', label: 'Muy abrumado(a)', color: 'var(--accent-rose)' },
-  2: { score: 2, emoji: '🌫️', label: 'Algo inestable', color: 'var(--accent-warm)' },
-  3: { score: 3, emoji: '🍃', label: 'Estable / Neutral', color: 'var(--accent-sage)' },
-  4: { score: 4, emoji: '☀️', label: 'Tranquilo(a) y bien', color: 'var(--accent-gold)' },
-  5: { score: 5, emoji: '🌸', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
+  1: { score: 1, emoji: '▁', label: 'Muy abrumado(a)', color: 'var(--accent-rose)' },
+  2: { score: 2, emoji: '▂', label: 'Algo inestable', color: 'var(--accent-warm)' },
+  3: { score: 3, emoji: '▄', label: 'Estable / Neutral', color: 'var(--accent-sage)' },
+  4: { score: 4, emoji: '▆', label: 'Tranquilo(a) y bien', color: 'var(--accent-gold)' },
+  5: { score: 5, emoji: '█', label: 'En paz y excelente', color: 'var(--accent-lavender)' },
 };
 
 const ALIENTO_BG = [
@@ -129,7 +129,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   };
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'amigo(a)';
-  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '🍃';
+  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '▄';
   const level = 1 + Math.floor(streak / 5);
   const practiceCompleted = practiceDone >= PRACTICA_META;
   const practicePct = Math.min(100, Math.round((practiceDone / PRACTICA_META) * 100));
@@ -278,7 +278,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <div style={styles.alientoCircle2} />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '22px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 165 }}>
           <h6 style={styles.alientoLabel}>
-            {lucha.emoji} ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
+            ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
           </h6>
           <figure style={{ margin: 0 }}>
             <blockquote style={{ margin: '14px 0 0' }}>
@@ -305,7 +305,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
 
         <h4 style={styles.challengeHeadline}>
-          {practiceCompleted ? 'Reto completado 🎉' : retoHoy}
+          {practiceCompleted ? 'Reto completado ' : retoHoy}
         </h4>
 
         {!practiceCompleted && (
@@ -319,7 +319,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             {practiceCompleted ? <CheckCircle2 size={18} color="#10B981" /> : <ArrowRight size={18} color="#5B4FD0" />}
           </span>
           <span style={styles.challengeText}>
-            {practiceCompleted ? 'Vuelve mañana por más' : `${lucha.emoji} Lucha: ${lucha.label} · 2-5 min`}
+            {practiceCompleted ? 'Vuelve mañana por más' : `Lucha: ${lucha.label} · 2-5 min`}
           </span>
         </div>
       </div>

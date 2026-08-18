@@ -12,7 +12,7 @@ interface RadarPoint {
 
 const MOOD_COLORS = ['var(--accent-rose)', 'var(--accent-warm)', 'var(--accent-sage)', 'var(--accent-gold)', 'var(--accent-lavender)'];
 const MOOD_LABELS = ['Muy abrumado', 'Inestable', 'Estable', 'Tranquilo', 'En paz'];
-const MOOD_EMOJIS = ['🌧️', '🌫️', '🍃', '☀️', '🌸'];
+const MOOD_EMOJIS = ['▁', '▂', '▄', '▆', '█'];
 
 export const RadarView: React.FC = () => {
   const navigate = useNavigate();
@@ -174,7 +174,7 @@ export const RadarView: React.FC = () => {
             <p className="body-standard" style={{ fontSize: '12px' }}>
               Tu ánimo promedio es <b>{averageScore.toFixed(1)}/5</b> en este periodo.
               {averageScore >= 3.5
-                ? ' Vas manteniendo una base de calma. 🌿'
+                ? 'Vas manteniendo una base de calma.'
                 : ' Hay espacio para cuidarte más: cada registro es un paso para observarte mejor.'}
             </p>
           </div>
@@ -199,7 +199,7 @@ export const RadarView: React.FC = () => {
           <h4 className="title-small" style={{ fontSize: '12px' }}>¿CÓMO LEO MI RADAR?</h4>
         </div>
         <p className="body-standard" style={{ fontSize: '11.5px', opacity: 0.7 }}>
-          Cada pétalo representa una emoción (de 🌧️ muy abrumado a 🌸 en paz). Cuanto más crece un pétalo, más días la viviste en el periodo elegido. El polígomo azul conecta tus emociones para mostrar tu paisaje emocional completo.
+          Cada pétalo representa una emoción (de ▁ muy abrumado a █ en paz). Cuanto más crece un pétalo, más días la viviste en el periodo elegido. El polígomo azul conecta tus emociones para mostrar tu paisaje emocional completo.
         </p>
       </div>
     </div>

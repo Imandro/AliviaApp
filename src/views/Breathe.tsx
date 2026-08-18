@@ -288,7 +288,7 @@ export const Breathe: React.FC = () => {
                   color: playOcean ? 'var(--accent-gold)' : 'var(--text-muted)',
                 }}
               >
-                🌊 Olas
+                Olas
               </button>
             </div>
             <input
@@ -313,7 +313,7 @@ export const Breathe: React.FC = () => {
                   color: playBrown ? 'var(--accent-gold)' : 'var(--text-muted)',
                 }}
               >
-                📻 Marrón
+                Marrón
               </button>
             </div>
             <input
@@ -337,8 +337,8 @@ export const Breathe: React.FC = () => {
                   background: playBinaural ? 'rgba(var(--accent-gold-rgb), 0.15)' : 'rgba(255,255,255,0.02)',
                   color: playBinaural ? 'var(--accent-gold)' : 'var(--text-muted)',
                 }}
-              >
-                🧘 432 Hz
+>
+                432 Hz
               </button>
             </div>
             <input

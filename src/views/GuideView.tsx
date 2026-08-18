@@ -123,7 +123,7 @@ export const GuideView: React.FC = () => {
   if (!item || !guide) {
     return (
       <div className="fade-in glass-card flex flex-col items-center gap-4 text-center" style={{ padding: '32px 20px' }}>
-        <p className="body-standard" style={{ fontSize: '13px' }}>No encontramos esa guía 🤷</p>
+        <p className="body-standard" style={{ fontSize: '13px' }}>No encontramos esa guía </p>
         <button onClick={() => navigate('/library')} className="btn-primary" style={{ width: 'auto', padding: '10px 20px', fontSize: '13px' }}>
           Volver a la biblioteca
         </button>
@@ -383,7 +383,7 @@ export const GuideView: React.FC = () => {
                       <div className="fade-in" style={{
                         marginTop: '10px', fontSize: '11.5px', color: 'var(--accent-rose)', fontFamily: 'var(--font-title)',
                       }}>
-                        Casi... inténtalo de nuevo, escoje otra 💪
+                        Casi... inténtalo de nuevo, escoje otra 
                       </div>
                     )}
                   </div>
@@ -397,7 +397,7 @@ export const GuideView: React.FC = () => {
                     background: 'rgba(140, 176, 141, 0.07)', border: '1px solid rgba(140, 176, 141, 0.22)',
                     fontSize: '12.5px', lineHeight: 1.6, color: 'var(--text-secondary)',
                   }}>
-                    💡 {block.text}
+                    {block.text}
                   </div>
                 );
 
@@ -486,14 +486,14 @@ export const GuideView: React.FC = () => {
             width: 'min(360px, calc(100% - 48px))', borderRadius: '32px', background: 'var(--bg-base)',
             border: '1px solid var(--border-color-glow)', boxShadow: 'var(--shadow-main)', padding: '30px 24px', textAlign: 'center',
           }}>
-            <div style={{ fontSize: '64px', animation: 'softFloat 2.5s ease-in-out infinite', lineHeight: 1 }}>
-              🎉
+            <div style={{ fontSize: '56px', animation: 'softFloat 2.5s ease-in-out infinite', lineHeight: 1, color: 'var(--accent-gold)' }}>
+              ✦
             </div>
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)', margin: '14px 0 6px' }}>
               ¡Guía completada!
             </h3>
             <p className="body-standard" style={{ fontSize: '13px', lineHeight: 1.6, opacity: 0.85, margin: '0 0 18px' }}>
-              {item.title}, <strong style={{ color: 'var(--accent-gold)' }}>100%</strong>. Cada paso que marcas le enseña a tu cerebro a cuidarse solo. 🌱
+              {item.title}, <strong style={{ color: 'var(--accent-gold)' }}>100%</strong>. Cada paso que marcas le enseña a tu cerebro a cuidarse solo. 
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button onClick={() => navigate('/library')} className="btn-primary" style={{ padding: '13px', fontSize: '14px', borderRadius: '16px' }}>
