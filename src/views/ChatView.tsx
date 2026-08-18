@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
 import { getAiIntro } from '../utils/empatheticAI';
 import { getAiReplyHybrid, hasOnlineAI, transcribeWithGroq, AiReply, AiTurn } from '../utils/aiProvider';
-import { speakNatural, stopSpeaking, preloadVoices } from '../utils/tts';
+import { speakNatural, stopSpeaking, preloadVoices, unlockAudio } from '../utils/tts';
 
 interface ChatMessage {
   role: 'user' | 'ai';
@@ -403,12 +403,14 @@ export const ChatView: React.FC = () => {
   const handleSend = useCallback(async (textArg?: string) => {
     const text = (textArg ?? input).trim();
     if (!text || isTyping) return;
+    unlockAudio();
     setInput('');
     await sendCore(text);
   }, [input, isTyping, sendCore]);
 
   const startVoice = useCallback(async () => {
     if (voiceRunRef.current) return;
+    unlockAudio();
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const canMic = !!(navigator.mediaDevices?.getUserMedia) || !!SR;
     if (!canMic) {
