@@ -775,7 +775,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     zIndex: 1000,
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    paddingTop: '10vh',
     pointerEvents: 'none',
   },
   pickerModal: {
