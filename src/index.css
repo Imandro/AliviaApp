@@ -129,6 +129,13 @@ html, body, #root {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+}
+
+/* PWA: bloquear zoom por pellizco / doble toque en cualquier control */
+button, a, input, textarea, select, [role="button"] {
+  touch-action: manipulation;
 }
 
 body::after {
@@ -784,6 +791,22 @@ html[data-theme="mono"] body {
 @keyframes pulseSoft {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(1.25); }
+}
+
+/* Orb de voz de VIA: rotación lenta de anillos y pulso de escucha */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinSlowRev {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes orbPing {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.75); opacity: 0; }
 }
 
 @keyframes bubbleFloat {
