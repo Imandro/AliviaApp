@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { PenTool, Trash2, Heart } from 'lucide-react';
 import { ParticleCanvas } from '../components/ParticleCanvas';
+import { saveJournalEntry, JournalRecord } from '../utils/journalDb';
 
 interface BurnJournalProps {
   theme: 'light' | 'dark' | 'mono';
 }
+
+const VIA_COMFORT: Record<string, string> = {
+  crisis: "Lo que escribiste es muy serio. Por favor, llévalo a alguien de confianza o a una línea de crisis hoy mismo; no tienes que enfrentarlo solo/a.",
+  ansiedad: "VIA notó que hoy te pesaba mucho la ansiedad. Lo quiero tener en cuenta para acompañarte mejor. Respira lento, estás segura/o aquí.",
+  tristeza: "VIA sabe que hoy fue una carga triste de soltar. Lo tendré presente para cuidarte. Tu pecho se vuelve más ligero ahora.",
+  enojo: "Ese enojo merecía salir. VIA lo tiene en cuenta y te acompaña para canalizarlo con calma, paso a paso.",
+  soledad: "VIA te escuchó en esa soledad y no estás solo/a que lo escribas. Estoy aquí contigo para que no lo cargues a solas.",
+  miedo: "Ese miedo era muy tuyo, te creo. VIA lo guarda con cuidado y te ayudará a sentirte más segura/o.",
+  crisis_valor: "",
+};
 
 const therapeuticQuotes = [
   "Lo has soltado muy bien. Siente cómo tu pecho se vuelve más ligero. Todo va a estar bien.",
@@ -19,9 +30,12 @@ export const BurnJournal: React.FC<BurnJournalProps> = ({ theme }) => {
   const [isDissolving, setIsDissolving] = useState<boolean>(false);
   const [dissolvedText, setDissolvedText] = useState<string>('');
   const [comfortQuote, setComfortQuote] = useState<string | null>(null);
+  const [viaNote, setViaNote] = useState<string | null>(null);
 
   const handleLetGo = () => {
     if (!text.trim()) return;
+    const record: JournalRecord = saveJournalEntry(text);
+    setViaNote(record.crisis ? VIA_COMFORT.crisis : (VIA_COMFORT[record.emotion] ?? null));
     setDissolvedText(text);
     setIsDissolving(true);
     setComfortQuote(null);
@@ -36,6 +50,7 @@ export const BurnJournal: React.FC<BurnJournalProps> = ({ theme }) => {
 
   const handleWriteAgain = () => {
     setComfortQuote(null);
+    setViaNote(null);
   };
 
   return (
@@ -60,6 +75,11 @@ export const BurnJournal: React.FC<BurnJournalProps> = ({ theme }) => {
             <p className="body-lead text-center" style={styles.comfortQuote}>
               "{comfortQuote}"
             </p>
+            {viaNote && (
+              <p className="body-standard text-center" style={styles.viaNote}>
+                💛 {viaNote}
+              </p>
+            )}
             <button
               onClick={handleWriteAgain}
               className="btn-primary"
@@ -211,6 +231,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontStyle: 'italic',
     color: 'var(--text-secondary)',
     maxWidth: '280px',
+  },
+  viaNote: {
+    fontSize: '12.5px',
+    lineHeight: '1.6',
+    color: 'var(--accent-lavender)',
+    maxWidth: '300px',
+    opacity: 0.9,
   },
 };
 

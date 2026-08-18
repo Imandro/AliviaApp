@@ -36,6 +36,7 @@ import {
   composeAiPrompt,
 } from '../utils/assessmentTest';
 import { getAiReplyHybrid } from '../utils/aiProvider';
+import { journalSummaryForPrompt } from '../utils/journalDb';
 import {
   CRISIS_COUNTRIES,
   CRISIS_COUNTRY_LABELS,
@@ -134,7 +135,9 @@ export const AssessmentView: React.FC = () => {
     }
 
     setAiLoading(true);
-    const reply = await getAiReplyHybrid(composeAiPrompt(counts), []);
+    const journalSummary = journalSummaryForPrompt();
+    const promptBase = composeAiPrompt(counts);
+    const reply = await getAiReplyHybrid(journalSummary ? `${promptBase} ${journalSummary}` : promptBase, []);
     if (saved && saved.id && reply) {
       setLastResult((prev) => (prev ? { ...prev, ai_advice: reply.text, ai_source: reply.source } : prev));
       setRecords((prev) =>

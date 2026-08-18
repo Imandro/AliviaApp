@@ -13,7 +13,8 @@
     "pg": "^8.23.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.16.0"
+    "react-router-dom": "^7.16.0",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@types/pg": "^8.21.0",

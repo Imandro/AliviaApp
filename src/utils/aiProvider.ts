@@ -32,11 +32,15 @@ export const hasOnlineAI = (): boolean => getGroqKey().trim().length > 0;
 
 const SYSTEM_PROMPT = [
   'Eres "VIA", la asistente virtual de la app Alivia, una app de bienestar emocional para jóvenes de Centroamérica. TE LLAMAS VIA: cuando te presentes o te pregunten tu nombre, dile "VIA".',
+  'Rol y tono:',
+  '- Habla como una amiga cálida, amable y serena que se preocupa de verdad. Sé afectuosa y empática: valida su sentir, reconócele su esfuerzo y dile que no está sola.',
+  '- Usa un lenguaje bonito y suave: palabras de aliento, cuidado y esperanza. Trata a la persona con cariño y respeto. No seas clínica ni lejana, pero tampoco invasiva ni informal de más.',
+  '- Comprende primero lo que le pasa y refiérete a sus propias palabras; luego acompáñala a dar un paso pequeño. Ofrece pasos concretos y usa los recursos de la app (respiración, actividades, diario, radar de ánimo, planes) cuando encajen.',
   'Reglas obligatorias:',
-  '- Responde SIEMPRE en español, con calidez, sin juicios y con un tono cercano pero serio cuando haga falta.',
+  '- Responde SIEMPRE en español, con calidez y sin juicios.',
   '- Se EXTREMADAMENTE breve: 2 o 3 frases máximo, menos de 60 palabras. Prohibido usar markdown, listas o emojis repetidos.',
+  '- NUNCA repitas ni devuelvas el texto del usuario: no repliques palabra por palabra lo que dice. Responde desde tu amoroso rol, no como un eco; si algo no está claro, pregunta con suavidad.',
   '- NO eres un profesional clínico ni un terapeuta: eres un acompañamiento digital. No diagnostiques ni recetes.',
-  '- Ofrece pasos concretos y pequeños para el momento presente, y usa recursos de la app (respiración, actividades, diario, radar de ánimo, planes) cuando encajen.',
   '- Si la persona insiste en hacerse daño o no quiere vivir: valida sin minimizar, dale urgencia real, pídele que hable HOY con una persona de confianza o una línea de crisis gratuita, y sugiere el SOS de la app.',
   '- No uses el nombre de la persona salvo que lo haya dicho antes en la conversación.',
 ].join('\n');
@@ -58,15 +62,81 @@ const sanitizeForLLM = (turn: AiTurn): AiTurn => {
   return turn;
 };
 
+const normalize = (s: string): string => s.toLowerCase().replace(/[^a-záéíóúüñ\s]/g, '').replace(/\s+/g, ' ').trim();
+
+const looksLikeEcho = (reply: string, userMsg: string): boolean => {
+  const a = normalize(reply);
+  const b = normalize(userMsg);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (b.length > 8 && a.includes(b)) return true;
+  return false;
+};
+
+const usableText = (text: string | null, userMsg: string): string | null => {
+  if (!text) return null;
+  if (looksLikeEcho(text, userMsg)) return null;
+  return text;
+};
+
+export interface JournalAnalysis {
+  emotion: string;
+  valence: number;
+  topics: string[];
+  crisis: boolean;
+}
+
+const JOURNAL_TOPICS: Array<[RegExp, string, number]> = [
+  [/crisis|suicid|hacerme dañ|acab[ao].*vida|no quiero (?:vivir|seguir)/, 'crisis', -1],
+  [/ansied|nervi|panic|estres|stress|presion|examen|acelerad/, 'ansiedad', -0.6],
+  [/triste|deprimi|vac[ií]o|sin ganas|sin fuerza/, 'tristeza', -0.7],
+  [/enojo|ira|rabia|frustra|molest/, 'enojo', -0.5],
+  [/sol|sola|abandona|nadie me|me siento a solas/, 'soledad', -0.6],
+  [/mied|temor|asusta|aterror/, 'miedo', -0.5],
+  [/familia|mam[áa]|pap[áa]|herman|hijo/, 'familia', -0.4],
+  [/sue[ñn]|insomnio|dormir|descans/, 'sueño', -0.4],
+  [/consum|droga|alcohol|vicio|recaer|fumar/, 'consumo', -0.6],
+  [/relacion|novi|pareja|coraz[óo]n|termin[óa]/, 'relaciones', -0.4],
+  [/cansad|agot|sin energia|quemad/, 'agotamiento', -0.4],
+  [/escuela|examen|tarea|nota|clase|estudi/, 'presión académica', -0.5],
+];
+
+export const analyzeJournalEntry = (text: string): JournalAnalysis => {
+  const trimmed = (text ?? '').trim();
+  if (!trimmed) return { emotion: 'neutro', valence: 0, topics: [], crisis: false };
+  if (detectCrisis(trimmed)) {
+    return { emotion: 'crisis', valence: -1, topics: ['crisis'], crisis: true };
+  }
+  const lower = trimmed.toLowerCase();
+  const topics: string[] = [];
+  let emotion = 'neutro';
+  let valence = 0.2;
+  for (const [regex, label, v] of JOURNAL_TOPICS) {
+    if (regex.test(lower)) {
+      if (!topics.includes(label)) topics.push(label);
+      emotion = label;
+      if (v < valence) valence = v;
+    }
+  }
+  if (/gracias|mejor|feliz|logr[ée]|super[ée]|orgullos|bien hoy|disfrut/.test(lower)) {
+    valence = Math.max(valence, 0.6);
+    if (!topics.includes('positivo')) topics.push('positivo');
+  }
+  return { emotion, valence, topics, crisis: false };
+};
+
 const CRISIS_SYSTEM_PROMPT = [
-  'CONTEXTO ACTUAL: la persona está en una conversación de crisis (acaba de mencionar suicidio, autolesión o no querer seguir viviendo).',
+  'CONTEXTO ACTUAL: la persona está en una conversación de crisis (mencionó suicidio, autolesión, no querer seguir viviendo o un peligro inminente).',
+  'Tu rol AHORA: acompañar con mucho cariño y calma, darle seguridad y guiarla paso a paso según exactamente lo que comparte. No respondas con consejos genéricos ni listas. Trátala con ternura: dile que te importa, que no está sola y que vale mucho.',
   'Reglas ESTRICTAS de este modo:',
-  '- PERMANECE en el tema de la crisis. NO cambies de rumbo, no ofrezcas actividades recreativas, juegos ni herramientas de bienestar hasta que la persona diga claramente que está a salvo y fuera de peligro.',
-  '- Valida su dolor sin minimizar ni dramatizar. Pregunta directamente y con cuidado por su seguridad y la de los demás, por ejemplo: "¿Estás a salvo en este momento?" o "¿Puedes poner tus pies en el suelo ahora mismo?".',
-  '- Recuérdale siempre la posibilidad real de hablar HOY con una persona de confianza o con una línea de crisis gratuita (SOS en la app). Nunca prometas guardar silencio ni le pidas esperar sin apoyo.',
-  '- Si ya hay un plan o intención inmediata, repite con seriedad que busque apoyo humano urgente (línea de crisis o emergencias).',
-  '- Si la persona dice explícitamente que ya está en un lugar seguro y tranquilo, reconócelo con calidez, y solo entonces cierra suavemente con los recursos de apoyo. Nunca des por hecho la seguridad sin que ella lo diga.',
-  '- Sé breve: 2 o 3 frases. Nunca agregues temas nuevos ni preguntas de otra índole.',
+  '- PERMANECE en el tema de la crisis. NO cambies de rumbo ni ofrezcas actividades recreativas o herramientas de bienestar; queda en acompañar el momento presente.',
+  '- Valida su dolor sin minimizar y sin dramatizar. Refleja lo que acaba de decir para que se sienta escuchada y guíala según sus propias palabras.',
+  '- Ofrece de inmediato UNA ancla de calma concreta para el momento presente (respirar lento contando hasta 4, agua fría en la cara o muñecas, pies firmes en el suelo, nombrar 5 cosas que ve), en una sola frase, y luego pregúntale con cuidado: "¿Estás a salvo en este momento?" o "¿Quieres que respiremos juntos?".',
+  '- Ajusta el siguiente paso según su respuesta: si dice que puede respirar, acompáñala en la respiración; si dice que tiene un plan o una intención inmediata, dile con seriedad que busque apoyo humano urgente AHORA (persona de confianza o línea de crisis, SOS en la app) y que nadie debe enfrentar esto sola.',
+  '- Asígnale una micro-tarea alcanzable para los próximos minutos (un vaso de agua, sentarse junto a una ventana, escribir una palabra en su diario). Nunca dejes la conversación en un "mantente bien".',
+  '- Recuérdale siempre que puede hablar HOY con alguien de confianza o una línea gratuita; no prometas guardar silencio ni pidas esperar sin apoyo.',
+  '- Si la persona dice explícitamente que ya está a salvo y tranquila, reconócelo con calidez, cierra suavemente y ofrece el respaldo de la app. Nunca des por hecho la seguridad sin que ella la confirme.',
+  '- Sé breve y sereno: 2 o 3 frases, máximo 60 palabras. NO uses markdown ni emojis.',
 ].join('\n');
 
 const SUGGEST_SOS = { label: 'Ver líneas de ayuda (SOS)', path: '/sos' };
@@ -144,19 +214,33 @@ const queryGroq = async (history: AiTurn[]): Promise<string | null> => {
 
 export const getAiReplyHybrid = async (message: string, history: AiTurn[], crisisMode = false): Promise<AiReply> => {
   const isCrisis = detectCrisis(message);
+  const lastTurns = history.slice(-MAX_HISTORY_TURNS);
 
   if (isCrisis) {
     const crisis = getAiReply(message);
-    return { ...crisis, source: 'rules' };
+    const llmText = usableText(await queryGroq([
+      { role: 'system', content: CRISIS_SYSTEM_PROMPT },
+      ...lastTurns.map(sanitizeForLLM),
+      { role: 'user', content: message },
+    ]), message);
+    if (llmText) {
+      return {
+        text: llmText,
+        topics: [],
+        isCrisis: true,
+        suggest: [SUGGEST_SOS, SUGGEST_CONNECT],
+        source: 'groq',
+      };
+    }
+    return { ...crisis, isCrisis: true, source: 'rules' };
   }
 
   const ruledSuggest = getIntentSuggest(message);
-  const lastTurns = history.slice(-MAX_HISTORY_TURNS);
 
   if (crisisMode) {
-    const llmText = await queryGroq(
+    const llmText = usableText(await queryGroq(
       [{ role: 'system', content: CRISIS_SYSTEM_PROMPT }, ...lastTurns.map(sanitizeForLLM), { role: 'user', content: message }],
-    );
+    ), message);
     if (llmText) {
       return {
         text: llmText,
@@ -170,7 +254,7 @@ export const getAiReplyHybrid = async (message: string, history: AiTurn[], crisi
     return { ...rules, suggest: [SUGGEST_SOS, SUGGEST_CONNECT], source: 'rules' };
   }
 
-  const llmText = await queryGroq([...lastTurns.map(sanitizeForLLM), { role: 'user', content: message }]);
+  const llmText = usableText(await queryGroq([...lastTurns.map(sanitizeForLLM), { role: 'user', content: message }]), message);
   if (llmText) {
     return {
       text: llmText,
