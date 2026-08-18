@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-route
 import { Header } from './components/Header';
 import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { InstallPrompt } from './components/InstallPrompt';
 import { Dashboard } from './views/Dashboard';
 import { Breathe } from './views/Breathe';
 import { BurnJournal } from './views/BurnJournal';
@@ -120,6 +121,8 @@ function AppShell({
 
         <Navigation activeTab={activeView} setActiveTab={handleTabChange} />
       </div>
+
+      <InstallPrompt />
     </div>
   );
 }
