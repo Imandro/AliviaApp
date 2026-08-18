@@ -108,7 +108,7 @@ export const RetosView: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           <div style={styles.streakTop}>
             <div style={styles.streakTitleRow}>
               <Trophy size={17} color="#ffffff" />
-              <span style={styles.streakLabel}>RETOS DIARIOS</span>
+              <span style={styles.streakLabel}>✦ RETOS DIARIOS</span>
             </div>
             <span style={styles.streakLucha}>{lucha.emoji} {lucha.label.toUpperCase()}</span>
           </div>

@@ -268,10 +268,29 @@ const speakViaFallback = (text: string): Promise<boolean> => {
   });
 };
 
+const speakViaProxy = async (text: string): Promise<'ok' | 'fail'> => {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(`/api/tts?text=${encodeURIComponent(text)}`, {
+      signal: controller.signal,
+    });
+    if (!res.ok) return 'fail';
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength === 0) return 'fail';
+    return await playMp3(buf);
+  } catch {
+    return 'fail';
+  } finally {
+    window.clearTimeout(timer);
+  }
+};
+
 export const speakNatural = async (text: string): Promise<boolean> => {
   if (currentSource || currentWs) {
     stopSpeaking();
   }
+  if ((await speakViaProxy(text)) === 'ok') return true;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const ok = await speakViaEdge(text);
