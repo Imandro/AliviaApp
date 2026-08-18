@@ -108,7 +108,7 @@ const RULES: TopicRule[] = [
   },
   {
     keywords: ['gracias', 'graciass'],
-    response: ['Estoy aquí para eso. Cuidarte es un acto de valentía, y ya lo estás haciendo. Si vuelve a sentirse pesado, este espacio sigue aquí. 💛'],
+    response: ['Estoy aquí para eso. Cuidarte es un acto de valentía, y ya lo estás haciendo. Si vuelve a sentirse pesado, este espacio sigue aquí. '],
     suggest: [],
   },
   {
@@ -130,7 +130,7 @@ const RULES: TopicRule[] = [
   {
     keywords: ['hola', 'hey', 'buenas', 'que tal', 'holi'],
     response: [
-      'Hola, soy VIA. 💛 ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
+      'Hola, soy VIA.  ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
       '¡Hola! Soy VIA, tu acompañamiento emocional. Cuéntame cómo va tu día o qué necesitas en este momento.',
     ],
     suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
@@ -236,6 +236,6 @@ export const getAiIntro = (): { text: string; topics: string[]; isCrisis: boolea
   isCrisis: false,
   topics: [],
   text:
-    'Hola, soy VIA. 💛 Cuéntame cómo te sientes y te acompaño con pasos pequeños y sin juicios. Si estás en crisis, hablar con una persona real es importante.',
+    'Hola, soy VIA.  Cuéntame cómo te sientes y te acompaño con pasos pequeños y sin juicios. Si estás en crisis, hablar con una persona real es importante.',
   suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_SOS],
 });

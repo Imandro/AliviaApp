@@ -4,15 +4,6 @@ import { getPosts, createPost, likePost, type CommunityPost } from '../utils/loc
 
 const TOPICS = ['todos', 'bienestar', 'ansiedad', 'tristeza', 'hábitos', 'historias', 'consejos'];
 
-const TOPIC_EMOJIS: Record<string, string> = {
-  bienestar: '🌿',
-  ansiedad: '🌫️',
-  tristeza: '💙',
-  hábitos: '🫁',
-  historias: '📖',
-  consejos: '💡',
-};
-
 export const CommunityView: React.FC = () => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [topic, setTopic] = useState('todos');
@@ -67,7 +58,7 @@ export const CommunityView: React.FC = () => {
           <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>COMUNIDAD GLOBAL</h3>
         </div>
         <p className="body-standard" style={{ fontSize: '12px', opacity: 0.75 }}>
-          Un espacio moderado y seguro para compartir experiencias, consejos y mensajes de apoyo. Sé amable, siempre. 💛
+          Un espacio moderado y seguro para compartir experiencias, consejos y mensajes de apoyo. Sé amable, siempre. 
         </p>
 
         <div style={styles.topicRow}>
@@ -80,7 +71,7 @@ export const CommunityView: React.FC = () => {
                 ...(topic === t ? { background: 'rgba(var(--accent-rose-rgb), 0.15)', color: 'var(--accent-rose)', borderColor: 'rgba(var(--accent-rose-rgb), 0.25)' } : {}),
               }}
             >
-              {t === 'todos' ? '🌐 Todos' : `${TOPIC_EMOJIS[t]} ${t}`}
+              {t === 'todos' ? 'Todos' : t}
             </button>
           ))}
         </div>
@@ -136,7 +127,7 @@ export const CommunityView: React.FC = () => {
                   <span style={styles.postTime}> · {timeAgo(post.created_at)}</span>
                 </div>
                 <span style={styles.topicTag}>
-                  {TOPIC_EMOJIS[post.topic] ?? '🌿'} {post.topic}
+                  {post.topic}
                 </span>
               </div>
               <p className="body-standard" style={{ fontSize: '13.5px', lineHeight: 1.6, color: 'var(--text-primary)' }}>
@@ -154,7 +145,7 @@ export const CommunityView: React.FC = () => {
                   <Heart size={15} fill={likedSet.has(post.id) ? 'var(--accent-rose)' : 'none'} />
                   <span>{post.likes}</span>
                 </button>
-                <span style={styles.calmaNote}>💛 Todos estamos en proceso</span>
+                <span style={styles.calmaNote}> Todos estamos en proceso</span>
               </div>
             </div>
           ))

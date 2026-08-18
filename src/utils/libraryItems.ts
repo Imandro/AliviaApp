@@ -124,7 +124,7 @@ export const LIBRARY: LibraryItem[] = [
     category: 'adicciones', age: '13+',
   },
   {
-    id: 'l21', type: 'recurso', title: 'Líneas de ayuda de Centroamérica ⚠️',
+    id: 'l21', type: 'recurso', title: 'Líneas de ayuda de Centroamérica ',
     desc: 'Teléfonos gratuitos de crisis por país. Si estás en peligro, llama ahora: están para escucharte.',
     category: 'suicidio', age: '10+',
   },
@@ -136,7 +136,7 @@ export const LIBRARY: LibraryItem[] = [
 ];
 
 const LUCHA_META: Record<string, { emoji: string; color: string }> = {
-  bienestar: { emoji: '🌿', color: 'var(--accent-sage)' },
+  bienestar: { emoji: '✦', color: 'var(--accent-sage)' },
 };
 LUCHAS.forEach(l => { LUCHA_META[l.id] = { emoji: l.emoji, color: l.color }; });
 
@@ -150,15 +150,15 @@ export const getLibraryItem = (id: string): LibraryItem | undefined =>
 export const getGuideMinutes = (id: string): number => GUIDE_MINUTES[id] ?? 3;
 
 export const CATEGORY_BIG_EMOJI: Record<GuideCategory, string> = {
-  depresion: '🌧️',
-  ansiedad: '🌪️',
-  familia: '🏠',
-  economia: '💸',
-  amistades: '🫂',
-  noviazgo: '💘',
-  adicciones: '⚖️',
-  suicidio: '🌅',
-  bienestar: '🌿',
+  depresion: '✦',
+  ansiedad: '✦',
+  familia: '✦',
+  economia: '✦',
+  amistades: '✦',
+  noviazgo: '✦',
+  adicciones: '✦',
+  suicidio: '✦',
+  bienestar: '✦',
 };
 
 export const CATEGORY_RGB: Record<GuideCategory, string> = {

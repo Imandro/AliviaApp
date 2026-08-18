@@ -4,17 +4,16 @@ import { ChevronDown } from 'lucide-react';
 export interface CountryCode {
   code: string;
   country: string;
-  flag: string;
 }
 
 export const CENTRAL_AMERICA_CODES: CountryCode[] = [
-  { code: '505', country: 'Nicaragua', flag: '🇳🇮' },
-  { code: '502', country: 'Guatemala', flag: '🇬🇹' },
-  { code: '503', country: 'El Salvador', flag: '🇸🇻' },
-  { code: '504', country: 'Honduras', flag: '🇭🇳' },
-  { code: '506', country: 'Costa Rica', flag: '🇨🇷' },
-  { code: '507', country: 'Panamá', flag: '🇵🇦' },
-  { code: '501', country: 'Belice', flag: '🇧🇿' },
+  { code: '505', country: 'Nicaragua' },
+  { code: '502', country: 'Guatemala' },
+  { code: '503', country: 'El Salvador' },
+  { code: '504', country: 'Honduras' },
+  { code: '506', country: 'Costa Rica' },
+  { code: '507', country: 'Panamá' },
+  { code: '501', country: 'Belice' },
 ];
 
 const DEFAULT_CODE = '505';
@@ -71,8 +70,8 @@ export const CountryPhoneInput: React.FC<CountryPhoneInputProps> = ({
           aria-label="Código de país"
         >
           {CENTRAL_AMERICA_CODES.map((c) => (
-            <option key={c.code} value={c.code} label={`${c.flag} +${c.code}`}>
-              {c.flag} +{c.code} · {c.country}
+            <option key={c.code} value={c.code} label={`+${c.code} · ${c.country}`}>
+              +{c.code} · {c.country}
             </option>
           ))}
         </select>

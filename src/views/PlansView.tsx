@@ -44,7 +44,7 @@ export const PlansView: React.FC = () => {
       setPlans(prev => [plan, ...prev]);
       setNewTitle('');
       setShowNew(false);
-      setToast('Plan creado para tu lucha 💪');
+      setToast('Plan creado para tu lucha ');
     } catch {
       setToast('No se pudo crear. Intenta de nuevo.');
     }
@@ -174,7 +174,7 @@ export const PlansView: React.FC = () => {
             color: filter === 'todas' ? 'var(--accent-gold)' : 'var(--text-muted)',
           }}
         >
-          📋 Todas ({plans.length})
+          Todas ({plans.length})
         </button>
         {ALL_LUCHAS.map(l => (
           <button
@@ -254,7 +254,7 @@ export const PlansView: React.FC = () => {
               </div>
 
               <div style={{ ...styles.ideasBox, padding: '10px 12px' }}>
-                <p style={{ ...styles.ideasTitle, margin: 0 }}>💡 Ideas para esta lucha:</p>
+                <p style={{ ...styles.ideasTitle, margin: 0 }}>Ideas para esta lucha:</p>
                 <div style={styles.ideasRow}>
                   {lucha.ideas.map(idea => (
                     <button key={idea} onClick={() => handleAddGoal(plan.id, idea)} style={styles.ideaChip}>

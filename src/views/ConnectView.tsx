@@ -58,14 +58,9 @@ export const ConnectView: React.FC = () => {
             Piense en alguien que: te escuche sin juzgar, esté disponible con frecuencia, vibre en positivo y te conozca bien. Suele ser un amigo, familiar, sponsor o terapeuta.
           </p>
           <div style={styles.suggestions}>
-            {[
-              { icon: '👨‍👩‍👧', label: 'Familia cercana' },
-              { icon: '🤝', label: 'Amigos de confianza' },
-              { icon: '🧑‍⚕️', label: 'Sponsor / terapeuta' },
-              { icon: '💼', label: 'Compañeros de trabajo o estudio' },
-            ].map(s => (
-              <div key={s.label} style={styles.suggestionChip}>
-                <span>{s.icon}</span> {s.label}
+            {['Familia cercana', 'Amigos de confianza', 'Sponsor / terapeuta', 'Compañeros de trabajo o estudio'].map(label => (
+              <div key={label} style={styles.suggestionChip}>
+                {label}
               </div>
             ))}
           </div>
@@ -177,12 +172,12 @@ export const ConnectView: React.FC = () => {
           <div style={styles.celebrateGlow}>
             <PartyPopper size={28} color="var(--accent-gold)" />
           </div>
-          <h4 className="title-medium" style={{ fontSize: '15px' }}>Lo lograste. 🎉</h4>
+          <h4 className="title-medium" style={{ fontSize: '15px' }}>Lo lograste.</h4>
           <p className="body-standard" style={{ fontSize: '12px', opacity: 0.7, maxWidth: '280px' }}>
             Pedir apoyo fue tu primer paso real. La persona a quien le escribiste valora tu confianza más de lo que imaginas.
           </p>
           <p className="body-standard" style={{ fontSize: '11.5px', opacity: 0.8 }}>
-            💛 Alivia estará aquí cada vez que lo necesites.
+            Alivia estará aquí cada vez que lo necesites.
           </p>
           <button onClick={() => { setStage(1); setPerson(null); setSelectedTemplate(0); }} className="btn-secondary" style={{ padding: '10px 16px', borderRadius: '12px', fontSize: '12px' }}>
             Volver al inicio de conexión
