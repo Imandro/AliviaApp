@@ -7,6 +7,15 @@ let currentSource: AudioBufferSourceNode | null = null;
 let currentWs: WebSocket | null = null;
 let fallbackTimer: number | null = null;
 let activePlayResolver: (() => void) | null = null;
+let edgeFailed = false;
+
+export const unlockAudio = () => {
+  try {
+    getCtx();
+  } catch {
+    /* noop */
+  }
+};
 
 const uuid = (): string => {
   const p = (x: number) => (x < 16 ? '0' : '') + x.toString(16);
@@ -230,9 +239,9 @@ const speakViaEdge = (text: string): Promise<'ok' | 'fail'> => {
       if (!settled) finish('fail');
     };
 
-    window.setTimeout(() => {
+window.setTimeout(() => {
       finish('fail');
-    }, 10000);
+    }, 8000);
   });
 };
 
@@ -290,15 +299,21 @@ export const speakNatural = async (text: string): Promise<boolean> => {
   if (currentSource || currentWs) {
     stopSpeaking();
   }
-  if ((await speakViaProxy(text)) === 'ok') return true;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const ok = await speakViaEdge(text);
-      if (ok === 'ok') return true;
-    } catch {
-      /* noop */
+  if (!edgeFailed) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const ok = await speakViaEdge(text);
+        if (ok === 'ok') {
+          edgeFailed = false;
+          return true;
+        }
+      } catch {
+        /* noop */
+      }
     }
+    edgeFailed = true;
   }
+  if ((await speakViaProxy(text)) === 'ok') return true;
   return speakViaFallback(text);
 };
 
