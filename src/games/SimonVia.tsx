@@ -99,7 +99,7 @@ export const SimonVia: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div className="glass-card" style={{ padding: '26px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">🎯</div>
+          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">⌖</div>
           <h4 className="title-small" style={{ fontSize: '19px' }}>Secuencia terminada</h4>
           <div style={{ fontSize: '40px', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--accent-lavender)' }}>{level}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.14em' }}>NIVELES COMPLETADOS</div>

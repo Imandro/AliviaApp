@@ -14,6 +14,7 @@ import {
   Target,
   Bot,
   HeartPulse,
+  Gamepad2,
 } from 'lucide-react';
 import {
   saveTodayMood,
@@ -65,7 +66,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [previewLucha, setPreviewLucha] = useState<string | null>(null);
   const [alientoBg, setAlientoBg] = useState(ALIENTO_BG[0]);
-  const [assessments, setAssessments] = useState<AssessmentRecord[]>([]);
+  const [assessments, setAssessments] = useState<AssessmentRecord[] | null>(null);
 
   const lucha = getLucha(luchaId);
   const day = dayOfYear();
@@ -194,7 +195,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       </div>
 
       {/* Chequeo de bienestar — cada 5 días */}
-      {(() => {
+      {assessments !== null && (() => {
         const dueState = assessmentDueState(assessments);
         if (dueState.due) {
           return (
@@ -330,7 +331,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <div style={styles.alientoCircle2} />
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '22px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 165 }}>
           <h6 style={styles.alientoLabel}>
-            ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
+            ✦ ALIENTO PARA MIS LUCHAS · {lucha.label.toUpperCase()}
           </h6>
           <figure style={{ margin: 0 }}>
             <blockquote style={{ margin: '14px 0 0' }}>

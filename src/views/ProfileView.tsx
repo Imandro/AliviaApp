@@ -115,6 +115,45 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
         )}
       </div>
 
+      {/* Chequeo de bienestar */}
+      <div className="glass-card" style={styles.card}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <HeartPulse size={15} color="var(--accent-gold)" />
+          <p style={styles.label} className="m-0">CHEQUEO DE BIENESTAR</p>
+        </div>
+        {assessments.length === 0 ? (
+          <p style={styles.empty}>Aún no has hecho tu chequeo de estrés, ansiedad y depresión.</p>
+        ) : (
+          <>
+            <p style={styles.text}>
+              Último chequeo: <b>{new Date(assessments[0].created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</b>
+            </p>
+            <div style={styles.assessmentChips}>
+              {(['stress', 'anxiety', 'depression'] as const).map((dim) => {
+                const info = DIMENSION_INFO[dim];
+                const lv = LEVEL_INFO[
+                  assessments[0][dim] <= 4 ? 'baja' : assessments[0][dim] <= 9 ? 'moderada' : 'alta'
+                ];
+                return (
+                  <span key={dim} style={{ ...styles.assessmentChip, color: lv.color, borderColor: `rgba(${lv.rgb}, 0.4)`, background: `rgba(${lv.rgb}, 0.1)` }}>
+                    {info.emoji} {info.short}: {assessments[0][dim]}/15 · {lv.label}
+                  </span>
+                );
+              })}
+            </div>
+            <p style={{ ...styles.text, fontSize: '11.5px', color: 'var(--text-muted)', marginTop: '6px' }}>
+              {assessments.length} chequeo{assessments.length === 1 ? '' : 's'} registrado{assessments.length === 1 ? '' : 's'}
+            </p>
+          </>
+        )}
+        <button
+          onClick={() => navigate('/assessment')}
+          style={styles.assessmentLink}
+        >
+          Ver mis chequeos y hacer uno nuevo <ChevronRight size={13} />
+        </button>
+      </div>
+
       <button className="btn-danger" style={styles.logoutBtn} onClick={handleLogout} disabled={signingOut}>
         <LogOut size={16} /> {signingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
       </button>
@@ -238,6 +277,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '1px',
     margin: '14px 0',
     background: 'var(--border-color)',
+  },
+  assessmentChips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    marginTop: '8px',
+  },
+  assessmentChip: {
+    fontSize: '10px',
+    fontWeight: 700,
+    letterSpacing: '0.02em',
+    padding: '5px 10px',
+    borderRadius: '999px',
+    border: '1px solid',
+  },
+  assessmentLink: {
+    marginTop: '12px',
+    background: 'rgba(var(--accent-gold-rgb), 0.08)',
+    border: '1px solid rgba(var(--accent-gold-rgb), 0.25)',
+    borderRadius: '12px',
+    padding: '10px 12px',
+    color: 'var(--accent-gold)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    transition: 'all 0.2s',
   },
   logoutBtn: {
     marginTop: '4px',

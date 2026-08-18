@@ -17,6 +17,19 @@ import {
 } from '../utils/libraryItems';
 import type { GuideCategory } from '../utils/libraryContent';
 
+const CAT_SYMBOL: Record<string, string> = {
+  depresion: '☾',
+  ansiedad: '〰',
+  familia: '❦',
+  economia: '¤',
+  amistades: '❝',
+  noviazgo: '♥',
+  adicciones: '✴',
+  suicidio: '✚',
+  general: '✦',
+  bienestar: '✧',
+};
+
 const DoneKey = 'alivia-guides-done';
 
 const loadDone = (): string[] => {
@@ -95,7 +108,7 @@ export const LibraryView: React.FC = () => {
                   : {}),
               }}
             >
-              {c === 'todas' ? 'Todas' : c}
+              {c === 'todas' ? 'Todas' : `${CAT_SYMBOL[c] ?? '✦'} ${c}`}
             </button>
           ))}
         </div>

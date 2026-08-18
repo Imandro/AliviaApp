@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check } from 'lucide-react';
 import { getEmergencyContact, saveEmergencyContact, deleteEmergencyContact } from '../utils/localDb';
 import { CountryPhoneInput } from '../components/CountryPhoneInput';
+import { CRISIS_LINES, CRISIS_COUNTRY_LABELS, CRISIS_COUNTRIES, crisisHref, type CrisisCountry } from '../utils/crisisLines';
 
 export const SosScreen: React.FC = () => {
   // Contacto Seguro local
@@ -16,7 +17,7 @@ export const SosScreen: React.FC = () => {
   const [contactPhone, setContactPhone] = useState<string>('');
   
   // Selección de país para líneas de ayuda
-  const [country, setCountry] = useState<'NI' | 'SV' | 'GT' | 'HN' | 'CR' | 'PA'>('NI');
+  const [country, setCountry] = useState<CrisisCountry>('NI');
 
   useEffect(() => {
     // Cargar contacto al inicializar
@@ -49,77 +50,7 @@ export const SosScreen: React.FC = () => {
     setSafeContact(null);
   };
 
-  // Base de datos de líneas de crisis reales gratuitas (Centroamérica)
-  const helplineDirectory = {
-    NI: [
-      {
-        name: 'Cruz Blanca Nicaragüense (Línea Nacional)',
-        phone: '128',
-        desc: 'Atención de emergencias gratuita y confidencial, disponible las 24 horas en todo el país.',
-        type: 'call'
-      }
-    ],
-    SV: [
-      {
-        name: 'Sistema de Emergencias Médicas (SEM)',
-        phone: '132',
-        desc: 'Atención 24/7 con psicólogas y psicólogos de guardia; atiende también emergencias de salud mental.',
-        type: 'call'
-      }
-    ],
-    GT: [
-      {
-        name: 'MSPAS — Orientación en Salud Mental',
-        phone: '123',
-        desc: 'Línea del Ministerio de Salud Pública para orientación y acompañamiento en salud mental.',
-        type: 'call'
-      }
-    ],
-    HN: [
-      {
-        name: '911 — Sistema Nacional de Emergencias',
-        phone: '911',
-        desc: 'Coordina atención psicosocial gratuita en alianza con la Secretaría de Salud y la OPS.',
-        type: 'call'
-      },
-      {
-        name: 'Línea 114 (Mujer Vivir Sin Miedo)',
-        phone: '114',
-        desc: 'Policía Nacional: apoyo y atención psicológica para mujeres en situación de violencia.',
-        type: 'call'
-      }
-    ],
-    CR: [
-      {
-        name: 'Colegio de Psicólogos — Línea 1322',
-        phone: '1322',
-        desc: 'Atención psicológica gratuita las 24 horas para personas en crisis.',
-        type: 'call'
-      },
-      {
-        name: 'Línea Aquí Estoy',
-        phone: '800 273 7869',
-        desc: 'Apoyo emocional del Ministerio de Salud en horario limitado; en crisis usa el 1322 o el 911.',
-        type: 'call'
-      }
-    ],
-    PA: [
-      {
-        name: 'MIDES — Línea 147',
-        phone: '147',
-        desc: 'Atención 24/7 gratuita del Ministerio de Desarrollo Social para crisis y salud mental.',
-        type: 'call'
-      },
-      {
-        name: 'MIDES — WhatsApp',
-        phone: '+507 6694 2747',
-        desc: 'Chat directo de apoyo emocional; el número también responde por WhatsApp.',
-        type: 'call'
-      }
-    ]
-  };
-
-  const activeHelplines = helplineDirectory[country];
+  const activeHelplines = CRISIS_LINES[country];
 
   return (
     <div className="fade-in flex flex-col gap-4">
@@ -224,15 +155,12 @@ export const SosScreen: React.FC = () => {
           {/* Selector de País */}
           <select 
             value={country} 
-            onChange={(e) => setCountry(e.target.value as any)} 
+            onChange={(e) => setCountry(e.target.value as CrisisCountry)} 
             style={styles.countrySelector}
           >
-            <option value="NI">Nicaragua</option>
-            <option value="SV">El Salvador</option>
-            <option value="GT">Guatemala</option>
-            <option value="HN">Honduras</option>
-            <option value="CR">Costa Rica</option>
-            <option value="PA">Panamá</option>
+            {CRISIS_COUNTRIES.map((c) => (
+              <option key={c} value={c}>{CRISIS_COUNTRY_LABELS[c]}</option>
+            ))}
           </select>
         </div>
 
@@ -243,9 +171,6 @@ export const SosScreen: React.FC = () => {
         {/* Directorio de Botones */}
         <div style={styles.helplineList}>
           {activeHelplines.map((line, idx) => {
-            const isCall = line.type === 'call';
-            const isSms = line.type === 'sms';
-            
             return (
               <div key={idx} style={styles.helplineRow}>
                 <div style={styles.lineMeta}>
@@ -258,8 +183,8 @@ export const SosScreen: React.FC = () => {
                 </div>
                 
                 <a 
-                  href={isCall ? `tel:${line.phone.replace(/\s+/g, '')}` : isSms ? `sms:${line.phone}?body=APOYO` : `https://wa.me/${line.phone.replace(/\s+/g, '')}`}
-                  target={!isCall && !isSms ? '_blank' : undefined}
+                  href={crisisHref(line)}
+                  target={line.type === 'call' ? undefined : '_blank'}
                   rel="noopener noreferrer"
                   style={{
                     ...styles.lineActionBtn,

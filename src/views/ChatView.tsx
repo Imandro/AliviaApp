@@ -68,14 +68,30 @@ export const ChatView: React.FC = () => {
   useEffect(() => {
     setOnlineMode(hasOnlineAI());
     const saved = loadHistory();
+    const context = (() => {
+      try {
+        return sessionStorage.getItem('alivia-assessment-context');
+      } catch {
+        return null;
+      }
+    })();
     const t = setTimeout(() => {
       if (saved.length > 0) {
         setMessages(saved);
       } else {
         const intro = getAiIntro();
-        setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
+        const wrapContext = (text: string) =>
+          `Vi tu chequeo de bienestar reciente. Quiero que sepas que esto no te define y que cuidarte hoy es lo más valioso. ${text}`;
+        setMessages(context
+          ? [{ role: 'ai', text: wrapContext(intro.text), suggest: intro.suggest, source: 'rules' }]
+          : [{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
       }
     }, 300);
+    try {
+      sessionStorage.removeItem('alivia-assessment-context');
+    } catch {
+      /* noop */
+    }
     return () => clearTimeout(t);
   }, []);
 
@@ -140,7 +156,7 @@ export const ChatView: React.FC = () => {
     const synth = window.speechSynthesis;
     if (!synth) return;
     synth.cancel();
-    const clean = text.replace(/[💛🎉✅]/gu, '').replace(/\s+/g, ' ').trim();
+    const clean = text.replace(/[♥✦✓]/gu, '').replace(/\s+/g, ' ').trim();
     if (!clean) return;
     const utter = new SpeechSynthesisUtterance(clean);
     utter.lang = 'es-ES';
@@ -258,7 +274,7 @@ export const ChatView: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
               <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.7 }}>
-                {statusLabel} · Puedes escribir • o hablar 🎙️
+                {statusLabel} · Puedes escribir • o hablar ●
               </p>
             </div>
           </div>

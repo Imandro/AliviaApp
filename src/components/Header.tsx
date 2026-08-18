@@ -36,7 +36,6 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
     <header style={styles.header}>
       <div style={styles.logoArea}>
         <img src={logoBanner} alt="ALIVIA" style={styles.logo} />
-        {userName && <span className="header-greeting" style={styles.greeting}>Hola, {userName.split(' ')[0]}</span>}
       </div>
 
       <div style={styles.actions}>
@@ -104,16 +103,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     objectFit: 'contain',
     flexShrink: 0,
     filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35))',
-  },
-  greeting: {
-    fontSize: '13px',
-    fontWeight: 600,
-    fontFamily: 'var(--font-display)',
-    color: 'var(--text-secondary)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    maxWidth: '140px',
   },
   actions: {
     display: 'flex',

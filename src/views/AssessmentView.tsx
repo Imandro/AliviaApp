@@ -255,7 +255,7 @@ export const AssessmentView: React.FC = () => {
       <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '90px' }}>
         <div className="glass-card" style={styles.quizCard}>
           <div style={styles.quizTop}>
-            <button onClick={() => (qIndex === 0 ? (answers.length ? setQIndex(0) : setScreen('intro')) : setQIndex(qIndex - 1))} style={styles.backBtn} title="Atrás">
+            <button onClick={() => (qIndex === 0 ? setScreen('intro') : setQIndex(qIndex - 1))} style={styles.backBtn} title="Atrás">
               <ChevronLeft size={18} />
             </button>
             <div style={styles.quizCount}>
@@ -331,7 +331,7 @@ export const AssessmentView: React.FC = () => {
         )}
 
         <div className="glass-card flex flex-col items-center gap-2" style={{ ...styles.resultHero, borderColor: `rgba(${levelInfo.rgb}, 0.35)`, background: `linear-gradient(135deg, rgba(${levelInfo.rgb}, 0.12) 0%, rgba(0,0,0,0) 100%)` }}>
-          <div style={{ fontSize: '38px', lineHeight: 1 }}>{crisis ? '🌪️' : level === 'baja' ? '🌿' : level === 'moderada' ? '🌤️' : '🌧️'}</div>
+          <div style={{ fontSize: '38px', lineHeight: 1 }}>{crisis ? '⚠' : level === 'baja' ? '✾' : level === 'moderada' ? '◐' : '⚠'}</div>
           <h3 className="title-medium" style={{ fontSize: '20px', color: 'var(--text-primary)', margin: '6px 0 0' }}>
             Índice general: <span style={{ color: levelInfo.color }}>{levelInfo.label}</span>
           </h3>
@@ -425,11 +425,11 @@ export const AssessmentView: React.FC = () => {
         <div className="glass-card flex flex-col gap-3" style={{ padding: '16px' }}>
           <p style={styles.sectionLabel}>RECOMENDACIONES PARA TI</p>
 
-          {Object.keys(res.recommendations).length === 0 ? (
-            <div style={styles.recRow}><span style={styles.recEmoji}>🤍</span><span style={styles.recText}>Sigue con tus rutinas y cuídate con los pequeños hábitos que ya tienes.</span></div>
+          {res.recommendations.length === 0 ? (
+            <div style={styles.recRow}><span style={styles.recEmoji}>✦</span><span style={styles.recText}>Sigue con tus rutinas y cuídate con los pequeños hábitos que ya tienes.</span></div>
           ) : (
             res.recommendations.slice(0, 4).map((r, i) => (
-              <div key={i} style={styles.recRow}><span style={styles.recEmoji}>✨</span><span style={styles.recText}>{r}</span></div>
+              <div key={i} style={styles.recRow}><span style={styles.recEmoji}>✦</span><span style={styles.recText}>{r}</span></div>
             ))
           )}
         </div>

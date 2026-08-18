@@ -39,7 +39,7 @@ export const Grounding: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div className="glass-card" style={{ padding: '26px 20px', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">🧘</div>
+          <div style={{ fontSize: '56px', lineHeight: 1 }} className="cm-float">✦</div>
           <h4 className="title-small" style={{ fontSize: '19px' }}>Anclado de nuevo</h4>
           <p className="body-standard" style={{ fontSize: '13.5px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>{FINAL_TEXT}</p>
           <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
