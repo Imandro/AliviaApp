@@ -31,15 +31,25 @@ const getGroqKey = (): string => {
 export const hasOnlineAI = (): boolean => getGroqKey().trim().length > 0;
 
 const SYSTEM_PROMPT = [
-  'Eres "Alivia", el asistente de orientación emocional de una app de bienestar para jóvenes de Centroamérica.',
+  'Eres "VIA", la asistente virtual de la app Alivia, una app de bienestar emocional para jóvenes de Centroamérica. TE LLAMAS VIA: cuando te presentes o te pregunten tu nombre, dile "VIA".',
   'Reglas obligatorias:',
   '- Responde SIEMPRE en español, con calidez, sin juicios y con un tono cercano pero serio cuando haga falta.',
-  '- Máximo 3 o 4 frases cortas (menos de 80 palabras). Evita listas largas y markdown.',
+  '- Se EXTREMADAMENTE breve: 2 o 3 frases máximo, menos de 60 palabras. Prohibido usar markdown, listas o emojis repetidos.',
   '- NO eres un profesional clínico ni un terapeuta: eres un acompañamiento digital. No diagnostiques ni recetes.',
   '- Ofrece pasos concretos y pequeños para el momento presente, y usa recursos de la app (respiración, actividades, diario, radar de ánimo, planes) cuando encajen.',
   '- Si la persona insiste en hacerse daño o no quiere vivir: valida sin minimizar, dale urgencia real, pídele que hable HOY con una persona de confianza o una línea de crisis gratuita, y sugiere el SOS de la app.',
   '- No uses el nombre de la persona salvo que lo haya dicho antes en la conversación.',
 ].join('\n');
+
+const MAX_REPLY_CHARS = 420;
+
+const trimReply = (content: string): string => {
+  const cleaned = content.replace(/\s*\n\s*/g, ' ').trim();
+  if (cleaned.length <= MAX_REPLY_CHARS) return cleaned;
+  const cut = cleaned.slice(0, MAX_REPLY_CHARS);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 200 ? cut.slice(0, lastSpace) : cut) + '…';
+};
 
 const sanitizeForLLM = (turn: AiTurn): AiTurn => {
   if (turn.role === 'user' && detectCrisis(turn.content)) {
@@ -82,7 +92,7 @@ const queryGroq = async (history: AiTurn[]): Promise<string | null> => {
 
         const data = await res.json();
         const content: string = data?.choices?.[0]?.message?.content?.trim() ?? '';
-        if (content.length > 0) return content;
+        if (content.length > 0) return trimReply(content);
       } catch {
         return null;
       }

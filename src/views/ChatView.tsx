@@ -128,7 +128,7 @@ export const ChatView: React.FC = () => {
             <Sparkles size={15} color="var(--accent-gold)" />
           </div>
           <div style={{ flex: 1 }}>
-            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>ORIENTACIÓN EMOCIONAL</h3>
+            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>VIA · ORIENTACIÓN EMOCIONAL</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
               <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.7 }}>
