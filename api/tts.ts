@@ -149,7 +149,10 @@ const synthesize = (text: string): Promise<Buffer> =>
     });
   });
 
+import { applyCors } from './_cors.js';
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (applyCors(req, res)) return;
   try {
     const text = String(req.query.text ?? '').trim().slice(0, MAX_TEXT);
     if (!text) {

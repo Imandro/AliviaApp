@@ -1,3 +1,5 @@
+import { API_BASE } from './apiBase';
+
 const EDGE_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
 const EDGE_VOICE = 'es-AR-ElenaNeural';
 const EDGE_OUTPUT = 'audio-24khz-96kbitrate-mono-mp3';
@@ -281,7 +283,7 @@ const speakViaProxy = async (text: string): Promise<'ok' | 'fail'> => {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await fetch(`/api/tts?text=${encodeURIComponent(text)}`, {
+    const res = await fetch(`${API_BASE}/api/tts?text=${encodeURIComponent(text)}`, {
       signal: controller.signal,
     });
     if (!res.ok) return 'fail';

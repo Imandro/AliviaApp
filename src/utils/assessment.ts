@@ -5,6 +5,7 @@
    ---------------------------------------------------- */
 
 import { getAuthHeaders } from './auth';
+import { apiGet, apiMutate, readCache, writeCache, OfflineQueuedError, tempId } from './apiClient';
 
 export type DimensionKey = 'stress' | 'anxiety' | 'depression';
 export type LevelKey = 'baja' | 'moderada' | 'alta';
@@ -32,21 +33,6 @@ export interface AssessmentResult {
 }
 
 const BASE = '/api/assessments';
-
-const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),
-    },
-    ...options,
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new Error(body?.error || `Error ${res.status} en ${path}`);
-  }
-  return res.json() as Promise<T>;
-};
 
 const DIMENSION_MAX = 15;
 
@@ -80,7 +66,7 @@ export const isCrisisLevel = (scores: { stress: number; anxiety: number; depress
 
 export const getMyAssessments = async (): Promise<AssessmentRecord[]> => {
   try {
-    return await request<AssessmentRecord[]>('');
+    return await apiGet<AssessmentRecord[]>(BASE);
   } catch {
     return [];
   }
@@ -93,12 +79,46 @@ export interface SaveAssessmentInput extends AssessmentResult {
 
 export const saveAssessment = async (data: SaveAssessmentInput): Promise<AssessmentRecord | null> => {
   try {
-    return await request<AssessmentRecord>('', {
+    await apiMutate(BASE, {
       method: 'POST',
       body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
-  } catch {
-    return null;
+    // En línea: revalidamos la caché con el registro real del servidor
+    const records = readCache<AssessmentRecord[]>(BASE) ?? [];
+    const synth: AssessmentRecord = {
+      id: tempId(),
+      type: 'bienestar',
+      stress: data.stress,
+      anxiety: data.anxiety,
+      depression: data.depression,
+      level: data.level,
+      crisis: data.crisis,
+      recommendations: data.recommendations,
+      ai_advice: data.ai_advice ?? null,
+      created_at: new Date().toISOString(),
+    };
+    records.unshift(synth);
+    writeCache(BASE, records);
+    return synth;
+  } catch (e) {
+    if (!(e instanceof OfflineQueuedError)) return null;
+    const records = readCache<AssessmentRecord[]>(BASE) ?? [];
+    const synth: AssessmentRecord = {
+      id: tempId(),
+      type: 'bienestar',
+      stress: data.stress,
+      anxiety: data.anxiety,
+      depression: data.depression,
+      level: data.level,
+      crisis: data.crisis,
+      recommendations: data.recommendations,
+      ai_advice: data.ai_advice ?? null,
+      created_at: new Date().toISOString(),
+    };
+    records.unshift(synth);
+    writeCache(BASE, records);
+    return synth;
   }
 };
 
@@ -108,12 +128,13 @@ export const logCrisisContact = async (
   detail?: string
 ): Promise<void> => {
   try {
-    await request('', {
+    await apiMutate(BASE, {
       method: 'POST',
       body: JSON.stringify({ action: 'contact', assessmentId, channel, detail }),
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
   } catch {
-    /* el registro es best-effort: nunca bloquea al usuario */
+    /* best-effort, también se encola offline */
   }
 };
 
