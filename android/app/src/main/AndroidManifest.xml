@@ -40,4 +40,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Grabación de notas de voz en el chat (getUserMedia/MediaRecorder) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Notificaciones locales de recordatorios (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Bloqueo biométrico opcional de la app -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 </manifest>
