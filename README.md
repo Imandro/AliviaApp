@@ -292,10 +292,12 @@ Convención de commits: `feat(área): …`, `fix(área): …`, `docs: …`, `cho
 
 | País | Línea | Contacto |
 |---|---|---|
-| México | Línea de la Vida | 800 911 2000 |
-| Colombia | Línea 106 | 106 |
-| Argentina | Salud Mental Responde | 135 / 0800 345 1435 |
-| EE. UU. | 988 Suicide & Crisis Lifeline | 988 |
+| Nicaragua | Cruz Blanca línea Abierta | 128 |
+| El Salvador | FOSALUD (Te Escucho) | 131 |
+| Guatemala | Liga de Higiene Mental | 1515 / 2232 6269 |
+| Honduras | Teléfono de la Esperanza | 150 |
+| Costa Rica | Línea Aquí Estoy | 800 273 7869 |
+| Panamá | Instituto Nacional de Salud Mental | 523 6800 |
 
 > Verifica siempre el canal oficial vigente de tu país.
 
