@@ -1,29 +1,35 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { InstallPrompt } from './components/InstallPrompt';
 import { Dashboard } from './views/Dashboard';
-import { Breathe } from './views/Breathe';
-import { BurnJournal } from './views/BurnJournal';
-import { Coping } from './views/Coping';
-import { RetosView } from './views/RetosView';
-import { SosScreen } from './views/SosScreen';
-import { ExploreView } from './views/ExploreView';
-import { ChatView } from './views/ChatView';
-import { RadarView } from './views/RadarView';
-import { PlansView } from './views/PlansView';
-import { CommunityView } from './views/CommunityView';
-import { LibraryView } from './views/LibraryView';
-import { GuideView } from './views/GuideView';
-import { ConnectView } from './views/ConnectView';
-import { WelcomeView } from './views/WelcomeView';
-import { OnboardingView } from './views/OnboardingView';
-import { ProfileView } from './views/ProfileView';
-import { AssessmentView } from './views/AssessmentView';
-import { GamesView } from './views/GamesView';
-import { GameView } from './views/GameView';
+
+// Code-splitting: cada pantalla viaja en su propio chunk y carga al vuelo.
+const mk = <T,>(p: Promise<{ [k: string]: T }>, key: string) =>
+  lazy(() => p.then(m => ({ default: m[key] as React.ComponentType<any> })));
+
+const Breathe = mk(import('./views/Breathe'), 'Breathe');
+const BurnJournal = mk(import('./views/BurnJournal'), 'BurnJournal');
+const Coping = mk(import('./views/Coping'), 'Coping');
+const RetosView = mk(import('./views/RetosView'), 'RetosView');
+const SosScreen = mk(import('./views/SosScreen'), 'SosScreen');
+const ExploreView = mk(import('./views/ExploreView'), 'ExploreView');
+const ChatView = mk(import('./views/ChatView'), 'ChatView');
+const RadarView = mk(import('./views/RadarView'), 'RadarView');
+const PlansView = mk(import('./views/PlansView'), 'PlansView');
+const CommunityView = mk(import('./views/CommunityView'), 'CommunityView');
+const LibraryView = mk(import('./views/LibraryView'), 'LibraryView');
+const GuideView = mk(import('./views/GuideView'), 'GuideView');
+const ConnectView = mk(import('./views/ConnectView'), 'ConnectView');
+const WelcomeView = mk(import('./views/WelcomeView'), 'WelcomeView');
+const OnboardingView = mk(import('./views/OnboardingView'), 'OnboardingView');
+const ProfileView = mk(import('./views/ProfileView'), 'ProfileView');
+const AssessmentView = mk(import('./views/AssessmentView'), 'AssessmentView');
+const GamesView = mk(import('./views/GamesView'), 'GamesView');
+const GameView = mk(import('./views/GameView'), 'GameView');
+
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import { syncSystemBarsTheme } from './utils/systemBars';
 import { SyncToast } from './components/SyncToast';
@@ -94,8 +100,9 @@ function AppShell({
 
         <main className="app-content" ref={containerRef}>
           <ErrorBoundary>
-            <div className="page-enter" key={location.pathname}>
-              <Routes location={location}>
+            <Suspense fallback={<SplashScreen />}>
+              <div className="page-enter" key={location.pathname}>
+                <Routes location={location}>
                 <Route path="/" element={<Dashboard user={user} />} />
                 <Route path="/breathe" element={<Breathe />} />
                 <Route path="/journal" element={<BurnJournal theme={theme} />} />
@@ -118,7 +125,8 @@ function AppShell({
                   element={<ProfileView user={user} onEdit={onEditProfile} onLogout={onLogout} />}
                 />
               </Routes>
-            </div>
+              </div>
+            </Suspense>
           </ErrorBoundary>
         </main>
 
@@ -205,7 +213,7 @@ function Root() {
   if (status === 'welcome') {
     return (
       <WelcomeView
-        onAuthenticated={(u) => {
+        onAuthenticated={(u: SafeUser) => {
           setUser(u);
           setStatus('app');
         }}
@@ -217,7 +225,7 @@ function Root() {
     return (
       <OnboardingView
         initial={user}
-        onSaved={(u) => {
+        onSaved={(u: SafeUser) => {
           setUser(u);
           setStatus('app');
         }}

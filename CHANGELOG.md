@@ -3,6 +3,24 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 versionado con [SemVer](https://semver.org/lang/es/).
 
+## [1.1.0] — 2026-08-23
+
+### Añadido
+
+- **Code-splitting por pantalla** (`React.lazy` + Suspense): bundle inicial de
+  603 KB → 298 KB (−50 %); cada vista viaja en su propio chunk y carga al vuelo.
+- **Atajos de app** (manifest shortcuts): SOS, Respirar y Desahogo accesibles con
+  presión larga sobre el icono en Android.
+- **Feedback háptico nativo** (`@capacitor/haptics`): SOS (fuerte), cambio de pestaña
+  (ligero) y ejercicios completados (notificación de éxito). No-op en web.
+- Precache de fuentes y landing en el service worker (`alivia-v3`).
+
+### Corregido
+
+- **VIA sin conexión**: antes el indicador "escribiendo…" quedaba colgado si la
+  llamada a IA fallaba; ahora responde con un mensaje amable y recuerda que todo
+  lo escrito se sincroniza al reconectar.
+
 ## [1.0.0] — 2026-08-23
 
 ### Añadido
