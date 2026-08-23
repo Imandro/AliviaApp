@@ -33,6 +33,7 @@ const GameView = mk(import('./views/GameView'), 'GameView');
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import { syncSystemBarsTheme } from './utils/systemBars';
 import { SyncToast } from './components/SyncToast';
+import { AppLock } from './components/AppLock';
 import logoVertical from './assets/logo-vertical.png';
 
 const ROUTE_MAP: Record<string, TabId> = {
@@ -251,6 +252,7 @@ function App() {
     <HashRouter>
       <Root />
       <SyncToast />
+      <AppLock />
     </HashRouter>
   );
 }

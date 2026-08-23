@@ -172,25 +172,29 @@ export const saveCompletedActivity = async (id: string, title: string): Promise<
   return list;
 };
 
-// Calcular streak de días consecutivos
+// Calcular streak de días consecutivos (comparación por string, inmune a husos horarios)
 export const getCompletionStreak = async (): Promise<number> => {
   const activities = await getCompletedActivities();
   if (activities.length === 0) return 0;
 
-  const dates = [...new Set(activities.map(a => a.date))].sort().reverse();
-  const today = getTodayString();
+  const dates = new Set(activities.map(a => a.date));
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  let cursor = getTodayString();
+  // Si hoy aún no registras nada, la racha de ayer sigue viva
+  if (!dates.has(cursor)) {
+    const d = new Date(cursor + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    cursor = fmt(d);
+  }
 
   let streak = 0;
-  for (let i = 0; i < dates.length; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-    if (dates[i] === expected) {
-      streak++;
-    } else {
-      break;
-    }
+  while (dates.has(cursor)) {
+    streak++;
+    const d = new Date(cursor + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    cursor = fmt(d);
   }
 
   return streak;
@@ -229,14 +233,22 @@ export const getPosts = async (topic?: string): Promise<CommunityPost[]> => {
 };
 
 const injectPostIntoCaches = (post: CommunityPost): void => {
+  // Asegura que exista la caché base aunque el usuario esté offline desde el inicio
+  const paths = new Set<string>([P_POSTS]);
+  const prefijo = 'alivia_cache:' + P_POSTS;
   for (const key of Object.keys(localStorage)) {
-    if (!key.startsWith('alivia_cache:' + P_POSTS)) continue;
-    const path = key.slice('alivia_cache:'.length);
+    if (key.startsWith(prefijo + '?topic=')) {
+      paths.add(key.slice('alivia_cache:'.length));
+    }
+  }
+  for (const path of paths) {
     const qsTopic = path.includes('topic=') ? decodeURIComponent(path.split('topic=')[1]) : 'todos';
     if (qsTopic !== 'todos' && post.topic !== qsTopic) continue;
     const list = readCache<CommunityPost[]>(path) ?? [];
-    list.unshift(post);
-    writeCache(path, list);
+    if (!list.some((p) => p.id === post.id)) {
+      list.unshift(post);
+      writeCache(path, list);
+    }
   }
 };
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Radar, TrendingUp, Calendar, Heart } from 'lucide-react';
-import { getMoodHistory, getTodayString } from '../utils/localDb';
+import { Radar, TrendingUp, Calendar, Heart, Activity } from 'lucide-react';
+import { getMoodHistory, getTodayString, type MoodEntry } from '../utils/localDb';
 
 interface RadarPoint {
   key: string;
@@ -17,8 +17,24 @@ const MOOD_EMOJIS = ['◌', '◔', '◑', '◕', '●'];
 export const RadarView: React.FC = () => {
   const navigate = useNavigate();
   const [points, setPoints] = useState<RadarPoint[]>([]);
+  const [historyAll, setHistoryAll] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<'7' | '30' | 'all'>('7');
+
+  // ---------- Estilos propios de la tarjeta de tendencia ----------
+  const trendStyles: { [key: string]: React.CSSProperties } = {
+    trendStats: { display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 2 },
+    trendStat: { flex: 1, textAlign: 'center', padding: '9px 4px', borderRadius: 12, background: 'rgba(255,255,255,0.045)' },
+    trendNum: {
+      display: 'block',
+      fontFamily: 'var(--font-display)',
+      fontWeight: 700,
+      fontSize: 19,
+      color: 'var(--text-primary)',
+      lineHeight: 1.1,
+    },
+    trendLabel: { display: 'block', fontSize: 9.5, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginTop: 3 },
+  };
 
   useEffect(() => {
     loadRadar();
@@ -56,10 +72,69 @@ export const RadarView: React.FC = () => {
       });
 
       setPoints(points);
+      setHistoryAll(history);
     } finally {
       setLoading(false);
     }
   };
+
+  // ---------- Tendencia de ánimo (últimos 30 días) ----------
+  const trend = useMemo(() => {
+    const days: { date: string; score: number | null; label: string }[] = [];
+    const names = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      days.push({
+        date: key,
+        score: historyAll.find((h) => h.date === key)?.score ?? null,
+        label: `${names[d.getDay()]} ${d.getDate()}`,
+      });
+    }
+
+    const withScore = days.filter((d) => d.score !== null) as { date: string; score: number; label: string }[];
+
+    // Media móvil simple (ventana 3) para la línea suave
+    const pts = withScore.map((d, idx) => {
+      const window = withScore.slice(Math.max(0, idx - 2), idx + 1);
+      const avg = window.reduce((a, b) => a + b.score, 0) / window.length;
+      return { ...d, smooth: avg };
+    });
+
+    const last7 = withScore.slice(-7);
+    const prev7 = withScore.slice(-14, -7);
+    const avg = (arr: typeof withScore) => (arr.length ? arr.reduce((a, b) => a + b.score, 0) / arr.length : null);
+    const currentAvg = avg(last7);
+    const previousAvg = avg(prev7);
+    const delta =
+      currentAvg !== null && previousAvg !== null && previousAvg > 0
+        ? Math.round(((currentAvg - previousAvg) / previousAvg) * 100)
+        : null;
+
+    const best = withScore.length
+      ? withScore.reduce((a, b) => (b.score > a.score ? b : a))
+      : null;
+
+    return {
+      days,
+      pts,
+      registered30: withScore.length,
+      currentAvg,
+      delta,
+      best,
+    };
+  }, [historyAll]);
+
+  // Geometría del sparkline
+  const SP_W = 320;
+  const SP_H = 84;
+  const spPad = 6;
+  const spPoints = trend.pts.map((p, i) => {
+    const x = trend.pts.length === 1 ? SP_W / 2 : spPad + (i / (trend.pts.length - 1)) * (SP_W - spPad * 2);
+    const y = spPad + (1 - (p.smooth - 0.8) / 4.4) * (SP_H - spPad * 2); // 1..5 con margen
+    return { x, y, ...p };
+  });
 
   // Conversión a polígono SVG
   const ringCount = 5;
@@ -104,6 +179,93 @@ export const RadarView: React.FC = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Tendencia de ánimo */}
+      <div className="glass-card flex flex-col gap-3" style={{ padding: '20px' }}>
+        <div style={styles.heroHeader}>
+          <Activity size={16} color="var(--accent-sage)" />
+          <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>TENDENCIA · 30 DÍAS</h3>
+        </div>
+
+        {trend.registered30 === 0 ? (
+          <p className="body-standard" style={{ fontSize: '12px', opacity: 0.6 }}>
+            Registra tu ánimo desde Inicio y aquí verás la línea de tus últimos 30 días.
+          </p>
+        ) : (
+          <>
+            <svg
+              viewBox={`0 0 ${SP_W} ${SP_H}`}
+              style={{ width: '100%', height: 'auto', filter: 'drop-shadow(0 5px 14px rgba(var(--accent-sage-rgb), 0.16))' }}
+              role="img"
+              aria-label={`Línea de ánimo de los últimos 30 días, ${trend.registered30} días registrados`}
+            >
+              <defs>
+                <linearGradient id="spFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(140,176,141,0.35)" />
+                  <stop offset="100%" stopColor="rgba(140,176,141,0.02)" />
+                </linearGradient>
+                <linearGradient id="spLine" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="var(--accent-sage)" />
+                  <stop offset="100%" stopColor="var(--accent-gold)" />
+                </linearGradient>
+              </defs>
+              {[0.25, 0.55, 0.85].map((f) => (
+                <line key={f} x1={spPad} x2={SP_W - spPad} y1={SP_H * f} y2={SP_H * f} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+              ))}
+              {spPoints.length > 1 && (
+                <>
+                  <polygon
+                    points={`${spPad},${SP_H - spPad} ${spPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')} ${SP_W - spPad},${SP_H - spPad}`}
+                    fill="url(#spFill)"
+                  />
+                  <polyline
+                    points={spPoints.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')}
+                    fill="none"
+                    stroke="url(#spLine)"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </>
+              )}
+              {spPoints.map((p) => (
+                <circle key={p.date} cx={p.x} cy={p.y} r="3.2" fill={MOOD_COLORS[(p.score ?? 1) - 1]} stroke="#fff" strokeWidth="1.2">
+                  <title>{`${p.label}: ${MOOD_LABELS[(p.score ?? 1) - 1]}`}</title>
+                </circle>
+              ))}
+            </svg>
+
+            <div style={trendStyles.trendStats}>
+              <div style={trendStyles.trendStat}>
+                <span style={trendStyles.trendNum}>{trend.currentAvg ? trend.currentAvg.toFixed(1) : '—'}<small>/5</small></span>
+                <span style={trendStyles.trendLabel}>promedio 7 días</span>
+              </div>
+              <div style={trendStyles.trendStat}>
+                <span
+                  style={{
+                    ...styles.trendNum,
+                    color:
+                      trend.delta === null ? 'var(--text-secondary)' : trend.delta >= 0 ? '#7dd88f' : 'var(--accent-rose)',
+                  }}
+                >
+                  {trend.delta === null ? '—' : `${trend.delta >= 0 ? '+' : ''}${trend.delta}%`}
+                </span>
+                <span style={trendStyles.trendLabel}>vs semana previa</span>
+              </div>
+              <div style={trendStyles.trendStat}>
+                <span style={trendStyles.trendNum}>{trend.registered30}<small>/30</small></span>
+                <span style={trendStyles.trendLabel}>días registrados</span>
+              </div>
+            </div>
+
+            {trend.best && trend.delta !== null && trend.delta >= 0 && (
+              <p className="body-standard" style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0 }}>
+                Tu mejor día reciente fue <b>{trend.best.label}</b>. Lo que estás haciendo está funcionando.
+              </p>
+            )}
+          </>
+        )}
       </div>
 
       <div className="glass-card flex flex-col items-center gap-2" style={{ padding: '20px' }}>

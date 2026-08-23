@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Home, Wind, PenTool, Compass, Trophy, LayoutGrid } from 'lucide-react';
 import { haptic } from '../utils/haptics';
+import { t, type DictKey } from '../i18n';
 
 export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'retos' | 'explore';
 
@@ -16,6 +17,10 @@ interface NavItem {
 }
 
 const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping', 'retos', 'explore'];
+
+const NAV_KEYS: Record<TabId, DictKey> = {
+  dashboard: 'nav_inicio', breathe: 'nav_respirar', journal: 'nav_desahogo', coping: 'nav_apoyo', retos: 'nav_retos', explore: 'nav_explorar',
+};
 
 const navItems: NavItem[] = [
     { id: 'dashboard', label: 'Inicio', icon: Home },
@@ -58,7 +63,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
               key={item.id}
               onClick={() => { haptic(); setActiveTab(item.id); }}
               style={styles.navBtn}
-              title={item.label}
+              title={t(NAV_KEYS[item.id])}
             >
               <div
                 style={{
@@ -83,7 +88,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
                   fontWeight: isActive ? 600 : 400,
                 }}
               >
-                {item.label}
+                {t(NAV_KEYS[item.id])}
               </span>
             </button>
           );

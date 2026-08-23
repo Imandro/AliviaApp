@@ -1,12 +1,13 @@
 {
   "name": "alivia",
   "private": true,
-  "version": "1.1.2",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "sync:android": "npm run build && cap sync android && node scripts/post-sync.js"
   },
   "dependencies": {

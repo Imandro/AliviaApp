@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CloudOff, Check, RefreshCw } from 'lucide-react';
+import { t } from '../i18n';
 
 /**
  * Indicador discreto del estado de sincronización offline-first:
@@ -74,7 +75,7 @@ export const SyncToast: React.FC = () => {
   if (syncedVisible) {
     return (
       <div style={pillStyle} role="status">
-        <Check size={14} /> Todo sincronizado
+        <Check size={14} /> {t('sync_done')}
       </div>
     );
   }
@@ -82,7 +83,7 @@ export const SyncToast: React.FC = () => {
   return (
     <div style={pillStyle} role="status">
       {syncing ? <RefreshCw size={13} /> : <CloudOff size={14} />}
-      {pending} cambio{pending === 1 ? '' : 's'} sin sincronizar
+      {pending} {t('sync_pending')}
     </div>
   );
 };
