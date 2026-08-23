@@ -2,9 +2,15 @@
   "name": "ALIVIA - Tu Espacio de Calma",
   "short_name": "ALIVIA",
   "description": "Espacio seguro para adolescentes y jóvenes. Respiración, diario terapéutico, actividades de afrontamiento y apoyo en crisis.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["health", "lifestyle"],
   "background_color": "#060908",
   "theme_color": "#0a0f0d",
   "icons": [
@@ -19,6 +25,35 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "SOS - Ayuda inmediata",
+      "short_name": "SOS",
+      "description": "Líneas de crisis gratuitas y contacto seguro",
+      "url": "/#/sos",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Respirar",
+      "short_name": "Respirar",
+      "description": "Ejercicios de respiración guiada",
+      "url": "/#/breathe",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Desahogo",
+      "short_name": "Desahogo",
+      "description": "Burn Journal: suelta lo que pesa",
+      "url": "/#/journal",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

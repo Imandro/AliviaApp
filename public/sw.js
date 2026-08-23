@@ -1,9 +1,12 @@
-const CACHE_NAME = 'alivia-v2';
+const CACHE_NAME = 'alivia-v3';
 
 const PRECACHE_URLS = [
   '/',
   '/index.html',
+  '/landing.html',
   '/manifest.json',
+  '/fonts/lato-400.woff2',
+  '/fonts/quicksand-300.woff2',
   '/icon-128.png',
   '/icon-192.png',
   '/icon-512.png',

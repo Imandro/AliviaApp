@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Phone, Contrast } from 'lucide-react';
+import { hapticSos } from '../utils/haptics';
 import logoBanner from '../assets/logo-banner.png';
 
 export type ThemeMode = 'light' | 'dark' | 'mono';
@@ -60,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
         </button>
 
         <button
-          onClick={onSosClick}
+          onClick={() => { hapticSos(); onSosClick(); }}
           style={styles.sosBtn}
           title="Ayuda Inmediata (SOS)"
         >

@@ -20,6 +20,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { getCompletedActivities, saveCompletedActivity, getCompletionStreak, getActivityStats } from '../utils/localDb';
+import { haptic, hapticSuccess } from '../utils/haptics';
 
 interface GroundingStep {
   step: number;
@@ -255,10 +256,12 @@ export const Coping: React.FC = () => {
 
   const handleNextActivity = async () => {
     if (activityStep < activeActivity.steps.length - 1) {
+      haptic();
       setActivityStep(prev => prev + 1);
       return;
     }
     await saveCompletedActivity(activeActivity.id, activeActivity.title);
+    hapticSuccess();
     setCompletedActivities(prev => prev.includes(activeActivity.id) ? prev : [...prev, activeActivity.id]);
     const [stats, s, recent] = await Promise.all([
       getActivityStats(),

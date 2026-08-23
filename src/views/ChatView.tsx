@@ -383,7 +383,23 @@ export const ChatView: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
 
-    const reply: AiReply = await getAiReplyHybrid(trimmed, history, crisisRef.current);
+    let reply: AiReply;
+    try {
+      reply = await getAiReplyHybrid(trimmed, history, crisisRef.current);
+    } catch (err) {
+      // Sin conexión o fallo del servicio: nunca dejar el indicador colgado
+      setIsTyping(false);
+      const offline = typeof navigator !== 'undefined' && !navigator.onLine;
+      setMessages(prev => [...prev, {
+        role: 'ai',
+        text: offline
+          ? 'Estoy sin señal ahora mismo, pero sigo aquí. Mientras vuelve la conexión puedo acompañarte igual: prueba Respirar o el Desahogo en las pestañas de abajo. Todo lo que escribas queda guardado y se envía solo cuando vuelvas a tener internet.'
+          : 'Algo falló al procesar tu mensaje. ¿Puedes intentar de nuevo en un momento?',
+        source: 'rules',
+      }]);
+      return null;
+    }
+
     setLastSource(reply.source);
     if (reply.isCrisis) setCrisisMode(true);
 

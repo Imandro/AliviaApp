@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Home, Wind, PenTool, Compass, Trophy, LayoutGrid } from 'lucide-react';
+import { haptic } from '../utils/haptics';
 
 export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'retos' | 'explore';
 
@@ -55,7 +56,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => { haptic(); setActiveTab(item.id); }}
               style={styles.navBtn}
               title={item.label}
             >
