@@ -120,6 +120,13 @@ export const AssessmentView: React.FC = () => {
       recommendations,
     });
 
+    // Reprograma el aviso del próximo chequeo (5 días desde ahora)
+    if (saved) {
+      import('../utils/reminders').then(({ getReminderPrefs, syncCheckInReminder }) => {
+        void syncCheckInReminder(getReminderPrefs(), saved.created_at);
+      });
+    }
+
     setLastResult(saved);
     setScreen('results');
 

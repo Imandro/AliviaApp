@@ -133,6 +133,21 @@ export const LIBRARY: LibraryItem[] = [
     desc: 'Un guion paso a paso para hablar del suicidio con un adulto o profesional, sin quedarte en el intento.',
     category: 'suicidio', age: '12+',
   },
+  {
+    id: 'l23', type: 'articulo', title: 'Dormir no es perder el tiempo',
+    desc: 'Higiene del sueño para mentes jóvenes: horarios, pantallas, cafeína y qué hacer cuando la cabeza no apaga.',
+    category: ['bienestar', 'ansiedad'], age: '12+',
+  },
+  {
+    id: 'l24', type: 'recurso', title: 'Ataque de pánico paso a paso',
+    desc: 'Qué hacer minuto a minuto durante una crisis de pánico y cómo acompañar la ola hasta que baje.',
+    category: ['ansiedad'], age: '12+',
+  },
+  {
+    id: 'l25', type: 'articulo', title: 'Si tu amigo no está bien',
+    desc: 'Cómo escuchar sin juzgar, preguntar directo por el suicidio y buscar ayuda con él sin traicionar su confianza.',
+    category: ['amistades', 'suicidio'], age: '13+',
+  },
 ];
 
 const LUCHA_META: Record<string, { emoji: string; color: string }> = {

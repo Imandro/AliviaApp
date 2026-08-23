@@ -40,7 +40,7 @@ export interface GuideContent {
 export const GUIDE_MINUTES: Record<string, number> = {
   l1: 3, l2: 4, l3: 3, l4: 5, l5: 4, l6: 4, l7: 3, l8: 4, l9: 3, l10: 4,
   l11: 3, l12: 4, l13: 5, l14: 4, l15: 3, l16: 4, l17: 4, l18: 4, l19: 4, l20: 3,
-  l21: 1, l22: 4,
+  l21: 1, l22: 4, l23: 4, l24: 5, l25: 4,
 };
 
 const intro = (text: string): GuideBlock => ({ kind: 'intro', text });
@@ -500,6 +500,72 @@ export const GUIDES: Record<string, GuideContent> = {
       qt('El dolor inaguantable no tiene que aguantarse: se comparte, se divide y se trata.', 'ALIVIA'),
       act('Ver mis líneas de emergencia 24/7', '/sos'),
       end('Un solo "te escucho" puede cambiar toda la historia. Pide ese escucho hoy. '),
+    ],
+  },
+
+  /* ============ BIENESTAR / SUEÑO ============ */
+  l23: {
+    minutes: 4,
+    blocks: [
+      intro('El sueño no es tiempo perdido: es el momento en que tu cerebro ordena las emociones del día. Dormir mal tres días seguidos te vuelve más frágil que cualquier discusión.'),
+      st('🌙', 'Ancla la hora de dormir', 'No necesitas dormir antes: necesitas acostarte a la misma hora. El cuerpo aprende con repetición, no con fuerza de voluntad.'),
+      st('📱', 'La pantalla se apaga 30 minutos antes', 'La luz le dice a tu cerebro "es de día". Pon el teléfono a cargar lejos de la cama; el mundo puede esperar hasta mañana.'),
+      st('☕', 'Cuida lo que tomas después de las 5', 'Café, té negro, energizantes y refrescos con cafeína tardan horas en irse. Si duermes mal, revisa esto primero.'),
+      st('🌀', 'Si la cabeza no para', 'No pelees los pensamientos: escríbelos en el Desahogo y cierra la app. Dejarlos en papel les quita el turno nocturno.'),
+      chk(['Fijé una hora fija para acostarme esta semana', 'Anoche dejé el teléfono fuera de la cama', 'Hoy no tomé cafeína después de las 5']),
+      quiz(
+        'Son las 11 p.m., no tienes sueño pero mañana madrugás. Lo mejor es...',
+        ['Quedarte en TikTok hasta que caigas', 'Acostarte igual aunque no tengas sueño: el cuerpo se ajusta con constancia', 'Tomar un energizante para rendir mañana'],
+        1,
+        'El sueño llega por rutina, no por esperarlo despierto con luz en la cara. Acostarse a horario entrena tu reloj interno.'
+      ),
+      tip('Si llevas semanas durmiendo mal sin razón clara, coméntalo en tu próximo chequeo o consulta: el insomnio también habla.'),
+      act('Relajación 4-7-8 antes de dormir', '/breathe'),
+      end('Dormir bien no es lujo: es el pegamento que sostiene todo lo demás. Cuída tus noches y tus días se cuidan solos. '),
+    ],
+  },
+
+  /* ============ ANSIEDAD / PÁNICO ============ */
+  l24: {
+    minutes: 5,
+    blocks: [
+      intro('Un ataque de pánico se siente catastrófico (pecho apretado, falta de aire, miedo a morir) pero NO es peligroso: es una alarma falsa de tu cuerpo. Este es el plan paso a paso.'),
+      st('🛑', 'Nómbralo', 'Dilo en voz alta: "esto es pánico, ya me pasó y pasa". Nombrarlo activa tu corteza racional y baja la intensidad.'),
+      st('🌬️', 'Exhala MÁS LARGO que inhalas', 'Inhala 4, exhala 6-8. La exhalación larga es el freno físico del sistema de emergencia. Repítelo hasta notar baches en la marea.'),
+      st('🧊', 'Vuelve al presente con los sentidos', 'Agua fría en muñecas/cara, o el 5-4-3-2-1: 5 cosas que ves, 4 que tocas, 3 que oyes, 2 que hueles, 1 que saboreas.'),
+      st('⏳', 'Déjalo pasar como una ola', 'El pánico sube, llega al tope (~10 min) y baja SOLO. No huir acelera la curva; quedarte sentado la acorta.'),
+      chk(['Nombré la alarma como pánico, no como peligro', 'Practiqué exhalación larga hasta sentir bajada', 'Después me hidraté y descansé sin castigarme']),
+      quiz(
+        'Durante un ataque de pánico, la estrategia que mejor funciona es...',
+        ['Respirar muy rápido y profundo para tomar aire', 'Exhalaciones largas y quedarse en el lugar dejando pasar la ola', 'Correr afuera a buscar ayuda urgente siempre'],
+        1,
+        'Hiperventilar alimenta el mareo y el hormigueo. La ola baja sola: exhalar largo y permanecer presente la acorta.'
+      ),
+      tip('Si los ataques se repiten o evitas lugares por miedo a ellos, es señal clara de consultar: el pánico responde muy bien a tratamiento.'),
+      act('Plan de calma inmediata', '/coping'),
+      end('Sobreviviste cada ataque anterior: ese es tu historial real. Tu cuerpo sabe bajar la ola; tú solo tienes que acompañarlo. '),
+    ],
+  },
+
+  /* ============ AMISTADES / APOYAR ============ */
+  l25: {
+    minutes: 4,
+    blocks: [
+      intro('Tu amigo escribió algo oscuro o cambió de golpe. No necesitas ser psicólogo para salvarle el día: necesitas saber escuchar y cuándo buscar respaldo.'),
+      st('👂', 'Escucha sin arreglar', 'Frases que sirven: "estoy aquí", "cuéntame más", "no tienes que aguantar solo". Frases que dañan: "todo está en tu mente", "otros están peor".'),
+      st('❓', 'Pregunta directo, sin rodeos', 'Si sospechas que piensa en hacerse daño, pregunta claro: ¿"has pensado en hacerte daño"? Preguntar NO mete la idea: abre la puerta de salida.'),
+      st('🔒', 'Nunca prometas secreto total', 'Puedes prometer compañía, no silencio. Si hay riesgo de vida, avisar a un adulto o línea de crisis NO es traición: es salvarle el partido.'),
+      st('🤝', 'Acompaña al siguiente paso', 'Ofrece concreto: "te acompaño a hablar con X hoy" o guarda juntos la línea de su país en el teléfono. La ayuda funciona mejor acompañada.'),
+      chk(['Le dije que estoy aquí sin juzgar', 'Pregunté directo si tiene pensamientos de daño', 'Tengo plan B: adulto o línea si empeora']),
+      quiz(
+        'Tu amigo cuenta que "ya no quiere seguir" y te pide no decir nada. Tú...',
+        ['Lo prometes: es tu mejor amigo', 'No prometes silencio, buscas con él un adulto o línea de crisis ahora mismo', 'Cambias de tema para no incomodar'],
+        1,
+        'Ante riesgo de vida, el secreto mata. Buscar ayuda junto a él es el acto de amistad más grande que existe.'
+      ),
+      qt('No tienes que tener todas las respuestas. Tienes que estar.', 'ALIVIA'),
+      act('Guardar líneas de crisis ahora', '/sos'),
+      end('Cuidar a alguien también te cansa: comparte la carga con adultos de confianza. Ningún salvavidas trabaja solo. '),
     ],
   },
 };

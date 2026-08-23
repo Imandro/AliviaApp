@@ -5,8 +5,19 @@ import './fonts.css'
 import './index.css'
 import App from './App.tsx'
 import { syncSystemBarsTheme, getSavedTheme } from './utils/systemBars'
+import { readCache } from './utils/apiClient'
 
 syncSystemBarsTheme(getSavedTheme());
+
+// Recordatorios locales (solo app nativa): aplica preferencias guardadas
+if (Capacitor.isNativePlatform()) {
+  import('./utils/reminders').then(({ applyDailyReminder, getReminderPrefs, syncCheckInReminder }) => {
+    const prefs = getReminderPrefs();
+    void applyDailyReminder(prefs);
+    const lastCheckin = readCache<{ created_at: string }[]>('/api/assessments')?.[0]?.created_at ?? null;
+    void syncCheckInReminder(prefs, lastCheckin);
+  });
+}
 
 // En la web, target="_blank" abre pestaña nueva. En el WebView nativo no existe
 // multi-window: interceptamos esos enlaces y los mandamos al navegador/WhatsApp

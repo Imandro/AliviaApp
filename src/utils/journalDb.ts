@@ -38,6 +38,9 @@ export const saveJournalEntry = (text: string): JournalRecord => {
   return record;
 };
 
+/** Todas las entradas (para exportación de datos del usuario). */
+export const getAllJournalEntries = (): JournalRecord[] => readAll();
+
 export const getJournalInsights = (): JournalInsights => {
   const all = readAll();
   if (all.length === 0) {
