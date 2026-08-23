@@ -8,7 +8,7 @@
 Respiración guiada · Diario terapéutico · Ayuda real en crisis · Offline-first
 
 [![Web](https://img.shields.io/badge/web-alivia--tu--salud.vercel.app-2C533D?style=for-the-badge&logo=vercel&logoColor=white)](https://alivia-tu-salud.vercel.app)
-[![Android](https://img.shields.io/badge/APK-v1.0-E9C86B?style=for-the-badge&logo=android&logoColor=black)](https://github.com/Imandro/ALIVIA/releases/latest)
+[![Android](https://img.shields.io/badge/APK-v1.0-E9C86B?style=for-the-badge&logo=android&logoColor=black)](https://github.com/Imandro/AliviaApp/releases/latest)
 [![License](https://img.shields.io/badge/licencia-MIT-8CB08D?style=for-the-badge)](LICENSE)
 
 ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB)
@@ -110,7 +110,7 @@ ALIVIA no se apaga cuando se va la red. La capa de datos (`src/utils/apiClient.t
 ## Inicio rápido
 
 ```bash
-git clone https://github.com/Imandro/ALIVIA.git
+git clone https://github.com/Imandro/AliviaApp.git
 cd ALIVIA
 npm install
 npm run dev
@@ -140,7 +140,7 @@ keyPassword=TU_CLAVE
 ```
 
 El APK firmado queda en `android/app/build/outputs/apk/release/`.
-Las descargas públicas se distribuyen vía [GitHub Releases](https://github.com/Imandro/ALIVIA/releases/latest).
+Las descargas públicas se distribuyen vía [GitHub Releases](https://github.com/Imandro/AliviaApp/releases/latest).
 
 ## Variables de entorno
 
