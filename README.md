@@ -8,7 +8,7 @@
 
 <br>
 
-[![CI](https://github.com/Imandro/AliviaApp/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Imandro/AliviaApp/actions/workflows/ci.yml)
+[![CI](https://github.com/Imandro/AliviaApp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Imandro/AliviaApp/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Imandro/AliviaApp?style=flat-square&color=E9C86B)](https://github.com/Imandro/AliviaApp/releases/latest)
 [![License](https://img.shields.io/github/license/Imandro/AliviaApp?style=flat-square&color=8CB08D)](LICENSE)
 [![Web](https://img.shields.io/badge/web-alivia--tu--salud.vercel.app-2C533D?style=flat-square)](https://alivia-tu-salud.vercel.app)
