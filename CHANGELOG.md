@@ -3,6 +3,15 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 versionado con [SemVer](https://semver.org/lang/es/).
 
+## [1.1.1] — 2026-08-23
+
+### Eliminado
+
+- **Marco decorativo de la app**: se retiró el borde grueso, esquinas redondeadas,
+  sombra envolvente y línea dorada superior que enmarcaban la aplicación
+  (visibles en pantallas grandes y tabletas). La app ahora ocupa toda la pantalla
+  en cualquier dispositivo, como una app nativa.
+
 ## [1.1.0] — 2026-08-23
 
 ### Añadido
