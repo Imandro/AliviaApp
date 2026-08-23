@@ -129,6 +129,9 @@ html, body, #root {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prohibe bold/italic sintetizados: los pesos faltantes se resuelven con el
+     peso real mas cercano de la fuente, nunca estirando los glifos. */
+  font-synthesis: none;
   touch-action: manipulation;
   -ms-touch-action: manipulation;
 }

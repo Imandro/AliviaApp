@@ -3,6 +3,20 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 versionado con [SemVer](https://semver.org/lang/es/).
 
+## [1.1.2] — 2026-08-23
+
+### Corregido
+
+- **Tipografía**: `font-synthesis: none` en toda la app — los pesos que la fuente
+  no tiene (p. ej. 800 sobre Quicksand) ya no se falsifican estirando los glifos;
+  se resuelven con el peso real más cercano. Afectaba a 51 textos.
+
+### Cambiado
+
+- **Landing**: eliminada la fila de comando `git clone`; enlace de GitHub con ícono
+  y usuario; mensajes repetidos (sin internet/offline-first) deduplicados; anclas
+  con margen bajo la barra fija y glow sutil en tarjetas al pasar el cursor.
+
 ## [1.1.1] — 2026-08-23
 
 ### Eliminado
