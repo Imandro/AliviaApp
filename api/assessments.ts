@@ -2,7 +2,10 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import { ensureSchema, ensureFunctions, getPool } from './_db.js';
 import { getUserFromRequest } from './auth/_auth.js';
 
+import { applyCors } from './_cors.js';
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (applyCors(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'Método no permitido' });

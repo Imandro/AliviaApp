@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Share, Download, X, Home, MoreHorizontal, Smartphone } from 'lucide-react';
 
 type Platform = 'ios' | 'android';
@@ -173,6 +174,8 @@ export const InstallPrompt: React.FC = () => {
   const deferredRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    // En la app nativa no tiene sentido instalar la PWA.
+    if (Capacitor.isNativePlatform()) return;
     if (isStandalone()) return;
     try {
       if (localStorage.getItem(SHOWN_KEY) === '1') return;

@@ -29,3 +29,17 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Android / Capacitor
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/capacitor-cordova-android-plugins
+android/app/src/main/assets/public
+android/keystore.properties
+android/keystore/*.jks
+android/keystore/*.keystore
+
+# Binarios distribuidos vía GitHub Releases
+*.apk

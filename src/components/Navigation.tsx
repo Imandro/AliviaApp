@@ -98,7 +98,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     bottom: 0,
     left: 0,
     width: '100%',
-    padding: '0 16px 20px 16px',
+    padding: '0 16px calc(20px + env(safe-area-inset-bottom)) 16px',
     zIndex: 10,
     pointerEvents: 'none',
   },

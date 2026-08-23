@@ -1,0 +1,47 @@
+/* ----------------------------------------------------
+   ALIVIA - FUENTES AUTO-HOSPEDADAS
+   Misma tipografía que Google Fonts (subsets latin),
+   empaquetada localmente para paridad total web/app
+   nativa incluso sin conexión.
+   ---------------------------------------------------- */
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./assets/fonts/lato-300.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/lato-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/lato-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('./assets/fonts/lato-900.woff2') format('woff2');
+}
+
+/* Quicksand es una fuente variable: un solo archivo cubre los pesos 300-700 */
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./assets/fonts/quicksand-300.woff2') format('woff2');
+}

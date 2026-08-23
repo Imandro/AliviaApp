@@ -25,6 +25,8 @@ import { AssessmentView } from './views/AssessmentView';
 import { GamesView } from './views/GamesView';
 import { GameView } from './views/GameView';
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
+import { syncSystemBarsTheme } from './utils/systemBars';
+import { SyncToast } from './components/SyncToast';
 import logoVertical from './assets/logo-vertical.png';
 
 const ROUTE_MAP: Record<string, TabId> = {
@@ -59,6 +61,7 @@ function AppShell({
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('alivia-theme', theme);
+    syncSystemBarsTheme(theme);
   }, [theme]);
 
   const activeView: TabId = ROUTE_MAP[location.pathname] || 'dashboard';
@@ -239,6 +242,7 @@ function App() {
   return (
     <HashRouter>
       <Root />
+      <SyncToast />
     </HashRouter>
   );
 }

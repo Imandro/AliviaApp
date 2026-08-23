@@ -76,10 +76,10 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
 
 const styles: { [key: string]: React.CSSProperties } = {
   header: {
-    height: '64px',
-    minHeight: '64px',
+    height: 'calc(64px + env(safe-area-inset-top))',
+    minHeight: 'calc(64px + env(safe-area-inset-top))',
     width: '100%',
-    padding: '0 20px',
+    padding: 'env(safe-area-inset-top) 20px 0 20px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',

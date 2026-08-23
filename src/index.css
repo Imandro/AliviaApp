@@ -194,6 +194,7 @@ html[data-theme="mono"] body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
 }
 
 /* Centrar verticalmente solo cuando hay espacio; si el contenido es más alto

@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALIVIA — Calma guiada, incluso a las 2 a.m. · Equipo DataStorm</title>
+<meta name="description" content="ALIVIA es un refugio de bienestar mental para adolescentes y jóvenes: respiración guiada, diario que se disuelve, SOS en crisis y comunidad segura. Offline-first, web y Android.">
+<link rel="icon" type="image/png" href="/icon-128.png">
+<meta name="theme-color" content="#0D1810">
+
+<!-- Fuentes propias de ALIVIA (auto-hospedadas) -->
+<style>
+@font-face{font-family:'Lato';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/lato-300.woff2') format('woff2')}
+@font-face{font-family:'Lato';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/lato-400.woff2') format('woff2')}
+@font-face{font-family:'Lato';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/lato-700.woff2') format('woff2')}
+@font-face{font-family:'Quicksand';font-style:normal;font-weight:300 700;font-display:swap;src:url('/fonts/quicksand-300.woff2') format('woff2')}
+</style>
+
+<style>
+:root{
+  --fondo-0:#0D1810;
+  --fondo-1:#1A2A20;
+  --vidrio:#16241C;
+  --linea:rgba(233,243,238,.09);
+  --texto:#EAF3EE;
+  --texto-2:#A9BFB2;
+  --texto-3:#7C948A;
+  --oro:#F2E3A0;
+  --oro-vivo:#E9C86B;
+  --salvia:#8CB08D;
+  --lavanda:#B9A8E6;
+  --coral:#E57373;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; overflow-x:clip}
+body{
+  margin:0; background:var(--fondo-0); color:var(--texto);
+  font-family:"Lato",system-ui,sans-serif; font-size:17px; line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(233,200,107,.28)}
+h1,h2,h3,.display{font-family:"Quicksand",sans-serif; font-weight:600; line-height:1.12; margin:0; letter-spacing:-.01em}
+p{margin:0 0 1rem}
+a{color:inherit}
+.wrap{width:min(1140px,88vw); margin-inline:auto}
+
+/* Fondo con blobs del brand */
+.aurora{position:fixed; inset:0; z-index:-1; overflow:hidden; background:
+  radial-gradient(1100px 700px at 85% -10%, rgba(44,83,61,.55), transparent 60%),
+  radial-gradient(900px 600px at -10% 40%, rgba(140,176,141,.14), transparent 55%),
+  radial-gradient(circle at top right, var(--fondo-1) 0%, var(--fondo-0) 70%);
+}
+.aurora i{position:absolute; border-radius:50%; filter:blur(90px); opacity:.16; pointer-events:none}
+.aurora i:nth-child(1){width:420px;height:420px;background:var(--oro);top:-120px;left:-120px;animation:flota 22s ease-in-out infinite alternate}
+.aurora i:nth-child(2){width:520px;height:520px;background:var(--salvia);bottom:-160px;right:-140px;animation:flota 26s ease-in-out infinite alternate-reverse}
+.aurora i:nth-child(3){width:340px;height:340px;background:var(--lavanda);top:38%;left:52%;opacity:.10;animation:flota 19s ease-in-out infinite alternate}
+@keyframes flota{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,34px) scale(1.12)}}
+
+.estrellas{position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, rgba(242,227,160,.5), transparent 60%),
+    radial-gradient(1.1px 1.1px at 78% 12%, rgba(242,227,160,.42), transparent 60%),
+    radial-gradient(1.6px 1.6px at 55% 30%, rgba(233,243,238,.35), transparent 60%),
+    radial-gradient(1.2px 1.2px at 90% 46%, rgba(242,227,160,.36), transparent 60%),
+    radial-gradient(1.3px 1.3px at 32% 8%, rgba(233,243,238,.3), transparent 60%);
+  animation:titila 5s ease-in-out infinite alternate;
+}
+@keyframes titila{from{opacity:.45}to{opacity:.9}}
+
+/* Nav */
+.nav{
+  position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  background:rgba(13,24,16,.72); border-bottom:1px solid var(--linea);
+}
+.nav__in{display:flex; align-items:center; gap:1.6rem; padding:.85rem 0}
+.wordmark{
+  font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.15rem;
+  letter-spacing:.3em; color:var(--texto); text-decoration:none; line-height:1;
+}
+.wordmark b{color:var(--oro-vivo)}
+.nav__links{margin-left:auto; display:flex; gap:.4rem; align-items:center}
+.nav__links a{
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.86rem;
+  color:var(--texto-2); text-decoration:none; padding:.5rem .95rem; border-radius:999px;
+  border:1px solid transparent; transition:.2s ease;
+}
+.nav__links a:hover{color:var(--texto); border-color:var(--linea)}
+.nav__links a.cta{border-color:rgba(233,200,107,.4); color:var(--oro)}
+
+/* Hero */
+.hero{padding:clamp(4.5rem,9vw,8rem) 0 clamp(3.5rem,7vw,6rem); position:relative}
+.hero__grid{display:grid; grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr); gap:clamp(2rem,5vw,4rem); align-items:center}
+.tagline{
+  display:inline-flex; align-items:center; gap:.6rem;
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.76rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--salvia);
+  border:1px solid rgba(140,176,141,.28); border-radius:999px; padding:.42rem .95rem;
+  margin:0 0 1.6rem; background:rgba(255,255,255,.03);
+}
+.tagline em{font-style:normal; color:var(--oro)}
+.hero h1{
+  font-size:clamp(2.3rem,5vw,3.9rem); max-width:15ch; margin-bottom:1.2rem;
+}
+.hero h1 .calma{
+  color:transparent; background:linear-gradient(92deg,var(--oro),var(--salvia) 80%);
+  -webkit-background-clip:text; background-clip:text;
+}
+.hero__sub{font-size:clamp(1.02rem,1.4vw,1.17rem); color:var(--texto-2); max-width:46ch}
+.hero__cta{display:flex; flex-wrap:wrap; gap:.8rem; margin-top:2.1rem}
+.btn{
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.98rem;
+  padding:.9rem 1.6rem; border-radius:999px; text-decoration:none;
+  display:inline-flex; align-items:center; gap:.55rem; border:1px solid transparent;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+}
+.btn--oro{background:linear-gradient(135deg,var(--oro),var(--oro-vivo)); color:#1A2A20; box-shadow:0 12px 30px rgba(233,200,107,.22)}
+.btn--oro:hover{transform:translateY(-2px); box-shadow:0 16px 34px rgba(233,200,107,.3)}
+.btn--fantasma{border-color:var(--linea); color:var(--texto); background:rgba(255,255,255,.04)}
+.btn--fantasma:hover{background:rgba(255,255,255,.08); transform:translateY(-2px)}
+.btn svg{width:18px;height:18px;flex:none;fill:currentColor}
+
+/* Tarjeta-orbe */
+.orbcard{
+  position:relative; border-radius:28px;
+  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+  border:1px solid var(--linea);
+  box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  padding:clamp(1.6rem,3vw,2.6rem);
+  display:flex; flex-direction:column; align-items:center; gap:1.4rem;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
+.orbstage{position:relative; width:min(250px,64%); aspect-ratio:1; display:grid; place-items:center}
+.orbstage::before{
+  content:""; position:absolute; inset:-14%;
+  background:radial-gradient(circle, rgba(233,200,107,.14), transparent 65%);
+  animation:respira 8s ease-in-out infinite;
+}
+.orb{
+  width:100%; height:100%; border-radius:50%;
+  background:radial-gradient(circle at 33% 30%, #FFF6DC 0%, var(--oro) 34%, rgba(233,200,107,.25) 68%, transparent 74%);
+  box-shadow:0 0 70px rgba(233,200,107,.28);
+  display:grid; place-items:center;
+  animation:respira 8s ease-in-out infinite;
+}
+.orb p{
+  font-family:"Quicksand",sans-serif; font-weight:700; color:#5A4A1E;
+  font-size:.92rem; letter-spacing:.18em; text-transform:uppercase; text-align:center; margin:0;
+}
+.orb small{display:block; font-family:"Lato",sans-serif; font-size:.66rem; letter-spacing:.24em; opacity:.75; font-weight:400}
+@keyframes respira{0%,100%{transform:scale(.84)}28%{transform:scale(1)}52%{transform:scale(.97)}}
+.fases{display:flex; gap:.4rem; justify-content:center}
+.fases span{
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.74rem;
+  color:var(--texto-2); border:1px solid var(--linea); border-radius:999px; padding:.32rem .8rem;
+  background:rgba(255,255,255,.03);
+}
+.fases span.on{color:#1A2A20; background:var(--oro); border-color:transparent}
+.orbcard figcaption{font-size:.82rem; color:var(--texto-3); text-align:center; margin:0}
+
+/* Momentos */
+.momentos{padding:clamp(3rem,7vw,5.5rem) 0}
+.momentos__head{max-width:56ch; margin-bottom:2.4rem}
+.kicker{
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.78rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--oro); display:flex; align-items:center; gap:.6rem; margin:0 0 1rem;
+}
+.kicker::after{content:""; flex:none; width:34px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--oro),transparent)}
+.momentos h2{font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:22ch}
+.rail{
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(240px,300px);
+  gap:1rem; overflow-x:auto; padding:.4rem .2rem 1.2rem;
+  scrollbar-width:thin; scrollbar-color:rgba(233,243,238,.18) transparent;
+}
+.momento{
+  border-radius:20px; padding:1.5rem 1.4rem; min-height:170px;
+  background:linear-gradient(165deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  border:1px solid var(--linea);
+  display:flex; flex-direction:column; justify-content:flex-end; gap:.35rem;
+  transition:transform .25s ease, border-color .25s ease;
+}
+.momento:hover{transform:translateY(-4px); border-color:rgba(233,200,107,.3)}
+.momento time{font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.05rem; color:var(--oro)}
+.momento p{margin:0; color:var(--texto-2); font-size:.94rem; line-height:1.55}
+.momento small{display:block; margin-top:.55rem; color:var(--texto-3); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; font-family:"Quicksand",sans-serif}
+
+/* Bento de funcionalidades */
+.bento{padding:clamp(3rem,7vw,5.5rem) 0}
+.bento__grid{display:grid; grid-template-columns:repeat(12,1fr); gap:1rem}
+.card{
+  border-radius:22px; padding:1.7rem 1.6rem;
+  background:linear-gradient(165deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  border:1px solid var(--linea);
+  transition:transform .25s ease, border-color .25s ease;
+  position:relative; overflow:hidden;
+}
+.card:hover{transform:translateY(-4px); border-color:rgba(233,200,107,.28)}
+.card h3{font-size:1.14rem; margin:.9rem 0 .45rem}
+.card p{margin:0; color:var(--texto-2); font-size:.94rem; line-height:1.6}
+.card .ico{
+  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
+  background:rgba(233,200,107,.10); border:1px solid rgba(233,200,107,.22);
+}
+.card .ico svg{width:22px;height:22px;stroke:var(--oro);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card--sage .ico{background:rgba(140,176,141,.12);border-color:rgba(140,176,141,.3)}
+.card--sage .ico svg{stroke:var(--salvia)}
+.card--lav .ico{background:rgba(185,168,230,.12);border-color:rgba(185,168,230,.3)}
+.card--lav .ico svg{stroke:var(--lavanda)}
+.card--coral .ico{background:rgba(229,115,115,.12);border-color:rgba(229,115,115,.32)}
+.card--coral .ico svg{stroke:var(--coral)}
+.c-span7{grid-column:span 7}
+.c-span5{grid-column:span 5}
+.c-span4{grid-column:span 4}
+
+/* Offline-first */
+.offline{padding:clamp(3rem,7vw,5.5rem) 0}
+.offline__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(2rem,5vw,4rem); align-items:center}
+.pasos-off{list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:1rem}
+.pasos-off li{
+  display:flex; gap:1rem; align-items:flex-start;
+  padding:1.1rem 1.3rem; border-radius:18px;
+  background:rgba(255,255,255,.035); border:1px solid var(--linea);
+}
+.pasos-off i{
+  flex:none; width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(140,176,141,.16); color:var(--salvia);
+  font-family:"Quicksand",sans-serif; font-weight:700; font-style:normal; font-size:.82rem;
+}
+.pasos-off li:nth-child(2) i{background:rgba(233,200,107,.15);color:var(--oro)}
+.pasos-off li:nth-child(3) i{background:rgba(185,168,230,.16);color:var(--lavanda)}
+.pasos-off b{font-family:"Quicksand",sans-serif;font-weight:600;color:var(--texto);display:block;margin-bottom:.15rem}
+.pasos-off span{color:var(--texto-2); font-size:.93rem}
+.demo-red{
+  border-radius:24px; border:1px solid var(--linea);
+  background:linear-gradient(165deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+  padding:2rem; box-shadow:0 30px 80px rgba(0,0,0,.4);
+}
+.red-toggle{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  border-radius:16px; padding:1rem 1.2rem; margin-bottom:1rem;
+  background:rgba(0,0,0,.25); border:1px solid var(--linea);
+}
+.red-toggle p{margin:0; font-family:"Quicksand",sans-serif; font-weight:600}
+.red-toggle small{color:var(--texto-3)}
+.switch{flex:none; width:52px; height:30px; border-radius:999px; position:relative;
+  background:linear-gradient(135deg,var(--coral),#B74A4A); transition:.3s ease}
+.switch::after{
+  content:""; position:absolute; top:3px; left:3px; width:24px;height:24px;border-radius:50%;
+  background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.4); transition:.3s cubic-bezier(.34,1.4,.64,1);
+}
+.demo-red.online .switch{background:linear-gradient(135deg,var(--salvia),var(--bosque,#3E7157))}
+.demo-red.online .switch::after{left:25px}
+.fila-estado{
+  display:flex; align-items:center; gap:.9rem; border-radius:16px; padding:1.05rem 1.2rem; margin-bottom:.8rem;
+  border:1px dashed rgba(229,115,115,.35); color:#F0B9B9;
+}
+.fila-estado i{width:9px;height:9px;border-radius:50%;background:var(--coral);flex:none;animation:latido 1.6s ease-in-out infinite}
+@keyframes latido{0%,100%{opacity:.4}50%{opacity:1}}
+.demo-red.online .fila-estado{border:1px solid rgba(140,176,141,.4); color:#CBE3CF}
+.demo-red.online .fila-estado i{background:var(--salvia)}
+.fila-estado b{font-family:"Quicksand",sans-serif;font-weight:600;display:block}
+.fila-estado span{font-size:.85rem; opacity:.8}
+.sync-dot{
+  margin-left:auto; flex:none; width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(140,176,141,.15); color:var(--salvia);
+}
+.sync-dot svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.demo-red:not(.online) .sync-dot{opacity:.35}
+.demo-red.online .sync-dot svg{animation:gira 2.2s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+/* Cifras OMS */
+.stats{padding:clamp(2.5rem,6vw,4.5rem) 0}
+.stats__band{
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px;
+  border-radius:24px; overflow:hidden; border:1px solid var(--linea);
+  background:var(--linea);
+}
+.stat{background:rgba(13,24,16,.75); padding:2.2rem 1.8rem; text-align:left}
+.stat b{
+  display:block; font-family:"Quicksand",sans-serif; font-weight:700;
+  font-size:clamp(2rem,4vw,2.9rem); line-height:1.05;
+  color:transparent; background:linear-gradient(92deg,var(--oro),var(--salvia));
+  -webkit-background-clip:text; background-clip:text;
+}
+.stat span{display:block; margin-top:.55rem; color:var(--texto-2); font-size:.92rem; line-height:1.55}
+.stats__nota{margin-top:1rem; font-size:.8rem; color:var(--texto-3)}
+
+/* Tecnología */
+.tech{padding:clamp(3rem,7vw,5.5rem) 0}
+.tech__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:clamp(2rem,5vw,4rem); align-items:center}
+.stack{list-style:none; margin:1.8rem 0 0; padding:0; display:flex; flex-wrap:wrap; gap:.5rem}
+.stack li{
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.82rem;
+  color:var(--texto-2); border:1px solid var(--linea); border-radius:999px; padding:.42rem .95rem;
+  background:rgba(255,255,255,.03);
+}
+.techcard{
+  border-radius:24px; overflow:hidden; border:1px solid var(--linea);
+  background:linear-gradient(170deg, #131F17, #0C1510);
+  box-shadow:0 30px 80px rgba(0,0,0,.5);
+}
+.techbar{
+  display:flex; align-items:center; gap:.55rem; padding:.9rem 1.2rem;
+  border-bottom:1px solid var(--linea); background:rgba(255,255,255,.03);
+}
+.techbar i{width:10px;height:10px;border-radius:50%}
+.techbar i:nth-child(1){background:#E57373}
+.techbar i:nth-child(2){background:#E9C86B}
+.techbar i:nth-child(3){background:#8CB08D}
+.techbar span{margin-left:.4rem; font-family:"Quicksand",sans-serif; font-weight:600; font-size:.84rem; color:var(--texto-3)}
+.techbody{padding:1.5rem}
+.techbody > p{color:var(--texto-2); font-size:.94rem; margin:0 0 1.3rem}
+.meter{height:8px; border-radius:999px; overflow:hidden; display:flex; background:rgba(255,255,255,.07); margin-bottom:.7rem}
+.meter span{height:100%}
+.legend{display:flex; flex-wrap:wrap; gap:.3rem 1.1rem; list-style:none; margin:0 0 1.4rem; padding:0; font-size:.8rem; color:var(--texto-2)}
+.legend li{display:flex; align-items:center; gap:.45rem}
+.legend i{width:8px;height:8px;border-radius:50%;flex:none}
+.techstats{display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin-bottom:1.4rem}
+.techstats div{border-radius:14px; padding:.85rem .5rem; text-align:center; background:rgba(255,255,255,.045)}
+.techstats b{display:block; font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.35rem; color:#fff}
+.techstats span{font-size:.68rem; letter-spacing:.09em; text-transform:uppercase; color:var(--texto-3)}
+.clonrow{
+  display:flex; align-items:center; gap:.5rem;
+  background:#0A130E; border:1px solid var(--linea); border-radius:14px;
+  padding:.55rem .55rem .55rem 1rem;
+}
+.clonrow code{
+  flex:1; min-width:0; white-space:nowrap; overflow-x:auto; scrollbar-width:thin;
+  font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.78rem; color:#B9CDBF;
+}
+.clonbtn{
+  flex:none; font-family:"Quicksand",sans-serif; font-weight:600; font-size:.76rem;
+  color:#12200f; background:var(--salvia); border:0; border-radius:10px;
+  padding:.45rem .85rem; cursor:pointer; transition:.18s ease;
+}
+.clonbtn:hover{transform:translateY(-1px)}
+.clonbtn[data-listo="si"]{background:var(--oro)}
+
+/* Footer */
+.pie{padding:clamp(3rem,7vw,5rem) 0 2.2rem; border-top:1px solid var(--linea)}
+.pie__top{display:flex; flex-wrap:wrap; gap:2rem; align-items:center; justify-content:space-between; margin-bottom:2.2rem}
+.pie h2{font-size:clamp(1.5rem,2.8vw,2.2rem); max-width:20ch}
+.pie__meta{
+  padding-top:1.6rem; border-top:1px solid var(--linea);
+  display:flex; flex-wrap:wrap; gap:.9rem 2rem; justify-content:space-between;
+  font-size:.83rem; color:var(--texto-3);
+}
+.pie__meta a{color:var(--texto-2); text-decoration:none; border-bottom:1px solid var(--linea); padding-bottom:2px}
+.pie__meta a:hover{color:var(--oro)}
+
+/* Reveal */
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1)}
+.reveal.is-in{opacity:1; transform:none}
+
+@media (max-width:900px){
+  .hero__grid,.offline__grid,.tech__grid{grid-template-columns:1fr}
+  .c-span7,.c-span5,.c-span4{grid-column:span 12}
+  .stats__band{grid-template-columns:1fr}
+  .nav__links a:not(.cta){display:none}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .wrap{width:calc(100% - 2.6rem)}
+  .hero__cta{gap:.65rem}
+  .hero__cta .btn{width:100%; justify-content:center}
+  .techstats{gap:.45rem}
+  .pie__meta{flex-direction:column; align-items:flex-start}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important; animation:none!important}
+  .reveal{opacity:1; transform:none}
+}
+:focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
+</style>
+</head>
+<body>
+<body>
+<script>
+/* Si ya corre como PWA instalada (standalone iOS/Android) o dentro de la app nativa,
+   la landing no existe: redirige directo a la app. */
+(function(){
+  try{
+    var standalone = window.matchMedia('(display-mode: standalone)').matches
+      || (window.navigator && window.navigator.standalone === true)
+      || /capacitor|electron/i.test(window.navigator.userAgent || '');
+    var enApp = location.pathname === '/' || location.pathname === '/index.html';
+    if (standalone && !enApp) { location.replace('/'); }
+  }catch(e){}
+})();
+</script>
+
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="estrellas" aria-hidden="true"></div>
+
+<nav class="nav">
+  <div class="wrap nav__in">
+    <a class="wordmark" href="/">ALIVIA<b>.</b></a>
+    <div class="nav__links">
+      <a href="#momentos">Momentos</a>
+      <a href="#funciones">Funciones</a>
+      <a href="#tecnologia">Tecnología</a>
+      <a class="cta" href="/">Abrir la app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <p class="tagline"><em>ALIVIA</em> · Equipo DataStorm</p>
+      <h1>Calma guiada, incluso a las 2&nbsp;a.m. <span class="calma">sin señal.</span></h1>
+      <p class="hero__sub">
+        Un refugio de bienestar mental para adolescentes y jóvenes: respiración con sonido
+        en vivo, un diario que disuelve lo que pesa y ayuda real en crisis.
+        En la web o instalada como app — y funciona aunque el internet no coopere.
+      </p>
+      <div class="hero__cta">
+        <a class="btn btn--oro" href="/">Abrir la app</a>
+        <a class="btn btn--fantasma" href="https://github.com/Imandro/ALIVIA/releases/latest/download/ALIVIA-1.0.apk">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg>
+          Descargar Android
+        </a>
+        <a class="btn btn--fantasma" href="https://github.com/Imandro/ALIVIA" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          Código
+        </a>
+      </div>
+    </div>
+
+    <figure class="orbcard" style="margin:0" aria-label="Demostración del motor de respiración">
+      <div class="orbstage">
+        <div class="orb"><p>Inhala<small>4 · sostén · 4</small></p></div>
+      </div>
+      <div class="fases">
+        <span class="on">Box 4·4·4·4</span><span>4-7-8</span><span>Coherente 5·5</span>
+      </div>
+      <figcaption>El círculo marca tu ritmo; el sonido se sintetiza en tiempo real.</figcaption>
+    </figure>
+  </div>
+</header>
+
+<section class="momentos" id="momentos">
+  <div class="wrap">
+    <div class="momentos__head reveal">
+      <p class="kicker">Momentos</p>
+      <h2>No es una red social. Es para cuando duele.</h2>
+    </div>
+    <div class="rail reveal">
+      <article class="momento">
+        <time>02:17</time>
+        <p>&ldquo;No puedo dormir, la cabeza no para.&rdquo;</p>
+        <small>Respiración 4-7-8 · ruido marrón</small>
+      </article>
+      <article class="momento">
+        <time>07:42</time>
+        <p>&ldquo;Hoy presento y siento que me voy a bloquear.&rdquo;</p>
+        <small>Tierra 5-4-3-2-1 · pausa somática</small>
+      </article>
+      <article class="momento">
+        <time>16:05</time>
+        <p>&ldquo;Peleé con mi familia y tengo ganas de desaparecer.&rdquo;</p>
+        <small>Tarjeta de crisis · SOS líneas gratuitas</small>
+      </article>
+      <article class="momento">
+        <time>21:30</time>
+        <p>&ldquo;Racha de 9 días escribiendo lo que suelto.&rdquo;</p>
+        <small>Burn Journal · partículas que se van</small>
+      </article>
+    </div>
+  </div>
+</section>
+<section class="bento" id="funciones">
+  <div class="wrap">
+    <div class="momentos__head reveal">
+      <p class="kicker">Funciones</p>
+      <h2>Todo lo que hace, sin hacer ruido.</h2>
+    </div>
+    <div class="bento__grid">
+      <article class="card c-span7 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span>
+        <h3>Respiración con motor propio</h3>
+        <p>Tres protocolos guiados por un círculo animado y un mezclador de sonido sintetizado en vivo con Web Audio API: ruido marrón, olas y ondas binaurales. Nada pregrabado.</p>
+      </article>
+      <article class="card card--lav c-span5 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 20l-1.5-1.4C5.4 14 2 10.9 2 7.5 2 4.9 4 3 6.5 3c1.5 0 2.9.7 3.8 1.8L12 6.7l1.7-1.9C14.6 3.7 16 3 17.5 3 20 3 22 4.9 22 7.5c0 3.4-3.4 6.5-8.5 11.1L12 20Z"/></svg></span>
+        <h3>Burn Journal</h3>
+        <p>Escribe lo que te abruma y suéltalo: el texto se disuelve en partículas frente a tus ojos. Soltar también se practica.</p>
+      </article>
+      <article class="card card--coral c-span5 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.5-8.6C.7 9.6 2 6 5.2 5c1.9-.6 4 .1 5.2 1.7L12 8.4l1.6-1.7C14.8 5.1 16.9 4.4 18.8 5c3.2 1 4.5 4.6 2.7 7.4C19 16.4 12 21 12 21Z"/></svg></span>
+        <h3>SOS en crisis</h3>
+        <p>Tarjetas validadas para pánico, ganas de consumir, conflicto familiar y autolesión — más líneas de crisis gratuitas de MX, CO, AR y US a un toque.</p>
+      </article>
+      <article class="card card--sage c-span7 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M20 7 9 18l-5-5"/></svg></span>
+        <h3>Afrontamiento paso a paso</h3>
+        <p>Cuatro ejercicios guiados (pausa somática, reset frío, surfear la urgencia, plan de 10 minutos) con estadísticas y racha de días consecutivos que se guardan contigo.</p>
+      </article>
+      <article class="card card--lav c-span4 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></span>
+        <h3>Comunidad anónima</h3>
+        <p>Posts por temas, likes y apoyo entre pares — sin perfiles públicos ni exposición.</p>
+      </article>
+      <article class="card card--sage c-span4 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>
+        <h3>Chequeo cada 5 días</h3>
+        <p>Estrés, ansiedad y depresión medidos con recomendaciones y seguimiento del ánimo.</p>
+      </article>
+      <article class="card c-span4 reveal">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="6.5" cy="7" r="2"/><circle cx="17.5" cy="7" r="2"/><circle cx="12" cy="13.5" r="2"/><path d="M12 15.5v3M9 20h6"/></svg></span>
+        <h3>Juegos de regulación</h3>
+        <p>Cuatro minijuegos diseñados para bajar revoluciones: burbujas, memoria, secuencia y tierra.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="offline">
+  <div class="wrap offline__grid">
+    <div class="reveal">
+      <p class="kicker">Offline-first</p>
+      <h2 style="font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:20ch">Tu calma no depende de la barra de señal.</h2>
+      <p style="color:var(--texto-2); max-width:46ch; margin-top:.8rem">
+        ALIVIA guarda todo primero en tu teléfono. Cuando vuelve la conexión,
+        sincroniza sola contra tu base de datos en la nube — en orden y sin duplicados.
+      </p>
+      <ul class="pasos-off">
+        <li><i>1</i><div><b>Usas la app sin internet</b><span>Ánimos, diario, planes y posts se guardan al instante en el dispositivo.</span></div></li>
+        <li><i>2</i><div><b>La cola espera su turno</b><span>Cada cambio queda en una fila local, listo para salir.</span></div></li>
+        <li><i>3</i><div><b>Reconectas y se sincroniza</b><span>Envío automático en orden + revalidación silenciosa de tus datos.</span></div></li>
+      </ul>
+    </div>
+    <div class="demo-red reveal" id="demoRed" aria-label="Demostración interactiva del modo offline">
+      <div class="red-toggle">
+        <div>
+          <p id="redLabel">Sin conexión</p>
+          <small>Toca el interruptor para simular la red</small>
+        </div>
+        <button type="button" class="switch" id="redSwitch" aria-label="Alternar conexión"></button>
+      </div>
+      <div class="fila-estado" id="filaEstado">
+        <i></i>
+        <div>
+          <b id="estadoTitulo">Guardado en el teléfono</b>
+          <span id="estadoSub">1 cambio en cola · todo disponible offline</span>
+        </div>
+        <span class="sync-dot" id="syncDot">
+          <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="kicker">El contexto</p>
+    </div>
+    <div class="stats__band reveal">
+      <div class="stat"><b>1 de 7</b><span>adolescentes de 10 a 19 años vive con un trastorno mental diagnosticable.</span></div>
+      <div class="stat"><b>Top 3</b><span>el suicidio figura entre las principales causas de muerte en jóvenes de 15 a 29 años.</span></div>
+      <div class="stat"><b>Mitad</b><span>de los casos nunca recibe atención profesional: estigma, costo y acceso se lo impiden.</span></div>
+    </div>
+    <p class="stats__nota reveal">Fuentes: Organización Mundial de la Salud (OMS).</p>
+  </div>
+</section>
+<section class="tech" id="tecnologia">
+  <div class="wrap tech__grid">
+    <div class="reveal">
+      <p class="kicker">Tecnología</p>
+      <h2 style="font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:20ch">Una sola base de código, dos experiencias nativas.</h2>
+      <p style="color:var(--texto-2); max-width:46ch; margin-top:.8rem">
+        La web y la app Android comparten el 100% del código: misma interfaz,
+        mismas funciones, mismos datos. Sin duplicar esfuerzo, sin divergencias.
+      </p>
+      <ul class="stack">
+        <li>React 18</li><li>TypeScript</li><li>Vite</li><li>Capacitor 8</li>
+        <li>PostgreSQL · Neon</li><li>Vercel serverless</li><li>Web Audio API</li>
+      </ul>
+    </div>
+
+    <div class="techcard reveal">
+      <div class="techbar"><i></i><i></i><i></i><span>Imandro / ALIVIA — v1.0</span></div>
+      <div class="techbody">
+        <p>Tu espacio de calma: PWA + app Android offline-first para la salud mental joven.</p>
+        <div class="meter" role="img" aria-label="Composición del código">
+          <span style="width:74%; background:#3178C6"></span>
+          <span style="width:14%; background:#563D7C"></span>
+          <span style="width:7%; background:#B07219"></span>
+          <span style="width:5%; background:#E34C26"></span>
+        </div>
+        <ul class="legend">
+          <li><i style="background:#3178C6"></i>TypeScript</li>
+          <li><i style="background:#563D7C"></i>CSS</li>
+          <li><i style="background:#B07219"></i>Java</li>
+          <li><i style="background:#E34C26"></i>HTML/SVG</li>
+        </ul>
+        <div class="techstats">
+          <div><b>20+</b><span>Pantallas</span></div>
+          <div><b>100%</b><span>Paridad web-app</span></div>
+          <div><b>3.6 MB</b><span>APK firmado</span></div>
+        </div>
+        <div class="clonrow">
+          <code id="clon-cmd">git clone https://github.com/Imandro/ALIVIA.git</code>
+          <button type="button" class="clonbtn" id="copiar-btn">Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="pie">
+  <div class="wrap">
+    <div class="pie__top reveal">
+      <h2>El primer paso puede ser solo respirar.</h2>
+      <div class="hero__cta" style="margin-top:0">
+        <a class="btn btn--oro" href="/">Abrir la app</a>
+        <a class="btn btn--fantasma" href="https://github.com/Imandro/ALIVIA/releases/latest/download/ALIVIA-1.0.apk">Descargar Android</a>
+      </div>
+    </div>
+    <div class="pie__meta">
+      <span>© 2026 ALIVIA · <strong style="color:var(--texto-2)">Equipo DataStorm</strong></span>
+      <a href="/">App web</a>
+      <a href="https://github.com/Imandro/ALIVIA/releases/latest/download/ALIVIA-1.0.apk">Android</a>
+      <a href="https://github.com/Imandro/ALIVIA" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* Demo interactiva offline-first */
+(function(){
+  var demo = document.getElementById('demoRed');
+  var sw = document.getElementById('redSwitch');
+  var label = document.getElementById('redLabel');
+  var titulo = document.getElementById('estadoTitulo');
+  var sub = document.getElementById('estadoSub');
+  if (!demo || !sw) return;
+  var online = false;
+  sw.addEventListener('click', function(){
+    online = !online;
+    demo.classList.toggle('online', online);
+    if (online) {
+      label.textContent = 'Con conexión';
+      titulo.textContent = 'Sincronizado con la nube';
+      sub.textContent = 'Cola vacía · datos revalidados en segundo plano';
+    } else {
+      label.textContent = 'Sin conexión';
+      titulo.textContent = 'Guardado en el teléfono';
+      sub.textContent = '1 cambio en cola · todo disponible offline';
+    }
+  });
+})();
+
+/* Copiar clone */
+(function(){
+  var btn = document.getElementById('copiar-btn');
+  var cmd = document.getElementById('clon-cmd');
+  if (!btn || !cmd) return;
+  btn.addEventListener('click', function(){
+    var text = cmd.textContent || '';
+    function listo(){ btn.textContent = '¡Copiado!'; btn.setAttribute('data-listo','si');
+      setTimeout(function(){ btn.textContent='Copiar'; btn.removeAttribute('data-listo'); }, 1800); }
+    function fallback(){
+      var r = document.createRange(); r.selectNodeContents(cmd);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      try { document.execCommand('copy'); listo(); } catch(e){}
+      s.removeAllRanges();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(listo).catch(fallback);
+    } else { fallback(); }
+  });
+})();
+
+/* Reveal on scroll */
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var items = document.querySelectorAll('.reveal');
+  if (!reduce && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+      });
+    }, { threshold: .12 });
+    items.forEach(function(el){ io.observe(el); });
+  } else {
+    items.forEach(function(el){ el.classList.add('is-in'); });
+  }
+})();
+</script>
+</body>
+</html>
