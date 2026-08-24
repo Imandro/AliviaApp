@@ -184,6 +184,43 @@ a{color:inherit}
 .momento p{margin:0; color:var(--texto-2); font-size:.94rem; line-height:1.55}
 .momento small{display:block; margin-top:.55rem; color:var(--texto-3); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; font-family:"Quicksand",sans-serif}
 
+/* ---------- Pitch ---------- */
+.pitch{padding:clamp(3rem,7vw,5.5rem) 0}
+.pitch__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.9fr); gap:clamp(2rem,5vw,4rem); align-items:center}
+.pitch-frame{
+  position:relative; width:min(320px,86%); margin-inline:auto;
+  aspect-ratio:9/16; border-radius:26px; overflow:hidden;
+  border:1px solid var(--linea);
+  box-shadow:0 30px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  background:#000;
+}
+.pitch-poster{
+  position:absolute; inset:0; width:100%; height:100%;
+  border:0; padding:0; cursor:pointer; background:#000;
+}
+.pitch-poster img{width:100%; height:100%; object-fit:cover; opacity:.85}
+.pitch-poster::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(13,24,16,.15), rgba(13,24,16,.55) 80%);
+}
+.pitch-play{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:64px; height:64px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,var(--oro),var(--oro-vivo));
+  box-shadow:0 10px 30px rgba(233,200,107,.45);
+  transition:transform .2s ease;
+}
+.pitch-poster:hover .pitch-play{transform:translate(-50%,-50%) scale(1.08)}
+.pitch-play svg{width:22px;height:22px;fill:#12200f;margin-left:3px}
+.pitch-link{
+  display:inline-flex; align-items:center; gap:.45rem; margin-top:1.1rem;
+  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.88rem;
+  color:var(--texto-2); text-decoration:none; border-bottom:1px solid var(--linea); padding-bottom:2px;
+}
+.pitch-link:hover{color:var(--oro)}
+.pitch-frame iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+
 /* Bento de funcionalidades */
 .bento{padding:clamp(3rem,7vw,5.5rem) 0}
 .bento__grid{display:grid; grid-template-columns:repeat(12,1fr); gap:1rem}
@@ -383,6 +420,7 @@ a{color:inherit}
     <a class="wordmark" href="/">ALIVIA<b>.</b></a>
     <div class="nav__links">
       <a href="#momentos">Momentos</a>
+      <a href="#pitch">Pitch</a>
       <a href="#funciones">Funciones</a>
       <a href="#tecnologia">Tecnología</a>
       <a class="cta" href="/">Abrir la app</a>
@@ -451,6 +489,49 @@ a{color:inherit}
         <p>&ldquo;Racha de 9 días escribiendo lo que suelto.&rdquo;</p>
         <small>Burn Journal · partículas que se van</small>
       </article>
+    </div>
+  </div>
+</section>
+<section class="pitch" id="pitch">
+  <div class="wrap pitch__grid">
+    <div class="reveal">
+      <p class="kicker">El pitch</p>
+      <h2 style="font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:18ch">ALIVIA en un minuto.</h2>
+      <p style="color:var(--texto-2); max-width:44ch; margin-top:.8rem">
+        El equipo DataStorm cuenta —en formato vertical y sin rodeos— por qué existe
+        ALIVIA, qué hace en el peor momento y cómo funciona incluso sin internet.
+      </p>
+      <a
+        class="pitch-link"
+        href="https://www.youtube.com/shorts/8ngQUf4ppqA"
+        target="_blank"
+        rel="noopener"
+      >
+        Ver en YouTube
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" style="margin-left:-.15rem"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"/></svg>
+      </a>
+    </div>
+
+    <div class="reveal">
+      <figure class="pitch-frame" style="margin:0">
+        <button
+          type="button"
+          class="pitch-poster"
+          id="pitchPoster"
+          aria-label="Reproducir el pitch de ALIVIA"
+          data-src="https://www.youtube-nocookie.com/embed/8ngQUf4ppqA?autoplay=1&rel=0&modestbranding=1"
+        >
+          <img
+            src="https://i.ytimg.com/vi/8ngQUf4ppqA/oardefault.jpg"
+            alt=""
+            loading="lazy"
+            onerror="this.onerror=null;this.src='https://i.ytimg.com/vi/8ngQUf4ppqA/hqdefault.jpg'"
+          >
+          <span class="pitch-play">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+        </button>
+      </figure>
     </div>
   </div>
 </section>
@@ -634,6 +715,21 @@ a{color:inherit}
   });
 })();
 
+
+/* Pitch: click-to-play (no carga YouTube hasta pedirlo) */
+(function(){
+  var poster = document.getElementById('pitchPoster');
+  if (!poster) return;
+  poster.addEventListener('click', function(){
+    var frame = document.createElement('iframe');
+    frame.src = poster.getAttribute('data-src') || '';
+    frame.title = 'Pitch de ALIVIA — Equipo DataStorm';
+    frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    frame.allowFullscreen = true;
+    poster.parentNode.appendChild(frame);
+    poster.remove();
+  });
+})();
 
 /* Reveal on scroll */
 (function(){
