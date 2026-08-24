@@ -357,16 +357,37 @@ a{color:inherit}
 .techstats div{border-radius:14px; padding:.85rem .5rem; text-align:center; background:rgba(255,255,255,.045)}
 .techstats b{display:block; font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.35rem; color:#fff}
 .techstats span{font-size:.68rem; letter-spacing:.09em; text-transform:uppercase; color:var(--texto-3)}
-/* Sello universitario UNAN León · CUR Somoto (imagotipo oficial) */
-.unan{display:flex; flex-direction:column; gap:.4rem}
-.unan img{display:block; filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
-.unan--footer img{height:64px; width:auto}
-.unan--footer .unan__cur{font-size:.7rem}
-.unan--chip img{height:40px; width:auto}
+/* Sello universitario UNAN León · CUR Somoto — tarjeta blanca con imagotipo a color */
+.unan{display:flex; flex-direction:column; gap:.55rem}
+.unan__card{
+  background:#ffffff;
+  border-radius:16px;
+  padding:14px 20px;
+  display:flex; align-items:center; gap:16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
+  width:max-content; max-width:100%;
+}
+.unan__escudo{height:74px; width:auto; display:block; flex:none}
+.unan__col{display:flex; flex-direction:column; gap:1px; line-height:1.12}
+.unan__word{
+  font-family:"Quicksand",sans-serif; font-weight:700; font-size:34px;
+  letter-spacing:.01em; line-height:1; margin-bottom:4px;
+}
+.unan__word i{font-style:normal}
+.unan__word .u{color:#B01930}
+.unan__word .n1{color:#F5A81C}
+.unan__word .a{color:#F5A81C}
+.unan__word .n2{color:#1B5E9E}
+.unan__l1{font-family:"Quicksand",sans-serif; font-weight:700; font-size:15px; color:#1B5E9E}
+.unan__l2{font-family:"Quicksand",sans-serif; font-weight:700; font-size:15px; color:#B01930}
 .unan__cur{
   font-family:"Quicksand",sans-serif; font-weight:700; letter-spacing:.22em;
-  color:var(--texto-3); text-transform:uppercase;
+  color:var(--texto-3); text-transform:uppercase; font-size:.7rem;
 }
+.unan--chip .unan__card{padding:11px 16px; border-radius:13px; gap:12px}
+.unan--chip .unan__escudo{height:54px}
+.unan--chip .unan__word{font-size:25px; margin-bottom:3px}
+.unan--chip .unan__l1,.unan--chip .unan__l2{font-size:11.5px}
 .unan--chip .unan__cur{font-size:.6rem; letter-spacing:.18em}
 
 /* Footer */
@@ -523,7 +544,14 @@ a{color:inherit}
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" style="margin-left:-.15rem"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"/></svg>
       </a>
       <div class="unan unan--chip" style="margin-top:1.6rem">
-        <img src="/unan-logo-blanco.png" alt="UNAN León — Universidad Nacional Autónoma de Nicaragua, León" loading="lazy">
+        <div class="unan__card">
+          <img class="unan__escudo" src="/unan-escudo.png" alt="Escudo UNAN León" loading="lazy">
+          <div class="unan__col">
+            <span class="unan__word"><i class="u">U</i><i class="n1">N</i><i class="a">A</i><i class="n2">N</i></span>
+            <span class="unan__l1">Universidad Nacional</span>
+            <span class="unan__l2">Autónoma de Nicaragua, León</span>
+          </div>
+        </div>
         <span class="unan__cur">CUR Somoto · Equipo DataStorm</span>
       </div>
     </div>
@@ -700,7 +728,14 @@ a{color:inherit}
     <div class="pie__meta">
       <div style="display:flex; flex-direction:column; gap:.9rem">
         <div class="unan unan--footer">
-          <img src="/unan-logo-blanco.png" alt="UNAN León — Universidad Nacional Autónoma de Nicaragua, León">
+          <div class="unan__card">
+            <img class="unan__escudo" src="/unan-escudo.png" alt="Escudo UNAN León">
+            <div class="unan__col">
+              <span class="unan__word"><i class="u">U</i><i class="n1">N</i><i class="a">A</i><i class="n2">N</i></span>
+              <span class="unan__l1">Universidad Nacional</span>
+              <span class="unan__l2">Autónoma de Nicaragua, León</span>
+            </div>
+          </div>
           <span class="unan__cur">Centro Universitario Regional — Somoto</span>
         </div>
         <span>© 2026 ALIVIA · <strong style="color:var(--texto-2)">Equipo DataStorm</strong></span>
