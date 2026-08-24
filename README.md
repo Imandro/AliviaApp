@@ -307,6 +307,8 @@ Convención de commits: `feat(área): …`, `fix(área): …`, `docs: …`, `cho
 
 **DataStorm**
 
+Estudiantes de la **UNAN León** — Universidad Nacional Autónoma de Nicaragua, León · **CUR Somoto**
+
 Proyecto abierto construido con calma.
 Si ALIVIA te sirve, adáptala a tu comunidad — para eso es libre.
 

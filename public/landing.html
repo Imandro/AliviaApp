@@ -357,6 +357,29 @@ a{color:inherit}
 .techstats div{border-radius:14px; padding:.85rem .5rem; text-align:center; background:rgba(255,255,255,.045)}
 .techstats b{display:block; font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.35rem; color:#fff}
 .techstats span{font-size:.68rem; letter-spacing:.09em; text-transform:uppercase; color:var(--texto-3)}
+/* Sello universitario UNAN León · CUR Somoto */
+.unan{display:flex; flex-direction:column; gap:.15rem}
+.unan__row{display:flex; align-items:baseline; gap:.55rem}
+.unan__letters{font-family:"Quicksand",sans-serif; font-weight:700; letter-spacing:.02em; line-height:1}
+.unan__letters i{font-style:normal}
+.unan__letters .u{color:#B01930}
+.unan__letters .n1{color:#F5A81C}
+.unan__letters .a{color:#F5A81C}
+.unan__letters .n2{color:#1B5E9E}
+.unan__l1{font-family:"Quicksand",sans-serif; font-weight:700; color:#1B5E9E; line-height:1.15}
+.unan__l2{font-family:"Quicksand",sans-serif; font-weight:700; color:#B01930; line-height:1.15}
+.unan__cur{
+  font-family:"Quicksand",sans-serif; font-weight:700; letter-spacing:.22em;
+  color:var(--texto-3); text-transform:uppercase;
+}
+.unan--footer .unan__letters{font-size:1.5rem}
+.unan--footer .unan__l1{font-size:.95rem}
+.unan--footer .unan__l2{font-size:.95rem}
+.unan--footer .unan__cur{font-size:.68rem; margin-top:.3rem}
+.unan--chip .unan__letters{font-size:1.05rem}
+.unan--chip .unan__l1,.unan--chip .unan__l2{font-size:.72rem}
+.unan--chip .unan__cur{font-size:.6rem; letter-spacing:.18em}
+
 /* Footer */
 .pie{padding:clamp(3rem,7vw,5rem) 0 2.2rem; border-top:1px solid var(--linea)}
 .pie__top{display:flex; flex-wrap:wrap; gap:2rem; align-items:center; justify-content:space-between; margin-bottom:2.2rem}
@@ -510,6 +533,16 @@ a{color:inherit}
         Ver en YouTube
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" style="margin-left:-.15rem"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"/></svg>
       </a>
+      <div class="unan unan--chip" style="margin-top:1.6rem">
+        <div class="unan__row">
+          <span class="unan__letters"><i class="u">U</i><i class="n1">N</i><i class="a">A</i><i class="n2">N</i></span>
+          <span>
+            <span class="unan__l1" style="display:block">Universidad Nacional</span>
+            <span class="unan__l2" style="display:block">Autónoma de Nicaragua, León</span>
+          </span>
+        </div>
+        <span class="unan__cur">CUR Somoto · Equipo DataStorm</span>
+      </div>
     </div>
 
     <div class="reveal">
@@ -682,7 +715,19 @@ a{color:inherit}
       </div>
     </div>
     <div class="pie__meta">
-      <span>© 2026 ALIVIA · <strong style="color:var(--texto-2)">Equipo DataStorm</strong></span>
+      <div style="display:flex; flex-direction:column; gap:.9rem">
+        <div class="unan unan--footer">
+          <div class="unan__row">
+            <span class="unan__letters"><i class="u">U</i><i class="n1">N</i><i class="a">A</i><i class="n2">N</i></span>
+            <span>
+              <span class="unan__l1" style="display:block">Universidad Nacional</span>
+              <span class="unan__l2" style="display:block">Autónoma de Nicaragua, León</span>
+            </span>
+          </div>
+          <span class="unan__cur">Centro Universitario Regional — Somoto</span>
+        </div>
+        <span>© 2026 ALIVIA · <strong style="color:var(--texto-2)">Equipo DataStorm</strong></span>
+      </div>
       <a href="/">App web</a>
       <a href="https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk">Android</a>
       <a href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.45rem"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>Imandro</a>
