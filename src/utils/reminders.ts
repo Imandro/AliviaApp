@@ -8,6 +8,7 @@
 
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { callNative, hasNativeBridge } from './nativeBridge';
 
 const PREFS_KEY = 'alivia_reminder_prefs';
 const CHANNEL_ID = 'alivia-recordatorios';
@@ -50,10 +51,16 @@ export const saveReminderPrefs = (patch: Partial<ReminderPrefs>): ReminderPrefs 
   return next;
 };
 
-const isNative = (): boolean => Capacitor.isNativePlatform();
+const isNative = (): boolean => Capacitor.isNativePlatform() || hasNativeBridge();
 
 const ensurePermission = async (): Promise<boolean> => {
   try {
+    if (hasNativeBridge()) {
+      const req = (await callNative('notifications.requestPermissions')) as {
+        display?: string;
+      };
+      return req.display === 'granted';
+    }
     const current = await LocalNotifications.checkPermissions();
     if (current.display === 'granted') return true;
     const req = await LocalNotifications.requestPermissions();
@@ -64,16 +71,18 @@ const ensurePermission = async (): Promise<boolean> => {
 };
 
 const registerChannel = async (): Promise<void> => {
-  try {
-    await LocalNotifications.createChannel({
-      id: CHANNEL_ID,
-      name: 'Recordatorios',
-      description: 'Recordatorios suaves de respiración y chequeo',
-      importance: 3,
-      visibility: 0,
-    });
-  } catch {
-    /* el canal puede existir ya */
+  if (!hasNativeBridge()) {
+    try {
+      await LocalNotifications.createChannel({
+        id: CHANNEL_ID,
+        name: 'Recordatorios',
+        description: 'Recordatorios suaves de respiración y chequeo',
+        importance: 3,
+        visibility: 0,
+      });
+    } catch {
+      /* el canal puede existir ya */
+    }
   }
 };
 
@@ -82,12 +91,31 @@ export const applyDailyReminder = async (prefs = getReminderPrefs()): Promise<vo
   if (!isNative()) return;
   await registerChannel();
   try {
-    await LocalNotifications.cancel({ notifications: [{ id: DAILY_ID }] });
+    if (hasNativeBridge()) {
+      await callNative('notifications.cancel', {
+        notifications: [{ id: DAILY_ID }],
+      });
+    } else {
+      await LocalNotifications.cancel({ notifications: [{ id: DAILY_ID }] });
+    }
   } catch {
     /* nada que cancelar */
   }
   if (!prefs.dailyEnabled) return;
   if (!(await ensurePermission())) return;
+  if (hasNativeBridge()) {
+    await callNative('notifications.schedule', {
+      notifications: [
+        {
+          id: DAILY_ID,
+          title: 'Un momento para respirar',
+          body: 'Dos minutos de calma te están esperando. Tu espacio sigue aquí.',
+          schedule: { on: { hour: prefs.dailyHour, minute: prefs.dailyMinute }, repeats: true },
+        },
+      ],
+    });
+    return;
+  }
   await LocalNotifications.schedule({
     notifications: [
       {
@@ -117,7 +145,13 @@ export const syncCheckInReminder = async (
   if (!isNative()) return;
   await registerChannel();
   try {
-    await LocalNotifications.cancel({ notifications: [{ id: CHECKIN_ID }] });
+    if (hasNativeBridge()) {
+      await callNative('notifications.cancel', {
+        notifications: [{ id: CHECKIN_ID }],
+      });
+    } else {
+      await LocalNotifications.cancel({ notifications: [{ id: CHECKIN_ID }] });
+    }
   } catch {
     /* nada que cancelar */
   }
@@ -138,6 +172,27 @@ export const syncCheckInReminder = async (
     if (fire.getTime() < min.getTime()) fire.setTime(min.getTime());
   }
 
+  const on = {
+    year: fire.getFullYear(),
+    month: fire.getMonth() + 1,
+    day: fire.getDate(),
+    hour: 10,
+    minute: 0,
+  };
+
+  if (hasNativeBridge()) {
+    await callNative('notifications.schedule', {
+      notifications: [
+        {
+          id: CHECKIN_ID,
+          title: '¿Cómo vienen tus días?',
+          body: 'Tu chequeo de bienestar está listo: 2 minutos para medir estrés, ansiedad y ánimo.',
+          schedule: { on },
+        },
+      ],
+    });
+    return;
+  }
   await LocalNotifications.schedule({
     notifications: [
       {
@@ -146,13 +201,7 @@ export const syncCheckInReminder = async (
         title: '¿Cómo vienen tus días?',
         body: 'Tu chequeo de bienestar está listo: 2 minutos para medir estrés, ansiedad y ánimo.',
         schedule: {
-          on: {
-            year: fire.getFullYear(),
-            month: fire.getMonth() + 1,
-            day: fire.getDate(),
-            hour: 10,
-            minute: 0,
-          },
+          on,
           allowWhileIdle: true,
         },
       },

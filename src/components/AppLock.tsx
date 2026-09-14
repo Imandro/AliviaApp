@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { Lock } from 'lucide-react';
 import {
   applyPrivacyScreen,
   authenticateWithBiometry,
   getPrivacyPrefs,
 } from '../utils/appLock';
+import { isNativeShell } from '../utils/nativeShell';
 import logoVertical from '../assets/logo-vertical.png';
 
 /**
@@ -14,7 +14,7 @@ import logoVertical from '../assets/logo-vertical.png';
  */
 export const AppLock: React.FC = () => {
   const [locked, setLocked] = useState<boolean>(() =>
-    Capacitor.isNativePlatform() ? getPrivacyPrefs().biometricLock : false
+    isNativeShell ? getPrivacyPrefs().biometricLock : false
   );
   const [attempting, setAttempting] = useState(false);
 

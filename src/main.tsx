@@ -6,10 +6,11 @@ import './index.css'
 import App from './App.tsx'
 import { syncSystemBarsTheme, getSavedTheme } from './utils/systemBars'
 import { readCache } from './utils/apiClient'
+import { isNativeShell } from './utils/nativeShell'
 
 syncSystemBarsTheme(getSavedTheme());
 
-// Recordatorios locales (solo app nativa): aplica preferencias guardadas
+// Recordatorios locales (solo app nativa con Capacitor): aplica preferencias guardadas
 if (Capacitor.isNativePlatform()) {
   import('./utils/reminders').then(({ applyDailyReminder, getReminderPrefs, syncCheckInReminder }) => {
     const prefs = getReminderPrefs();
@@ -39,8 +40,8 @@ if (Capacitor.isNativePlatform()) {
   );
 }
 
-// El service worker solo aplica a la web; en la app nativa se omite.
-if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
+// El service worker solo aplica a la web; en cualquier shell nativo se omite.
+if ('serviceWorker' in navigator && !isNativeShell) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js');
   });
