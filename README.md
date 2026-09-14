@@ -59,7 +59,7 @@ ALIVIA pone herramientas de primera línea exactamente ahí — en el bolsillo, 
 | **Respiración guiada** | Box 4·4·4·4, Relajación 4-7-8 y Coherente 5·5. Círculo animado y mezclador de sonido sintetizado en tiempo real con Web Audio API (ruido marrón, olas, ondas binaurales): nada pregrabado. |
 | **Tierra 5-4-3-2-1** | Técnica sensorial guiada por voz para volver al presente. |
 | **Tarjetas de crisis** | Contenido validado para pánico, ganas de consumir, conflicto familiar y autolesión. |
-| **SOS** | Líneas de crisis gratuitas (MX · CO · AR · US), emergencias y contacto seguro configurable a un toque. |
+| **SOS** | Líneas de crisis gratuitas (NI · CR · HN), emergencias y contacto seguro configurable a un toque. |
 | **Reset frío · Pausa somática · Surfear la urgencia** | Cuatro ejercicios de afrontamiento paso a paso. |
 
 ### Todos los días — construir bienestar
