@@ -1,0 +1,132 @@
+name: iOS Build (IPA)
+
+on:
+  workflow_dispatch:
+    inputs:
+      method:
+        description: 'Método de exportación/importante. ad-hoc = instalar directo en tu iPad; app-store = TestFlight'
+        type: choice
+        options:
+          - ad-hoc
+          - app-store
+        default: ad-hoc
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: false
+
+env:
+  APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+  APPLE_CERTIFICATE_P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_P12_PASSWORD }}
+  APPLE_MOBILE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MOBILE_PROVISIONING_PROFILE_BASE64 }}
+  IOS_SIGNING_IDENTITY: ${{ secrets.IOS_SIGNING_IDENTITY }}
+  DEVELOPMENT_TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM_ID }}
+
+jobs:
+  ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build web assets iOS (ios/Web)
+        run: npm run sync:ios
+
+      - name: Instalar XcodeGen y generar Alivia.xcodeproj
+        run: |
+          brew install xcodegen
+          cd ios
+          xcodegen generate
+
+      - name: Importar certificado de firma (solo si hay secrets)
+        if: env.APPLE_CERTIFICATE_BASE64 != ''
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/Alivia.keychain"
+          KEYCHAIN_PASSWORD="alivia-$RANDOM$RANDOM"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" \
+            -P "$APPLE_CERTIFICATE_P12_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          echo "$KEYCHAIN_PASSWORD" > "$RUNNER_TEMP/keychain-password"
+
+      - name: Instalar provisioning profile (solo si hay secrets)
+        if: env.APPLE_MOBILE_PROVISIONING_PROFILE_BASE64 != ''
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+          echo "$APPLE_MOBILE_PROVISIONING_PROFILE_BASE64" | base64 --decode \
+            > "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/Alivia.mobileprovision"
+
+      - name: Archive del app
+        run: |
+          set -euo pipefail
+          SIGN="CODE_SIGNING_ALLOWED=NO"
+          if [ -n "${APPLE_CERTIFICATE_BASE64:-}" ]; then
+            IDENTITY="${IOS_SIGNING_IDENTITY:-Apple Distribution}"
+            SIGN="CODE_SIGN_IDENTITY=\"$IDENTITY\""
+            if [ -n "${DEVELOPMENT_TEAM_ID:-}" ]; then
+              SIGN="$SIGN DEVELOPMENT_TEAM=$DEVELOPMENT_TEAM_ID"
+            fi
+          fi
+          # shellcheck disable=SC2086
+          eval xcodebuild archive \
+            -project ios/Alivia.xcodeproj \
+            -scheme Alivia \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Alivia.xcarchive" \
+            $SIGN
+
+      - name: Exportar IPA firmado (solo si hay secrets)
+        if: env.APPLE_CERTIFICATE_BASE64 != ''
+        run: |
+          set -euo pipefail
+          METHOD="${{ inputs.method }}"
+          cat > "$RUNNER_TEMP/exportOptions.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>__METHOD__</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
+              <key>compileBitcode</key>
+              <false/>
+          </dict>
+          </plist>
+          EOF
+          sed -i '' "s/__METHOD__/$METHOD/" "$RUNNER_TEMP/exportOptions.plist"
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Alivia.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist"
+
+      - name: Empaquetar app sin firmar (sin secrets)
+        if: env.APPLE_CERTIFICATE_BASE64 == ''
+        run: |
+          mkdir -p "$RUNNER_TEMP/export"
+          cp -R "$RUNNER_TEMP/Alivia.xcarchive/Products/Applications/Alivia.app" "$RUNNER_TEMP/export/"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alivia-ios-${{ inputs.method }}
+          path: ${{ runner.temp }}/export
+        if: always()

@@ -1,0 +1,51 @@
+name: Alivia
+options:
+  bundleIdPrefix: com.alivia
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: false
+settings:
+  SWIFT_VERSION: "5.9"
+  DEVELOPMENT_TEAM: ""
+  CODE_SIGN_STYLE: Automatic
+  PRODUCT_BUNDLE_IDENTIFIER: com.alivia.ios
+  INFOPLIST_FILE: Alivia/Info.plist
+  ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+  TARGETED_DEVICE_FAMILY: "1,2"
+  IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+targets:
+  Alivia:
+    type: application
+    platform: iOS
+    sources:
+      - path: "Alivia"
+        excludes:
+          - "**/*.xcassets"
+      - path: "Alivia/Assets.xcassets"
+        optional: true
+      - path: "Alivia/LaunchScreen.storyboard"
+        optional: true
+        buildPhase: resources
+      - path: "Web"
+        type: folder
+        buildPhase: resources
+        name: "WebContent"
+    settings:
+      INFOPLIST_FILE: "Alivia/Info.plist"
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    info:
+      path: "Alivia/Info.plist"
+schemes:
+  Alivia:
+    build:
+      targets:
+        Alivia: all
+    archive:
+      config: Release
+    run:
+      config: Debug
+    profile:
+      config: Release

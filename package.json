@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "sync:android": "npm run build && cap sync android && node scripts/post-sync.js"
+    "sync:android": "npm run build && cap sync android && node scripts/post-sync.js",
+    "build:ios:web": "tsc -b && vite build --base=./ --outDir dist-ios --mode ios",
+    "sync:ios": "npm run build:ios:web && node scripts/ios-sync.js"
   },
   "dependencies": {
     "@capacitor-community/privacy-screen": "^8.0.0",

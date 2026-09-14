@@ -43,3 +43,13 @@ android/keystore/*.keystore
 
 # Binarios distribuidos vía GitHub Releases
 *.apk
+
+# iOS / Swift
+dist-ios/
+ios/Web/
+ios/build/
+ios/*.xcodeproj/
+ios/*.xcworkspace
+ios/Pods/
+ios/DerivedData/
+ios/Web/.gitkeep

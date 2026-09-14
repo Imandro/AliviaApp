@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Capacitor } from '@capacitor/core';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Pencil, Mail, Phone as PhoneIcon, AtSign, HeartPulse, ChevronRight, ShieldCheck, Download, Fingerprint, Bell } from 'lucide-react';
 import { SafeUser, logout, setToken } from '../utils/auth';
@@ -14,6 +13,7 @@ import {
 } from '../utils/appLock';
 import { downloadHtmlReport, downloadJsonExport } from '../utils/exportData';
 import { applyDailyReminder, getReminderPrefs, saveReminderPrefs, syncCheckInReminder } from '../utils/reminders';
+import { isNativeShell } from '../utils/nativeShell';
 import { getLang, setLang, t } from '../i18n';
 import logoVertical from '../assets/logo-vertical.png';
 
@@ -92,7 +92,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
   const [bioAvailable, setBioAvailable] = useState(false);
   const [exporting, setExporting] = useState<'json' | 'reporte' | null>(null);
   const [reminders, setReminders] = useState(() => getReminderPrefs());
-  const native = Capacitor.isNativePlatform();
+  const native = isNativeShell;
 
   useEffect(() => {
     getMyAssessments().then(setAssessments);
