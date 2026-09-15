@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, Phone, Contrast } from 'lucide-react';
+import { Check, Sun, Moon, Phone, Contrast, Palette } from 'lucide-react';
 import { hapticSos } from '../utils/haptics';
 import logoBanner from '../assets/logo-banner.png';
 
@@ -13,25 +13,36 @@ interface HeaderProps {
   userName?: string;
 }
 
-const THEME_ORDER: ThemeMode[] = ['dark', 'light', 'mono'];
-
-const THEME_INFO: Record<ThemeMode, { icon: React.ComponentType<any>; title: string; next: ThemeMode }> = {
-  dark: { icon: Sun, title: 'Modo Salvia Suave (claro)', next: 'light' },
-  light: { icon: Moon, title: 'Modo Calma Profunda (oscuro)', next: 'mono' },
-  mono: { icon: Contrast, title: 'Modo Calma Bicolor (blanco y negro)', next: 'dark' },
-};
+const THEME_ITEMS: Array<{ mode: ThemeMode; label: string; desc: string; icon: React.ComponentType<any>; chip: string }> = [
+  { mode: 'dark', label: 'Calma Profunda', desc: 'Oscuro · verde y oro', icon: Moon, chip: 'linear-gradient(135deg, #2C533D, #0d1810)' },
+  { mode: 'light', label: 'Salvia Suave', desc: 'Claro · contraste alto', icon: Sun, chip: 'linear-gradient(135deg, #EAEBDD, #d0d5c3)' },
+  { mode: 'mono', label: 'Monocromo', desc: 'Blanco y negro puro', icon: Contrast, chip: 'linear-gradient(135deg, #f5f5f5, #3a3a3a)' },
+];
 
 export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, userName }) => {
   const navigate = useNavigate();
+  const [themeOpen, setThemeOpen] = useState(false);
+  const themeRef = useRef<HTMLDivElement>(null);
 
-  const toggleTheme = () => {
-    const nextTheme = THEME_INFO[theme].next;
-    setTheme(nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
-  };
+  useEffect(() => {
+    if (!themeOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) {
+        setThemeOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setThemeOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [themeOpen]);
 
   const initial = (userName || 'A').trim().charAt(0).toUpperCase() || 'A';
-  const ThemeIcon = THEME_INFO[theme].icon;
 
   return (
     <header style={styles.header}>
@@ -40,22 +51,59 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
       </div>
 
       <div style={styles.actions}>
-        <button
-          onClick={toggleTheme}
-          style={styles.iconBtn}
-          className="hdr-btn"
-          title={THEME_INFO[theme].title}
-        >
-          <div style={styles.iconInner}>
-            <ThemeIcon size={18} color="var(--text-secondary)" />
-          </div>
-        </button>
+        <div ref={themeRef} style={styles.themeWrap}>
+          <button
+            onClick={() => setThemeOpen(v => !v)}
+            style={styles.iconBtn}
+            className="hdr-btn"
+            aria-haspopup="menu"
+            aria-expanded={themeOpen}
+            aria-label="Cambiar tema de la app"
+            title="Cambiar tema de la app"
+          >
+            <div style={styles.iconInner}>
+              <Palette size={19} color="var(--text-secondary)" />
+            </div>
+          </button>
+
+          {themeOpen && (
+            <div className="theme-menu" role="menu" aria-label="Cambiar tema">
+              {THEME_ITEMS.map((item) => {
+                const IconComponent = item.icon;
+                const isActive = theme === item.mode;
+                return (
+                  <button
+                    key={item.mode}
+                    role="menuitemradio"
+                    aria-checked={isActive}
+                    className="theme-menu-item"
+                    onClick={() => {
+                      setTheme(item.mode);
+                      document.documentElement.setAttribute('data-theme', item.mode);
+                      setThemeOpen(false);
+                    }}
+                    style={isActive ? { borderColor: 'rgba(var(--accent-gold-rgb), 0.4)' } : undefined}
+                  >
+                    <span className="theme-chip" style={{ background: item.chip }} aria-hidden="true" />
+                    <IconComponent size={17} color={isActive ? 'var(--accent-gold)' : 'var(--text-muted)'} aria-hidden="true" />
+                    <span style={styles.themeOptionText}>
+                      <span style={styles.themeOptionLabel}>{item.label}</span>
+                      <span style={styles.themeOptionDesc}>{item.desc}</span>
+                    </span>
+                    <Check size={16} className="theme-menu-check" aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         <button
           onClick={() => navigate('/profile')}
           style={styles.avatarBtn}
           className="hdr-btn"
           title="Mi perfil"
+          aria-label="Mi perfil"
         >
           <div style={styles.avatarInner}>{initial}</div>
         </button>
@@ -64,10 +112,11 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
           onClick={() => { hapticSos(); onSosClick(); }}
           style={styles.sosBtn}
           title="Ayuda Inmediata (SOS)"
+          aria-label="Ayuda inmediata, líneas de crisis (SOS)"
         >
           <div style={styles.sosPulse} />
           <div style={styles.sosPulse2} />
-          <Phone size={14} color="#fff" />
+          <Phone size={14} color="#fff" aria-hidden="true" />
           <span style={styles.sosText}>SOS</span>
         </button>
       </div>
@@ -90,7 +139,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderBottom: '1px solid var(--border-color)',
     boxShadow: '0 10px 30px -18px rgba(0, 0, 0, 0.55)',
     position: 'relative',
-    zIndex: 10,
+    zIndex: 30,
   },
   logoArea: {
     display: 'flex',
@@ -108,14 +157,34 @@ const styles: { [key: string]: React.CSSProperties } = {
   actions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '8px',
+  },
+  themeWrap: {
+    position: 'relative',
+  },
+  themeOptionText: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1px',
+    minWidth: 0,
+  },
+  themeOptionLabel: {
+    fontSize: '14px',
+    fontWeight: 700,
+    lineHeight: 1.2,
+  },
+  themeOptionDesc: {
+    fontSize: '11px',
+    color: 'var(--text-muted)',
+    lineHeight: 1.2,
   },
   iconBtn: {
     background: 'rgba(255, 255, 255, 0.04)',
     border: '1px solid var(--border-color)',
     cursor: 'pointer',
-    width: '38px',
-    height: '38px',
+    minWidth: '44px',
+    width: '44px',
+    height: '44px',
     borderRadius: '50%',
     display: 'flex',
     justifyContent: 'center',
@@ -131,8 +200,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'rgba(var(--accent-gold-rgb), 0.10)',
     border: '1px solid rgba(var(--accent-gold-rgb), 0.3)',
     cursor: 'pointer',
-    width: '38px',
-    height: '38px',
+    minWidth: '44px',
+    width: '44px',
+    height: '44px',
     borderRadius: '50%',
     display: 'flex',
     justifyContent: 'center',
@@ -142,22 +212,22 @@ const styles: { [key: string]: React.CSSProperties } = {
   avatarInner: {
     fontFamily: 'var(--font-title)',
     fontWeight: 700,
-    fontSize: '15px',
+    fontSize: '16px',
     color: 'var(--accent-gold)',
     lineHeight: 1,
   },
   sosBtn: {
     position: 'relative',
-    height: '36px',
-    padding: '0 14px',
-    borderRadius: '18px',
+    height: '44px',
+    padding: '0 16px',
+    borderRadius: '22px',
     border: 'none',
     background: 'linear-gradient(135deg, #e57373 0%, #d32f2f 100%)',
     boxShadow: '0 4px 15px rgba(211, 47, 47, 0.4)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
-    gap: '5px',
+    gap: '6px',
     overflow: 'hidden',
     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
   },
@@ -165,7 +235,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#fff',
     fontFamily: 'var(--font-title)',
     fontWeight: 700,
-    fontSize: '12px',
+    fontSize: '13px',
     letterSpacing: '0.06em',
   },
   sosPulse: {
@@ -174,7 +244,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     width: '100%',
     height: '100%',
-    borderRadius: '18px',
+    borderRadius: '22px',
     border: '2px solid rgba(229, 115, 115, 0.5)',
     animation: 'pulseSOS 2s infinite ease-out',
     pointerEvents: 'none',
@@ -186,7 +256,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     width: '100%',
     height: '100%',
-    borderRadius: '18px',
+    borderRadius: '22px',
     border: '2px solid rgba(229, 115, 115, 0.3)',
     animation: 'pulseSOS 2s infinite ease-out',
     animationDelay: '0.6s',
