@@ -15,6 +15,9 @@ import {
   Bot,
   HeartPulse,
   Gamepad2,
+  LayoutGrid,
+  Lock,
+  Eye,
 } from 'lucide-react';
 import {
   saveTodayMood,
@@ -68,6 +71,14 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const [previewLucha, setPreviewLucha] = useState<string | null>(null);
   const [alientoBg, setAlientoBg] = useState(ALIENTO_BG[0]);
   const [assessments, setAssessments] = useState<AssessmentRecord[] | null>(null);
+  const [showEmotions, setShowEmotions] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('alivia-privacy-show-emotions') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const lucha = getLucha(luchaId);
   const day = dayOfYear();
@@ -81,6 +92,14 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
     refreshData();
     getMyAssessments().then(setAssessments);
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('alivia-privacy-show-emotions', showEmotions ? '1' : '0');
+    } catch {
+      /* noop */
+    }
+  }, [showEmotions]);
 
   const refreshData = async () => {
     try {
@@ -132,7 +151,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   };
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'amigo(a)';
-  const lastMoodEmoji = todayScore ? moodDetails[todayScore].emoji : '◑';
+  const lastMoodEmoji = showEmotions && todayScore ? moodDetails[todayScore].emoji : '✿';
   const level = 1 + Math.floor(streak / 5);
   const today = getTodayString();
   const challengeDoneToday = isDoneOn(challengeLog, today);
@@ -147,9 +166,10 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '8px' }}>
+    <div className="fade-in" style={{ paddingBottom: '8px' }}>
+      <div className="dash-grid">
       {/* Header — hero */}
-      <div className="cm-card cm-press" style={styles.heroHeader}>
+      <div className="cm-card cm-press dash-span" style={styles.heroHeader}>
         <div style={styles.heroGlowTop} />
         <div style={styles.heroGlowBot} />
         <div style={styles.heroBody}>
@@ -172,7 +192,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
       {/* Banner VIA — chat IA siempre a la vista */}
       <div
-        className="cm-card cm-press"
+        className="cm-card cm-press dash-span"
         style={styles.viaBanner}
         onClick={() => navigate('/chat')}
         role="button"
@@ -207,7 +227,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         if (dueState.due) {
           return (
             <div
-              className="cm-card cm-press"
+              className="cm-card cm-press dash-span"
               style={styles.checkupCard}
               onClick={() => navigate('/assessment')}
               role="button"
@@ -227,7 +247,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         }
         return (
           <div
-            className="cm-card cm-press"
+            className="cm-card cm-press dash-span"
             style={styles.checkupQuiet}
             onClick={() => navigate('/assessment')}
             role="button"
@@ -252,6 +272,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       })()}
 
       {/* Selector de luchas */}
+      <div className="dash-span">
       <button
         type="button"
         onClick={() => { setPreviewLucha(luchaId); setPickerOpen(true); }}
@@ -268,6 +289,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </span>
         <ChevronDown size={18} color="var(--text-muted)" style={{ flexShrink: 0 }} />
       </button>
+      </div>
 
       {pickerOpen && (() => {
         const preview = getLucha(previewLucha ?? luchaId);
@@ -330,7 +352,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
       {/* Aliento para hoy */}
       <div
-        className="cm-card cm-press"
+        className="cm-card cm-press dash-span"
         style={{ ...styles.alientoCard, backgroundImage: alientoBg, minHeight: 165 }}
         onClick={() => navigate('/breathe')}
       >
@@ -352,7 +374,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
 {/* Reto de hoy */}
       <div
-        className="cm-card cm-press"
+        className="cm-card cm-press dash-span"
         style={{ ...styles.challengeCard, background: challengeDoneToday ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : 'linear-gradient(135deg, #7C6FE8 0%, #5B4FD0 100%)' }}
         onClick={() => navigate('/retos')}
       >
@@ -429,72 +451,109 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
       </div>
 
-      {/* Registro de emociones — tu semana */}
+      {/* Registro de emociones — tu semana (con privacidad) */}
       <div className="cm-card" style={styles.moodCard}>
         <div style={styles.moodCardHead}>
-          <span style={styles.moodCardBadge}>◑</span>
-          <p style={styles.moodCardLabel}>TU RITMO DE HOY</p>
+          <span style={styles.moodCardBadge}>{showEmotions ? '◑' : '🔒'}</span>
+          <p style={styles.moodCardLabel}>{showEmotions ? 'TU RITMO DE HOY' : 'TU ESTADO EMOCIONAL'}</p>
         </div>
-        <p style={styles.checkinLabel}>
-          {todayScore ? <>Hoy te sientes: <b style={{ color: moodDetails[todayScore].color }}>{moodDetails[todayScore].emoji} {todayLabel} ✓</b></> : '¿Cómo te sientes en este instante?'}
-        </p>
-        <div style={styles.moodRow}>
-          {Object.values(moodDetails).map((m) => (
-            <button
-              key={m.score}
-              onClick={() => handleQuickMood(m.score)}
-              disabled={savingMood}
-              title={m.label}
-              className="cm-mood-btn"
-              style={{
-                ...styles.moodBtn,
-                background: todayScore === m.score ? m.color : 'var(--bg-base)',
-                boxShadow: todayScore === m.score ? `0 0 12px ${m.color}80` : 'none',
-                border: todayScore === m.score ? `2px solid ${m.color}` : '1px solid var(--border-color)',
-              }}
-            >
-              <span style={{ fontSize: 22 }}>{m.emoji}</span>
-            </button>
-          ))}
-        </div>
-        <div style={styles.weekRow}>
-          {weekHistory.map((item, idx) => {
-            const detail = item.score ? moodDetails[item.score] : null;
-            const isToday = idx === weekHistory.length - 1;
-            return (
-              <div
-                key={item.date}
-                title={item.dayName}
-                style={styles.weekCol}
-              >
-                <div
-                  className="cm-dot"
+
+        {showEmotions ? (
+          <>
+            <p style={styles.checkinLabel}>
+              {todayScore ? <>Hoy te sientes: <b style={{ color: moodDetails[todayScore].color }}>{moodDetails[todayScore].emoji} {todayLabel} ✓</b></> : '¿Cómo te sientes en este instante?'}
+            </p>
+            <div style={styles.moodRow}>
+              {Object.values(moodDetails).map((m) => (
+                <button
+                  key={m.score}
+                  onClick={() => handleQuickMood(m.score)}
+                  disabled={savingMood}
+                  title={m.label}
+                  className="cm-mood-btn"
                   style={{
-                    ...styles.weekDot,
-                    background: detail ? detail.color : 'var(--bg-base)',
-                    border: isToday
-                      ? '1px dashed var(--accent-gold)'
-                      : detail
-                        ? '1px solid var(--border-color)'
-                        : '1px dashed var(--border-color)',
-                    boxShadow: detail ? `0 0 8px ${detail.color}80` : 'none',
+                    ...styles.moodBtn,
+                    background: todayScore === m.score ? m.color : 'var(--bg-base)',
+                    boxShadow: todayScore === m.score ? `0 0 12px ${m.color}80` : 'none',
+                    border: todayScore === m.score ? `2px solid ${m.color}` : '1px solid var(--border-color)',
                   }}
                 >
-                  {detail && <span style={styles.weekDotEmoji}>{detail.emoji}</span>}
-                </div>
-                <span style={styles.weekDay}>{item.dayName.charAt(0).toUpperCase()}</span>
-              </div>
-            );
-          })}
+                  <span style={{ fontSize: 22 }}>{m.emoji}</span>
+                </button>
+              ))}
+            </div>
+            <div style={styles.weekRow}>
+              {weekHistory.map((item, idx) => {
+                const detail = item.score ? moodDetails[item.score] : null;
+                const isToday = idx === weekHistory.length - 1;
+                return (
+                  <div
+                    key={item.date}
+                    title={item.dayName}
+                    style={styles.weekCol}
+                  >
+                    <div
+                      className="cm-dot"
+                      style={{
+                        ...styles.weekDot,
+                        background: detail ? detail.color : 'var(--bg-base)',
+                        border: isToday
+                          ? '1px dashed var(--accent-gold)'
+                          : detail
+                            ? '1px solid var(--border-color)'
+                            : '1px dashed var(--border-color)',
+                        boxShadow: detail ? `0 0 8px ${detail.color}80` : 'none',
+                      }}
+                    >
+                      {detail && <span style={styles.weekDotEmoji}>{detail.emoji}</span>}
+                    </div>
+                    <span style={styles.weekDay}>{item.dayName.charAt(0).toUpperCase()}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div style={styles.privacyBody}>
+            <p style={styles.privacyBodyText}>
+              Tu estado está oculto por defecto: nadie que use este dispositivo puede ver tus emociones registradas.
+            </p>
+            <button type="button" onClick={() => setShowEmotions(true)} style={styles.privacyReveal}>
+              <Eye size={15} color="var(--accent-gold)" />
+              Mostrar mi estado en esta pantalla
+            </button>
+          </div>
+        )}
+
+        <div style={styles.moodFooter}>
+          <Lock size={12} color="var(--text-muted)" />
+          <span style={styles.moodFooterText}>Se muestra y se guarda solo en este dispositivo</span>
+          {showEmotions && (
+            <button type="button" onClick={() => setShowEmotions(false)} style={styles.privacyHide}>
+              Ocultar
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Tarjeta de privacidad */}
+      <div className="cm-card dash-span" style={styles.privacyCard}>
+        <div style={styles.privacyIcon}>
+          <Lock size={15} color="var(--accent-sage)" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={styles.privacyTitle}>Tus datos personales se muestran solo en este dispositivo</p>
+          <p style={styles.privacySub}>Nada de esto se sube a internet ni sale de tu celular.</p>
+        </div>
+        <ChevronRight size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+      </div>
+
       {/* Herramientas */}
-      <div style={styles.sectionHead}>
+      <div className="dash-span" style={styles.sectionHead}>
         <span style={styles.sectionHeadIcon}>✦</span>
         <span style={styles.sectionHeadTitle}>HERRAMIENTAS</span>
       </div>
-      <div style={styles.actionsGrid}>
+      <div className="dash-span" style={styles.actionsGrid}>
         <div className="cm-card cm-press" style={styles.actionCard} onClick={() => navigate('/explore')}>
           <div style={{ ...styles.actionIcon, background: 'rgba(var(--accent-sage-rgb), 0.12)' }}>
             <Compass size={30} color="var(--accent-sage)" />
@@ -525,53 +584,69 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
       </div>
 
-      {/* Juegos Mente-Activos */}
-      <div className="flex flex-col" style={{ gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h4 className="title-small" style={{ fontSize: '12px', color: 'var(--text-primary)', margin: 0 }}>
-            ✦ JUEGOS MENTE-ACTIVOS
-          </h4>
-          <span
-            style={{ fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 700 }}
-            onClick={() => navigate('/games')}
-          >
-            Ver todos ›
+      {/* Más herramientas — plegable */}
+      <div className="cm-card dash-span" style={styles.moreCard}>
+        <button type="button" className="cm-press" style={styles.moreToggle} onClick={() => setMoreOpen(v => !v)} aria-expanded={moreOpen}>
+          <span style={styles.moreToggleIcon}>
+            <LayoutGrid size={16} color="var(--accent-gold)" />
           </span>
-        </div>
-        <div style={styles.gamesGrid}>
-          {GAMES.map(game => (
-            <div
-              key={game.id}
-              className="cm-card cm-press"
-              style={styles.gameCard}
-              onClick={() => navigate(`/games/${game.id}`)}
-              role="button"
-            >
-              <div className="cm-float" style={{ ...styles.gameEmojiBox, background: game.gradient }}>
-                {game.emoji}
+          <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+            <h4 style={styles.moreTitle}>Más herramientas</h4>
+            <p style={styles.moreSub}>Juegos, consejos y recursos para tu bienestar</p>
+          </span>
+          <ChevronDown size={18} color="var(--text-muted)" style={{ flexShrink: 0, transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease' }} />
+        </button>
+
+        {moreOpen && (
+          <div className="flex flex-col" style={{ gap: '12px', padding: '0 16px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h4 className="title-small" style={{ fontSize: '12px', color: 'var(--text-primary)', margin: 0 }}>
+                ✦ JUEGOS MENTE-ACTIVOS
+              </h4>
+              <span
+                style={{ fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 700 }}
+                onClick={() => navigate('/games')}
+              >
+                Ver todos ›
+              </span>
+            </div>
+            <div style={styles.gamesGrid}>
+              {GAMES.map(game => (
+                <div
+                  key={game.id}
+                  className="cm-card cm-press"
+                  style={styles.gameCard}
+                  onClick={() => navigate(`/games/${game.id}`)}
+                  role="button"
+                >
+                  <div className="cm-float" style={{ ...styles.gameEmojiBox, background: game.gradient }}>
+                    {game.emoji}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h5 style={styles.gameTitle}>{game.title}</h5>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{game.minutes}</span>
+                  </div>
+                  <span style={styles.gamePlay}>▶</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Consejo para hoy */}
+            <div className="cm-card cm-press" style={styles.wisdomCard} onClick={() => navigate('/library')}>
+              <div className="cm-float" style={{ ...styles.wisdomIcon, background: `rgba(${lucha.rgb}, 0.14)` }}>
+                <Sun size={22} color={lucha.color} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h5 style={styles.gameTitle}>{game.title}</h5>
-                <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>{game.minutes}</span>
+                <p style={styles.wisdomTitle}>Consejo para hoy</p>
+                <p style={styles.wisdomFact}>
+                  <strong>¿Sabías que?</strong> {sabias.length > 90 ? `${sabias.slice(0, 90)}…` : sabias}
+                </p>
               </div>
-              <span style={styles.gamePlay}>▶</span>
+              <ChevronRight size={20} color="var(--text-muted)" style={{ flexShrink: 0 }} />
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
-
-      {/* Consejo para hoy */}
-      <div className="cm-card cm-press" style={styles.wisdomCard} onClick={() => navigate('/library')}>
-        <div className="cm-float" style={{ ...styles.wisdomIcon, background: `rgba(${lucha.rgb}, 0.14)` }}>
-          <Sun size={22} color={lucha.color} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={styles.wisdomTitle}>Consejo para hoy</p>
-          <p style={styles.wisdomFact}>
-            <strong>¿Sabías que?</strong> {sabias.length > 90 ? `${sabias.slice(0, 90)}…` : sabias}
-          </p>
-        </div>
-        <ChevronRight size={20} color="var(--text-muted)" style={{ flexShrink: 0 }} />
       </div>
     </div>
   );
@@ -1507,5 +1582,123 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '12.5px',
     lineHeight: 1.45,
     color: 'var(--text-secondary)',
+  },
+
+  moodFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    paddingTop: '10px',
+    borderTop: '1px dashed var(--border-color)',
+  },
+  moodFooterText: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+  },
+  privacyHide: {
+    border: '1px solid var(--border-color)',
+    background: 'none',
+    color: 'var(--text-secondary)',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: '6px 12px',
+    borderRadius: '999px',
+    fontFamily: 'var(--font-title)',
+  },
+  privacyBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  privacyBodyText: {
+    margin: 0,
+    fontSize: '14px',
+    lineHeight: 1.5,
+    color: 'var(--text-secondary)',
+  },
+  privacyReveal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '13px 16px',
+    borderRadius: '14px',
+    border: '1px solid rgba(var(--accent-gold-rgb), 0.3)',
+    background: 'rgba(var(--accent-gold-rgb), 0.1)',
+    color: 'var(--accent-gold)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '14px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  privacyCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '14px 16px',
+  },
+  privacyIcon: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '11px',
+    background: 'rgba(var(--accent-sage-rgb), 0.12)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  privacyTitle: {
+    margin: 0,
+    fontSize: '13px',
+    fontWeight: 800,
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-title)',
+    lineHeight: 1.3,
+  },
+  privacySub: {
+    margin: '2px 0 0',
+    fontSize: '12px',
+    color: 'var(--text-muted)',
+  },
+
+  moreCard: {
+    padding: 0,
+    overflow: 'hidden',
+  },
+  moreToggle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    width: '100%',
+    padding: '16px',
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    position: 'relative',
+  },
+  moreToggleIcon: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '13px',
+    background: 'rgba(var(--accent-gold-rgb), 0.12)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  moreTitle: {
+    margin: 0,
+    fontSize: '15px',
+    fontWeight: 800,
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-display)',
+  },
+  moreSub: {
+    margin: '2px 0 0',
+    fontSize: '12px',
+    color: 'var(--text-muted)',
   },
 };

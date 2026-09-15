@@ -180,8 +180,8 @@ export const getAiReply = (message: string, lastTopic?: string): { text: string;
     return {
       isCrisis: false,
       topics: [navIntent.label],
-      text: getNavReply(navIntent),
-      suggest: [],
+      text: `Claro, te ayudo con eso. Cuando estés lista/o y quieras ir, toca el botón de aquí abajo para abrir el ${navIntent.label}.`,
+      suggest: [{ label: `Abrir ${navIntent.label}`, path: navIntent.path }],
     };
   }
 

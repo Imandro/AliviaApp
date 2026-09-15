@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
-import { getAiIntro, getNavigationIntent } from '../utils/empatheticAI';
+import { Send, Sparkles, Phone, ShieldAlert, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X, MicOff, WifiOff, Trash2, Users } from 'lucide-react';
+import { getAiIntro } from '../utils/empatheticAI';
 import { getAiReplyHybrid, hasOnlineAI, transcribeWithGroq, AiReply, AiTurn } from '../utils/aiProvider';
 import { speakNatural, stopSpeaking, preloadVoices, unlockAudio } from '../utils/tts';
 
@@ -24,7 +24,7 @@ const QUICK_PROMPTS = [
   'Tengo presión por un examen',
 ];
 
-type VoiceSession = 'idle' | 'listening' | 'transcribing' | 'speaking';
+type VoiceSession = 'idle' | 'listening' | 'confirm' | 'transcribing' | 'speaking';
 type OrbTheme = 'dark' | 'light' | 'mono';
 
 declare global {
@@ -61,16 +61,20 @@ const ORB_BG: Record<OrbTheme, string> = {
   mono: 'radial-gradient(circle at 50% 42%, #171717 0%, #0e0e0e 55%, #000000 100%)',
 };
 
-const ORB_LABEL: Record<Exclude<VoiceSession, 'idle'>, string> = {
+const ORB_LABEL: Record<VoiceSession, string> = {
   listening: 'Te escucho…',
+  confirm: '¿Enviar esta transcripción?',
   transcribing: 'Entendiendo…',
   speaking: 'VIA está respondiendo…',
+  idle: '',
 };
 
-const ORB_HINT: Record<Exclude<VoiceSession, 'idle'>, string> = {
-  listening: 'Toca la burbuja para enviar',
+const ORB_HINT: Record<VoiceSession, string> = {
+  listening: 'Habla con calma',
+  confirm: 'Revisa lo que escuché antes de enviarlo',
   transcribing: 'Un momento…',
-  speaking: 'Escucho cuando termines',
+  speaking: 'La respuesta se lee en voz alta',
+  idle: '',
 };
 
 export const ChatView: React.FC = () => {
@@ -106,11 +110,17 @@ export const ChatView: React.FC = () => {
   const messagesRef = useRef<ChatMessage[]>([]);
   const crisisRef = useRef(false);
   const sendNowRef = useRef<(() => void) | null>(null);
-  const pendingNavRef = useRef<{ path: string; label: string } | null>(null);
   messagesRef.current = messages;
   crisisRef.current = crisisMode;
 
   const [voiceEngaged, setVoiceEngaged] = useState(false);
+  const confirmRef = useRef<((ok: boolean) => void) | null>(null);
+  const [pendingTranscript, setPendingTranscript] = useState('');
+  const [micDenied, setMicDenied] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [crisisCardOpen, setCrisisCardOpen] = useState(true);
+  const [isOnline, setIsOnline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+  const resetTimerRef = useRef<number | null>(null);
 
   const showToast = useCallback((text: string) => {
     setToast(text);
@@ -131,6 +141,17 @@ export const ChatView: React.FC = () => {
       }
     }, 300);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
   }, []);
 
   useEffect(() => {
@@ -281,6 +302,7 @@ export const ChatView: React.FC = () => {
         };
         rec.onerror = (event: any) => {
           if (event?.error === 'not-allowed') {
+            setMicDenied(true);
             showToast('Permite el micrófono para hablar con VIA.');
           }
           settle(null);
@@ -414,19 +436,11 @@ export const ChatView: React.FC = () => {
     }]);
     setIsTyping(false);
 
-    const nav = !crisisRef.current && !reply.isCrisis ? getNavigationIntent(trimmed) : null;
-    pendingNavRef.current = nav;
-    if (nav && !voiceRunRef.current) {
-      setTimeout(() => {
-        if (pendingNavRef.current === nav) {
-          pendingNavRef.current = null;
-          navigate(nav.path);
-          showToast(`Te llevo al ${nav.label} ahora mismo.`);
-        }
-      }, 1400);
+    if (reply.isCrisis) {
+      setCrisisCardOpen(true);
     }
     return reply.text;
-  }, [navigate, showToast]);
+  }, [showToast]);
 
   const handleSend = useCallback(async (textArg?: string) => {
     const text = (textArg ?? input).trim();
@@ -450,9 +464,11 @@ export const ChatView: React.FC = () => {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
+      setMicDenied(true);
       showToast('Permite el micrófono para hablar con VIA.');
       return;
     }
+    setMicDenied(false);
     streamRef.current = stream;
     setOrbScale(1);
     setOrbTheme(getOrbTheme());
@@ -461,11 +477,24 @@ export const ChatView: React.FC = () => {
     voiceRunRef.current = ac;
     startVolumeLoop(stream);
 
+    const waitForConfirm = (signal: AbortSignal, transcript: string): Promise<boolean> =>
+      new Promise<boolean>((resolve) => {
+        setPendingTranscript(transcript);
+        setVoiceSession('confirm');
+        const onAbort = () => resolve(false);
+        confirmRef.current = (ok: boolean) => resolve(ok);
+        signal.addEventListener('abort', onAbort, { once: true });
+      });
+
     while (!ac.signal.aborted) {
       setVoiceSession('listening');
       const transcript = await listenOnce(ac.signal);
       if (ac.signal.aborted) break;
       if (!transcript) continue;
+
+      const ok = await waitForConfirm(ac.signal, transcript);
+      if (ac.signal.aborted) break;
+      if (!ok) continue;
 
       setVoiceSession('transcribing');
       const replyText = await sendCore(transcript);
@@ -475,16 +504,11 @@ export const ChatView: React.FC = () => {
       setVoiceSession('speaking');
       spokenRef.current = replyText;
       await speakNatural(replyText);
-      if (pendingNavRef.current) {
-        const nav = pendingNavRef.current;
-        pendingNavRef.current = null;
-        navigate(nav.path);
-        showToast(`Te llevo al ${nav.label} ahora mismo.`);
-        break;
-      }
     }
 
     stopVoiceInternals();
+    confirmRef.current = null;
+    setPendingTranscript('');
     voiceRunRef.current = null;
     setVoiceSession('idle');
   }, [listenOnce, sendCore, showToast, startVolumeLoop, stopVoiceInternals]);
@@ -493,37 +517,59 @@ export const ChatView: React.FC = () => {
     voiceRunRef.current?.abort();
     stopSpeaking();
     stopVoiceInternals();
+    confirmRef.current = null;
+    setPendingTranscript('');
     setVoiceSession('idle');
   }, [stopVoiceInternals]);
 
-  const handleReset = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* noop */
+  const sendTranscript = useCallback(() => {
+    confirmRef.current?.(true);
+  }, []);
+
+  const rejectTranscript = useCallback(() => {
+    confirmRef.current?.(false);
+  }, []);
+
+  const requestReset = () => {
+    if (confirmReset) {
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+      setConfirmReset(false);
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        /* noop */
+      }
+      const intro = getAiIntro();
+      setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
+      setLastSource(null);
+      setCrisisMode(false);
+      setCrisisCardOpen(true);
+      spokenRef.current = '';
+      return;
     }
-    const intro = getAiIntro();
-    setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
-    setLastSource(null);
-    setCrisisMode(false);
-    spokenRef.current = '';
+    setConfirmReset(true);
+    if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    resetTimerRef.current = window.setTimeout(() => setConfirmReset(false), 4000);
   };
 
   const statusLabel = crisisMode
     ? 'Acompañando en crisis'
-    : lastSource === 'groq'
-      ? 'IA en línea'
-      : lastSource === 'rules'
-        ? 'Modo guiado'
-        : onlineMode
-          ? 'IA en línea'
+    : isTyping
+      ? 'Generando respuesta…'
+      : !isOnline
+        ? 'Modo sin conexión'
+        : lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
+          ? 'Conectada'
           : 'Modo guiado';
 
   const statusColor = crisisMode
     ? '#ff8a80'
-    : lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
-      ? '#7fd6a1'
-      : 'var(--accent-gold)';
+    : !isOnline
+      ? 'var(--accent-warm)'
+      : lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
+        ? '#7fd6a1'
+        : 'var(--accent-gold)';
 
   const speechSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition || navigator.mediaDevices?.getUserMedia);
 
@@ -566,11 +612,47 @@ export const ChatView: React.FC = () => {
           />
           <div style={styles.orbRing2} />
           {voiceSession === 'transcribing' && <div style={styles.orbPulse} />}
+
+          {voiceSession === 'confirm' && pendingTranscript && (
+            <div style={styles.orbTranscript}>
+              <p style={styles.orbTranscriptLabel}>Lo que escuché:</p>
+              <p style={styles.orbTranscriptText}>{pendingTranscript}</p>
+            </div>
+          )}
+
           <div style={styles.orbLabel}>
-            {ORB_LABEL[voiceSession as Exclude<VoiceSession, 'idle'>]}
+            {ORB_LABEL[voiceSession]}
           </div>
           <div style={styles.orbHint}>
-            {ORB_HINT[voiceSession as Exclude<VoiceSession, 'idle'>]}
+            {ORB_HINT[voiceSession]}
+          </div>
+
+          <div style={styles.orbActions}>
+            <button
+              onClick={() => {
+                if (voiceSession === 'confirm') rejectTranscript();
+                else cancelVoice();
+              }}
+              style={styles.orbActionSecondary}
+            >
+              <X size={15} color="currentColor" />
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                if (voiceSession === 'confirm') sendTranscript();
+                else if (voiceSession === 'listening') sendNowRef.current?.();
+              }}
+              disabled={voiceSession !== 'listening' && voiceSession !== 'confirm'}
+              style={{
+                ...styles.orbActionPrimary,
+                opacity: voiceSession !== 'listening' && voiceSession !== 'confirm' ? 0.45 : 1,
+                boxShadow: voiceSession !== 'listening' && voiceSession !== 'confirm' ? 'none' : styles.orbActionPrimary.boxShadow,
+              }}
+            >
+              <Send size={15} color="currentColor" />
+              {voiceSession === 'confirm' ? 'Enviar transcripción' : 'Enviar'}
+            </button>
           </div>
         </div>
       )}
@@ -581,11 +663,11 @@ export const ChatView: React.FC = () => {
             <Sparkles size={15} color="var(--accent-gold)" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>VIA · ORIENTACIÓN EMOCIONAL</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
-              <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.7 }}>
-                {statusLabel} · Escribe • o habla 🎙️
+            <h3 className="title-small" style={{ color: 'var(--text-primary)', fontSize: '13px' }}>VIA · ORIENTACIÓN EMOCIONAL</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginTop: '4px', flexWrap: 'wrap' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
+              <p className="body-standard" style={{ fontSize: '12px', fontWeight: 600, color: statusColor, opacity: 1, margin: 0 }}>
+                {statusLabel}
               </p>
             </div>
           </div>
@@ -593,20 +675,54 @@ export const ChatView: React.FC = () => {
             onClick={() => { setVoiceOn(v => !v); setVoiceEngaged(true); }}
             style={{
               ...styles.iconBtn,
+              minWidth: '44px',
+              minHeight: '44px',
               background: voiceOn ? 'rgba(var(--accent-gold-rgb), 0.14)' : 'rgba(0,0,0,0.12)',
               border: `1px solid ${voiceOn ? 'rgba(var(--accent-gold-rgb), 0.35)' : 'var(--border-color)'}`,
             }}
             title={voiceOn ? 'Silenciar la voz de VIA' : 'Activar la voz de VIA'}
+            aria-label={voiceOn ? 'Silenciar la voz de VIA' : 'Activar la voz de VIA'}
+            aria-pressed={voiceOn}
           >
-            {voiceOn ? <Volume2 size={15} color="var(--accent-gold)" /> : <VolumeX size={15} color="var(--text-muted)" />}
+            {voiceOn ? <Volume2 size={16} color="var(--accent-gold)" /> : <VolumeX size={16} color="var(--text-muted)" />}
           </button>
           {messages.length > 1 && (
-            <button onClick={handleReset} style={styles.iconBtn} title="Reiniciar conversación">
-              <RotateCcw size={14} color="var(--text-muted)" />
+            <button
+              onClick={requestReset}
+              style={{ ...styles.iconBtn, minWidth: '44px', minHeight: '44px' }}
+              title="Borrar conversación"
+              aria-label="Borrar conversación"
+            >
+              <RotateCcw size={15} color="var(--text-muted)" />
             </button>
           )}
         </div>
+
+        {confirmReset && (
+          <div className="confirm-row" role="alert">
+            <Trash2 size={14} color="var(--accent-rose)" />
+            <span style={{ flex: 1, minWidth: 0 }}>¿Borrar toda la conversación y empezar de nuevo?</span>
+            <button onClick={() => requestReset()}>Sí, borrar</button>
+            <button
+              onClick={() => {
+                if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+                resetTimerRef.current = null;
+                setConfirmReset(false);
+              }}
+            >
+              No
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Aviso de desconexión */}
+      {!isOnline && (
+        <div className="inline-notice">
+          <WifiOff size={15} color="var(--accent-warm)" />
+          <span>Estás sin conexión. VIA te responde con cuidado aquí mismo y todo lo que escribas se guarda en tu dispositivo.</span>
+        </div>
+      )}
 
       <div
         ref={scrollRef}
@@ -628,7 +744,7 @@ export const ChatView: React.FC = () => {
                   <span style={{ fontWeight: 700, fontSize: '11px', color: '#ff8a80' }}>CRISIS DETECTADA</span>
                 </div>
               )}
-              <p className="body-standard" style={{ fontSize: '13.5px', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+              <p className="body-standard" style={{ fontSize: '16px', lineHeight: 1.55, whiteSpace: 'pre-line', color: 'var(--text-primary)' }}>
                 {msg.text}
               </p>
 
@@ -665,6 +781,29 @@ export const ChatView: React.FC = () => {
         )}
       </div>
 
+      {crisisMode && crisisCardOpen && !isTyping && !voiceEngaged && (
+        <div className="crisis-card">
+          <div className="crisis-card-head">
+            <ShieldAlert size={16} color="#ff8a80" />
+            <span>TU SEGURIDAD ES IMPORTANTE</span>
+          </div>
+          <p className="crisis-card-title">¿Estás en peligro inmediato?</p>
+          <div className="crisis-card-actions">
+            <button className="crisis-action crisis-action--primary" onClick={() => navigate('/sos')}>
+              <Phone size={15} />
+              Ver ayuda urgente
+            </button>
+            <button className="crisis-action" onClick={() => navigate('/connect')}>
+              <Users size={15} color="var(--text-primary)" />
+              Hablar con una persona de confianza
+            </button>
+            <button className="crisis-action crisis-action--quiet" onClick={() => setCrisisCardOpen(false)}>
+              Seguir conversando con VIA
+            </button>
+          </div>
+        </div>
+      )}
+
       {messages.length >= 2 && messages.length < 6 && (
         <div style={styles.quickRow}>
           {QUICK_PROMPTS.map((q) => (
@@ -672,6 +811,14 @@ export const ChatView: React.FC = () => {
               {q}
             </button>
           ))}
+        </div>
+      )}
+
+      {micDenied && (
+        <div className="inline-notice">
+          <MicOff size={15} color="var(--accent-rose)" />
+          <span>Para hablar por micrófono necesitas permitir el acceso. Puedes seguir escribiendo aquí cuando quieras.</span>
+          <button onClick={() => setMicDenied(false)}>Entendido</button>
         </div>
       )}
 
@@ -683,12 +830,15 @@ export const ChatView: React.FC = () => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
           className="input-apple"
-          style={{ flex: 1, padding: '12px 16px', fontSize: '13.5px' }}
+          aria-label="Escribe o habla con VIA"
+          enterKeyHint="send"
+          style={{ flex: 1, padding: '13px 16px', fontSize: '16px', minWidth: 0 }}
         />
         <button
           onClick={startVoice}
           disabled={!speechSupported || voiceSession !== 'idle'}
           title="Hablar con VIA"
+          aria-label="Hablar con VIA (micrófono)"
           style={{
             ...styles.micBtn,
             background: voiceSession !== 'idle' ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'rgba(255, 255, 255, 0.06)',
@@ -698,7 +848,7 @@ export const ChatView: React.FC = () => {
         >
           <Mic size={16} color={voiceSession !== 'idle' ? '#fff' : 'var(--text-secondary)'} />
         </button>
-        <button onClick={() => handleSend()} disabled={!input.trim() || isTyping} style={styles.sendBtn}>
+        <button onClick={() => handleSend()} disabled={!input.trim() || isTyping} style={styles.sendBtn} aria-label="Enviar mensaje">
           <Send size={16} color="#fff" />
         </button>
       </div>
@@ -826,15 +976,90 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   orbHint: {
     position: 'absolute',
-    top: '76%',
+    top: '77%',
     left: 0,
     right: 0,
     textAlign: 'center',
     fontFamily: 'var(--font-title)',
-    fontSize: '11px',
+    fontSize: '12px',
     letterSpacing: '0.03em',
     color: 'var(--text-primary)',
-    opacity: 0.55,
+    opacity: 0.6,
+  },
+  orbTranscript: {
+    position: 'absolute',
+    top: 'max(24px, env(safe-area-inset-top))',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: 'min(420px, calc(100% - 40px))',
+    maxHeight: '20vh',
+    overflowY: 'auto',
+    padding: '12px 16px',
+    borderRadius: '16px',
+    background: 'rgba(0, 0, 0, 0.35)',
+    border: '1px solid var(--border-color-active)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    zIndex: 5,
+  },
+  orbTranscriptLabel: {
+    margin: '0 0 4px',
+    fontFamily: 'var(--font-title)',
+    fontSize: '11px',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: 'var(--text-muted)',
+    opacity: 0.8,
+  },
+  orbTranscriptText: {
+    margin: 0,
+    fontSize: '16px',
+    lineHeight: 1.4,
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  orbActions: {
+    position: 'absolute',
+    bottom: 'max(28px, calc(env(safe-area-inset-bottom) + 12px))',
+    left: 0,
+    right: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '12px',
+    padding: '0 20px',
+    zIndex: 5,
+  },
+  orbActionPrimary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '13px 22px',
+    borderRadius: '999px',
+    border: 'none',
+    background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-sage) 130%)',
+    color: '#0c1810',
+    fontFamily: 'var(--font-title)',
+    fontSize: '15px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: '0 10px 26px rgba(var(--accent-gold-rgb), 0.35)',
+    transition: 'all 0.2s ease',
+  },
+  orbActionSecondary: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '13px 18px',
+    borderRadius: '999px',
+    border: '1px solid var(--border-color-active)',
+    background: 'rgba(0, 0, 0, 0.2)',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '15px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   introCard: {
     padding: '14px 16px',
@@ -867,7 +1092,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     flex: 1,
     overflowY: 'auto',
     padding: '14px 2px',
-    maxHeight: '50dvh',
+    maxHeight: 'calc(100dvh - 320px)',
+    minHeight: 140,
     scrollbarWidth: 'thin',
   },
   bubble: {
@@ -917,13 +1143,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '8px',
-    padding: '8px 12px',
+    padding: '11px 14px',
     borderRadius: '12px',
     background: 'rgba(var(--accent-gold-rgb), 0.08)',
     border: '1px solid rgba(var(--accent-gold-rgb), 0.15)',
     cursor: 'pointer',
     color: 'var(--accent-gold)',
-    fontSize: '12px',
+    fontSize: '14px',
     fontFamily: 'var(--font-title)',
     transition: 'all 0.2s',
   },
@@ -951,12 +1177,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   quickChip: {
     flexShrink: 0,
-    padding: '8px 13px',
+    padding: '10px 15px',
     borderRadius: '999px',
     border: '1px solid rgba(var(--accent-gold-rgb), 0.25)',
     background: 'rgba(var(--accent-gold-rgb), 0.08)',
     color: 'var(--accent-gold)',
-    fontSize: '11.5px',
+    fontSize: '13.5px',
     fontWeight: 700,
     fontFamily: 'var(--font-title)',
     cursor: 'pointer',
