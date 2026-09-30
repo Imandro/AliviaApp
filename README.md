@@ -211,7 +211,7 @@ Alivia ofrece 20 categorías de recordatorios en **Perfil → Recordatorios**. C
 Las categorías son: respiración, estado de ánimo, chequeo de bienestar, diario emocional, grounding, gratitud, rutina de sueño, hidratación, movimiento suave, descanso de pantalla, pausas de estudio/trabajo, metas personales, retos, juegos de bienestar, biblioteca, conversación con VIA, red de apoyo, mindfulness, plan de afrontamiento y revisión de progreso.
 
 - En Android, Capacitor programa avisos locales en el dispositivo; no dependen de la conexión.
-- En la PWA instalada, el service worker recibe Web Push incluso cuando la app está cerrada. Requiere HTTPS y un navegador con soporte Push API.
+- En la PWA instalada, el service worker recibe Web Push incluso cuando la app está cerrada. Requiere HTTPS y un navegador con soporte Push API; en iPhone/iPad, instala la PWA desde Safari (iOS/iPadOS 16.4+) y acepta el permiso.
 - Las preferencias y suscripciones push se guardan por cuenta; el texto enviado no incluye resultados del chequeo ni datos clínicos.
 
 Genera un par VAPID con `npx web-push generate-vapid-keys`. Configura `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` y `CRON_SECRET` en el entorno servidor; configura la misma clave pública como `VITE_VAPID_PUBLIC_KEY` al compilar el cliente. No guardes las claves reales en el repositorio.
@@ -234,6 +234,7 @@ Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consu
 | `/api/assessments` | GET · POST | Chequeos de bienestar y registro de contacto en crisis. |
 | `/api/notifications/preferences` | GET · PUT | Preferencias de notificaciones del usuario autenticado. |
 | `/api/notifications/subscriptions` | POST · DELETE | Alta y baja de endpoints Web Push por cuenta. |
+| `/api/notifications/test` | POST | Envía una notificación Push inmediata al usuario autenticado para probar este dispositivo. |
 | `/api/notifications/dispatch` | GET · POST | Despacho programado, protegido por `CRON_SECRET`. |
 | `/api/tts` | GET | Síntesis de voz con doble motor (Edge WebSocket → respaldo). |
 
