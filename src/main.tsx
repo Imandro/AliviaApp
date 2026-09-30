@@ -10,13 +10,31 @@ import { isNativeShell } from './utils/nativeShell'
 
 syncSystemBarsTheme(getSavedTheme());
 
-// Recordatorios locales (solo app nativa con Capacitor): aplica preferencias guardadas
+// Recordatorios locales nativos: ampliar la ventana de alarmas cada vez que se reabre la app.
 if (Capacitor.isNativePlatform()) {
-  import('./utils/reminders').then(({ applyDailyReminder, getReminderPrefs, syncCheckInReminder }) => {
-    const prefs = getReminderPrefs();
-    void applyDailyReminder(prefs);
-    const lastCheckin = readCache<{ created_at: string }[]>('/api/assessments')?.[0]?.created_at ?? null;
-    void syncCheckInReminder(prefs, lastCheckin);
+  const refreshNativeReminders = () => {
+    import('./utils/reminders').then(({ applyDailyReminder, getReminderPrefs, syncCheckInReminder }) => {
+      const prefs = getReminderPrefs();
+      const lastCheckin = readCache<{ created_at: string }[]>('/api/assessments')?.[0]?.created_at ?? null;
+      if (lastCheckin) void syncCheckInReminder(prefs, lastCheckin);
+      else void applyDailyReminder(prefs);
+    }).catch((err) => {
+      console.error('No se pudieron actualizar los recordatorios locales:', err);
+    });
+  };
+  refreshNativeReminders();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshNativeReminders();
+  });
+  void import('@capacitor/local-notifications').then(({ LocalNotifications }) =>
+    LocalNotifications.addListener('localNotificationActionPerformed', (event) => {
+      const path = event.notification.extra?.path;
+      if (typeof path === 'string' && /^\/[a-z0-9/-]*$/i.test(path)) {
+        window.location.hash = `#${path}`;
+      }
+    })
+  ).catch((err) => {
+    console.error('No se pudo registrar el acceso desde notificaciones:', err);
   });
 }
 
