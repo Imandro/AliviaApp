@@ -98,6 +98,8 @@ export const ChatView: React.FC = () => {
   const [toast, setToast] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const volumeDataRef = useRef<Uint8Array | null>(null);
@@ -105,6 +107,7 @@ export const ChatView: React.FC = () => {
   const chunksRef = useRef<Blob[]>([]);
   const nativeRecRef = useRef<any>(null);
   const voiceRunRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
   const quietMsRef = useRef(0);
   const spokenRef = useRef('');
   const messagesRef = useRef<ChatMessage[]>([]);
@@ -194,14 +197,6 @@ export const ChatView: React.FC = () => {
     return undefined;
   }, [messages, voiceOn, voiceEngaged, voiceSession]);
 
-  useEffect(() => {
-    return () => {
-      voiceRunRef.current?.abort();
-      stopSpeaking();
-      stopVoiceInternals();
-    };
-  }, []);
-
   const stopVoiceInternals = useCallback(() => {
     voiceRunRef.current?.abort();
     sendNowRef.current = null;
@@ -211,6 +206,19 @@ export const ChatView: React.FC = () => {
     }
     analyserRef.current = null;
     volumeDataRef.current = null;
+    try {
+      audioSourceRef.current?.disconnect();
+    } catch {
+      /* noop */
+    }
+    audioSourceRef.current = null;
+    const audioContext = audioContextRef.current;
+    if (audioContext) {
+      audioContext.close().catch(() => {
+        /* noop */
+      });
+    }
+    audioContextRef.current = null;
     try {
       nativeRecRef.current?.abort();
     } catch {
@@ -230,6 +238,30 @@ export const ChatView: React.FC = () => {
     streamRef.current = null;
   }, []);
 
+  useEffect(() => {
+    const releaseVoiceResources = () => {
+      voiceRunRef.current?.abort();
+      stopSpeaking();
+      stopVoiceInternals();
+      if (mountedRef.current) {
+        setVoiceEngaged(false);
+        setVoiceSession('idle');
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') releaseVoiceResources();
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', releaseVoiceResources);
+    return () => {
+      mountedRef.current = false;
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', releaseVoiceResources);
+      releaseVoiceResources();
+    };
+  }, [stopVoiceInternals]);
+
   const startVolumeLoop = useCallback((stream: MediaStream) => {
     try {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -239,6 +271,8 @@ export const ChatView: React.FC = () => {
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 512;
       source.connect(analyser);
+      audioContextRef.current = ctx;
+      audioSourceRef.current = source;
       analyserRef.current = analyser;
       const data = new Uint8Array(analyser.frequencyBinCount);
       const loop = () => {
@@ -468,6 +502,10 @@ export const ChatView: React.FC = () => {
       showToast('Permite el micrófono para hablar con VIA.');
       return;
     }
+    if (!mountedRef.current || document.visibilityState === 'hidden') {
+      stream.getTracks().forEach(t => t.stop());
+      return;
+    }
     setMicDenied(false);
     streamRef.current = stream;
     setOrbScale(1);
@@ -519,8 +557,20 @@ export const ChatView: React.FC = () => {
     stopVoiceInternals();
     confirmRef.current = null;
     setPendingTranscript('');
+    setVoiceEngaged(false);
     setVoiceSession('idle');
   }, [stopVoiceInternals]);
+
+  const toggleVoiceOutput = useCallback(() => {
+    setVoiceOn((enabled) => {
+      const next = !enabled;
+      if (!next) {
+        stopSpeaking();
+      }
+      return next;
+    });
+    setVoiceEngaged(true);
+  }, []);
 
   const sendTranscript = useCallback(() => {
     confirmRef.current?.(true);
@@ -672,7 +722,7 @@ export const ChatView: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => { setVoiceOn(v => !v); setVoiceEngaged(true); }}
+            onClick={toggleVoiceOutput}
             style={{
               ...styles.iconBtn,
               minWidth: '44px',
@@ -680,8 +730,8 @@ export const ChatView: React.FC = () => {
               background: voiceOn ? 'rgba(var(--accent-gold-rgb), 0.14)' : 'rgba(0,0,0,0.12)',
               border: `1px solid ${voiceOn ? 'rgba(var(--accent-gold-rgb), 0.35)' : 'var(--border-color)'}`,
             }}
-            title={voiceOn ? 'Silenciar la voz de VIA' : 'Activar la voz de VIA'}
-            aria-label={voiceOn ? 'Silenciar la voz de VIA' : 'Activar la voz de VIA'}
+            title={voiceOn ? 'Silenciar respuestas de VIA' : 'Activar respuestas de VIA'}
+            aria-label={voiceOn ? 'Silenciar respuestas de VIA' : 'Activar respuestas de VIA'}
             aria-pressed={voiceOn}
           >
             {voiceOn ? <Volume2 size={16} color="var(--accent-gold)" /> : <VolumeX size={16} color="var(--text-muted)" />}
@@ -861,7 +911,7 @@ export const ChatView: React.FC = () => {
 
       <button onClick={() => navigate('/sos')} style={styles.sosInline}>
         <Phone size={13} color="#ff8a80" />
-        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', overflowWrap: 'anywhere' }}>
           En crisis? Líneas de ayuda gratuitas y contacto de emergencia →
         </span>
       </button>
@@ -873,10 +923,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   orbOverlay: {
     position: 'fixed',
     inset: 0,
+    padding: 'max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left))',
     zIndex: 1200,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'column',
     overflow: 'hidden',
     animation: 'fadeInFast 0.3s ease forwards',
   },
@@ -887,26 +939,26 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   orbHalo1: {
     position: 'absolute',
-    width: '420px',
-    height: '420px',
+    width: 'min(88vw, 420px)',
+    height: 'min(88vw, 420px)',
     borderRadius: '50%',
     background: 'radial-gradient(circle, rgba(var(--accent-gold-rgb), 0.10) 0%, rgba(var(--accent-sage-rgb), 0.05) 40%, transparent 70%)',
     animation: 'spinSlow 26s linear infinite',
   },
   orbHalo2: {
     position: 'absolute',
-    width: '560px',
-    height: '560px',
+    width: 'min(118vw, 560px)',
+    height: 'min(118vw, 560px)',
     borderRadius: '50%',
     background: 'radial-gradient(circle, rgba(var(--accent-lavender-rgb), 0.07) 0%, transparent 65%)',
     animation: 'spinSlowRev 34s linear infinite',
   },
   orbClose: {
     position: 'absolute',
-    top: 'max(18px, env(safe-area-inset-top))',
-    right: '18px',
-    width: '42px',
-    height: '42px',
+    top: 'max(12px, env(safe-area-inset-top))',
+    right: 'max(12px, env(safe-area-inset-right))',
+    width: 'clamp(38px, 11vw, 42px)',
+    height: 'clamp(38px, 11vw, 42px)',
     borderRadius: '50%',
     border: '1px solid var(--border-color-active)',
     background: 'rgba(0,0,0,0.06)',
@@ -919,8 +971,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   orbCore: {
     position: 'relative',
     zIndex: 2,
-    width: '180px',
-    height: '180px',
+    width: 'clamp(124px, 42vw, 180px)',
+    height: 'clamp(124px, 42vw, 180px)',
     borderRadius: '50%',
     background: 'radial-gradient(circle at 34% 28%, var(--accent-gold) 0%, var(--accent-lavender) 50%, var(--accent-sage) 100%)',
     boxShadow: '0 0 90px rgba(var(--accent-sage-rgb), 0.45), 0 0 180px rgba(var(--accent-gold-rgb), 0.22), inset 0 0 40px rgba(255,255,255,0.25)',
@@ -931,15 +983,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     willChange: 'transform',
   },
   orbInner: {
-    width: '110px',
-    height: '110px',
+    width: '62%',
+    height: '62%',
     borderRadius: '50%',
     background: 'radial-gradient(circle at 40% 35%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.15) 60%, transparent 100%)',
   },
   orbRing: {
     position: 'absolute',
-    width: '280px',
-    height: '280px',
+    width: 'clamp(184px, 66vw, 280px)',
+    height: 'clamp(184px, 66vw, 280px)',
     borderRadius: '50%',
     border: '1.5px solid rgba(var(--accent-gold-rgb), 0.5)',
     animation: 'spinSlow 14s linear infinite',
@@ -947,23 +999,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   orbRing2: {
     position: 'absolute',
-    width: '340px',
-    height: '340px',
+    width: 'clamp(224px, 80vw, 340px)',
+    height: 'clamp(224px, 80vw, 340px)',
     borderRadius: '50%',
     border: '1px dashed rgba(var(--accent-gold-rgb), 0.25)',
     animation: 'spinSlowRev 22s linear infinite',
   },
   orbPulse: {
     position: 'absolute',
-    width: '200px',
-    height: '200px',
+    width: 'clamp(140px, 47vw, 200px)',
+    height: 'clamp(140px, 47vw, 200px)',
     borderRadius: '50%',
     background: 'rgba(var(--accent-lavender-rgb), 0.25)',
     animation: 'orbPing 1.1s ease-out infinite',
   },
   orbLabel: {
     position: 'absolute',
-    top: '70%',
+    top: 'calc(50% + clamp(92px, 27vw, 132px))',
     left: 0,
     right: 0,
     textAlign: 'center',
@@ -976,7 +1028,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   orbHint: {
     position: 'absolute',
-    top: '77%',
+    top: 'calc(50% + clamp(122px, 35vw, 168px))',
     left: 0,
     right: 0,
     textAlign: 'center',
@@ -1018,29 +1070,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: 1.4,
     fontWeight: 600,
     color: 'var(--text-primary)',
+    overflowWrap: 'anywhere',
   },
   orbActions: {
     position: 'absolute',
-    bottom: 'max(28px, calc(env(safe-area-inset-bottom) + 12px))',
+    bottom: 'max(16px, calc(env(safe-area-inset-bottom) + 8px))',
     left: 0,
     right: 0,
     display: 'flex',
     justifyContent: 'center',
-    gap: '12px',
-    padding: '0 20px',
+    gap: '8px',
+    padding: '0 max(8px, env(safe-area-inset-left))',
     zIndex: 5,
   },
   orbActionPrimary: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '13px 22px',
+    padding: '12px clamp(12px, 4vw, 22px)',
     borderRadius: '999px',
     border: 'none',
     background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-sage) 130%)',
     color: '#0c1810',
     fontFamily: 'var(--font-title)',
-    fontSize: '15px',
+    fontSize: 'clamp(12px, 3.6vw, 15px)',
     fontWeight: 700,
     cursor: 'pointer',
     boxShadow: '0 10px 26px rgba(var(--accent-gold-rgb), 0.35)',
@@ -1050,13 +1103,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '13px 18px',
+    padding: '12px clamp(12px, 4vw, 18px)',
     borderRadius: '999px',
     border: '1px solid var(--border-color-active)',
     background: 'rgba(0, 0, 0, 0.2)',
     color: 'var(--text-primary)',
     fontFamily: 'var(--font-title)',
-    fontSize: '15px',
+    fontSize: 'clamp(12px, 3.6vw, 15px)',
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'all 0.2s ease',
@@ -1068,6 +1121,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
+    minWidth: 0,
   },
   badgeGlow: {
     width: '38px',
@@ -1097,7 +1151,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     scrollbarWidth: 'thin',
   },
   bubble: {
-    maxWidth: '88%',
+    maxWidth: '92%',
+    minWidth: 0,
     padding: '12px 14px',
     borderRadius: '18px',
     display: 'flex',
@@ -1152,9 +1207,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
     fontFamily: 'var(--font-title)',
     transition: 'all 0.2s',
+    minWidth: 0,
   },
   suggestLabel: {
     fontWeight: 500,
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   typingDots: {
     display: 'flex',
@@ -1192,10 +1250,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     gap: '8px',
     marginTop: '4px',
+    minWidth: 0,
   },
   micBtn: {
-    width: '46px',
-    height: '46px',
+    width: 'clamp(40px, 12vw, 46px)',
+    height: 'clamp(40px, 12vw, 46px)',
     borderRadius: '50%',
     display: 'flex',
     justifyContent: 'center',
@@ -1205,8 +1264,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.25s',
   },
   sendBtn: {
-    width: '46px',
-    height: '46px',
+    width: 'clamp(40px, 12vw, 46px)',
+    height: 'clamp(40px, 12vw, 46px)',
     borderRadius: '50%',
     border: 'none',
     background: 'linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-sage) 100%)',
@@ -1242,5 +1301,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     gap: '6px',
     padding: '6px',
+    maxWidth: '100%',
   },
 };

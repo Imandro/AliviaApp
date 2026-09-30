@@ -1015,6 +1015,7 @@ html[data-theme="mono"] body {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
 }
 
 .crisis-card-title {
@@ -1024,6 +1025,7 @@ html[data-theme="mono"] body {
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .crisis-card-actions {
@@ -1034,7 +1036,7 @@ html[data-theme="mono"] body {
 
 .crisis-action {
   flex: 1;
-  min-width: 130px;
+  min-width: min(130px, 100%);
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid rgba(var(--accent-gold-rgb), 0.3);
@@ -1049,6 +1051,7 @@ html[data-theme="mono"] body {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
+  overflow-wrap: anywhere;
 }
 
 .crisis-action:active {
@@ -1065,6 +1068,11 @@ html[data-theme="mono"] body {
   border-color: var(--border-color);
   background: transparent;
   color: var(--text-secondary);
+}
+
+.bubble p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Avisos persistentes tipo "micrófono denegado" */
@@ -1091,6 +1099,45 @@ html[data-theme="mono"] body {
   font-weight: 700;
   margin-left: auto;
   flex-shrink: 0;
+}
+
+@media (max-width: 420px) {
+  .app-content {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .crisis-card {
+    padding: 12px;
+  }
+
+  .crisis-card-actions {
+    flex-direction: column;
+  }
+
+  .crisis-action {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .confirm-row {
+    flex-wrap: wrap;
+  }
+
+  .confirm-row span {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .orb-actions {
+    gap: 6px;
+  }
 }
 
 /* Fila de confirmación dentro del chat (borrar conversación) */
@@ -1139,4 +1186,277 @@ html[data-theme="mono"] body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.not-found-page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vh, 36px) 0;
+}
+
+.not-found-card {
+  width: min(100%, 680px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(14px, 3vw, 24px);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(var(--accent-gold-rgb), 0.1), transparent 42%),
+    var(--bg-surface);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+}
+
+.not-found-scene {
+  position: relative;
+  width: 100%;
+  height: clamp(170px, min(40vw, 34svh), 300px);
+  overflow: hidden;
+  border: 1px solid rgba(242, 227, 160, 0.16);
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 50% 110%, var(--scene-hill-light) 0, var(--scene-hill-dark) 49%, transparent 50%),
+    linear-gradient(180deg, var(--scene-sky-top) 0%, var(--scene-sky-bottom) 76%);
+  transition: background 1.2s ease;
+}
+
+.not-found-scene[data-time='dawn'] {
+  --scene-sky-top: #324e61;
+  --scene-sky-bottom: #e5a779;
+  --scene-hill-light: #8d9c69;
+  --scene-hill-dark: #46654b;
+}
+
+.not-found-scene[data-time='day'] {
+  --scene-sky-top: #5c9da5;
+  --scene-sky-bottom: #d7c48a;
+  --scene-hill-light: #8fa45e;
+  --scene-hill-dark: #4c754c;
+}
+
+.not-found-scene[data-time='sunset'] {
+  --scene-sky-top: #52516a;
+  --scene-sky-bottom: #e18870;
+  --scene-hill-light: #9a805c;
+  --scene-hill-dark: #4f6049;
+}
+
+.not-found-scene[data-time='night'] {
+  --scene-sky-top: #101d32;
+  --scene-sky-bottom: #354c5c;
+  --scene-hill-light: #597254;
+  --scene-hill-dark: #304d3d;
+}
+
+.not-found-sun,
+.not-found-moon {
+  position: absolute;
+  z-index: 0;
+  top: 14%;
+  right: 14%;
+  width: clamp(34px, 8vw, 54px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.not-found-sun {
+  background: #ffe2a0;
+  box-shadow: 0 0 48px rgba(255, 213, 132, 0.75);
+}
+
+.not-found-scene[data-time='dawn'] .not-found-sun,
+.not-found-scene[data-time='sunset'] .not-found-sun {
+  top: 46%;
+  right: 22%;
+}
+
+.not-found-scene[data-time='dawn'] .not-found-sun {
+  transform: scale(0.8);
+}
+
+.not-found-scene[data-time='sunset'] .not-found-sun {
+  transform: scale(0.9);
+}
+
+.not-found-scene[data-time='night'] .not-found-sun,
+.not-found-scene[data-time='sunset'] .not-found-moon,
+.not-found-scene[data-time='dawn'] .not-found-moon,
+.not-found-scene[data-time='day'] .not-found-moon {
+  opacity: 0;
+}
+
+.not-found-mascot {
+  position: absolute;
+  z-index: 2;
+  bottom: -2%;
+  left: 50%;
+  height: 94%;
+  max-width: 58%;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.24));
+  animation: notFoundPoseIn 0.55s ease both;
+  transition: opacity 0.12s ease;
+}
+
+.not-found-mascot-blink {
+  z-index: 3;
+  clip-path: inset(10% 17% 55% 17%);
+  animation: notFoundBlink 240ms ease-in-out both;
+}
+
+.not-found-moon {
+  background: #f2e3a0;
+  box-shadow: 0 0 34px rgba(242, 227, 160, 0.42);
+}
+
+.not-found-scene[data-time='night'] .not-found-moon {
+  opacity: 1;
+}
+
+.not-found-moon::after {
+  position: absolute;
+  top: -5px;
+  left: -10px;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--scene-sky-top);
+  content: '';
+}
+
+.not-found-star {
+  position: absolute;
+  z-index: 1;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff1bf;
+  box-shadow: 0 0 10px rgba(255, 241, 191, 0.8);
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.not-found-star-one { top: 19%; left: 20%; }
+.not-found-star-two { top: 34%; left: 36%; width: 3px; height: 3px; }
+.not-found-star-three { top: 17%; left: 58%; width: 3px; height: 3px; }
+.not-found-star-four { top: 42%; right: 25%; }
+
+.not-found-scene[data-time='night'] .not-found-star {
+  opacity: 0.9;
+}
+
+.not-found-scene[data-time='sunset'] .not-found-star {
+  opacity: 0.5;
+}
+
+.not-found-hill {
+  position: absolute;
+  right: -10%;
+  bottom: -25%;
+  left: -10%;
+  height: 60%;
+  border-radius: 50% 50% 0 0 / 32% 32% 0 0;
+}
+
+.not-found-hill-back {
+  z-index: 0;
+  bottom: -33%;
+  left: 32%;
+  background: var(--scene-hill-dark);
+  transform: rotate(-8deg);
+}
+
+.not-found-hill-front {
+  z-index: 1;
+  right: 20%;
+  bottom: -43%;
+  left: -28%;
+  height: 70%;
+  background: linear-gradient(145deg, var(--scene-hill-light), var(--scene-hill-dark) 70%);
+  transform: rotate(7deg);
+}
+
+.not-found-code {
+  margin: 24px 0 8px;
+  color: var(--accent-gold);
+  font-family: var(--font-title);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+}
+
+.not-found-card h1 {
+  max-width: 420px;
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 6vw, 34px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.not-found-message {
+  max-width: 390px;
+  margin: 14px 0 24px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.not-found-home {
+  width: min(100%, 300px);
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+@keyframes notFoundPoseIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes notFoundBlink {
+  0%, 100% { opacity: 0; }
+  28%, 72% { opacity: 1; }
+}
+
+@media (max-width: 420px) {
+  .not-found-scene {
+    height: clamp(170px, 42vw, 230px);
+  }
+
+  .not-found-mascot {
+    max-width: 72%;
+  }
+}
+
+@media (max-height: 560px) and (orientation: landscape) {
+  .not-found-page {
+    padding: 8px 0;
+  }
+
+  .not-found-card {
+    width: min(100%, 760px);
+    padding: 12px;
+  }
+
+  .not-found-scene {
+    height: min(42vh, 190px);
+  }
+
+  .not-found-code {
+    margin-top: 12px;
+  }
+
+  .not-found-message {
+    margin: 8px 0 12px;
+  }
 }
