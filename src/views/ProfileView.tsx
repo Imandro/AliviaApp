@@ -19,6 +19,7 @@ import {
   getReminderPrefs,
   loadRemoteReminderPrefs,
   saveReminderPrefs,
+  sendTestReminder,
 } from '../utils/reminders';
 import { REMINDER_CATALOG, type ReminderId, type ReminderPrefs, type ReminderSchedule } from '../utils/reminderCatalog';
 import { isNativeShell } from '../utils/nativeShell';
@@ -107,8 +108,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
   const [exporting, setExporting] = useState<'json' | 'reporte' | null>(null);
   const [reminders, setReminders] = useState(() => getReminderPrefs());
   const [reminderError, setReminderError] = useState('');
+  const [reminderTestMessage, setReminderTestMessage] = useState('');
   const [savingReminders, setSavingReminders] = useState(false);
   const [remoteRemindersLoaded, setRemoteRemindersLoaded] = useState(false);
+  const [sendingReminderTest, setSendingReminderTest] = useState(false);
   const native = isNativeShell;
   const nativeReminderHorizon = Capacitor.getPlatform() === 'ios' || (native && !Capacitor.isNativePlatform()) ? 20 : 90;
   const todayReminderDate = new Date();
@@ -204,6 +207,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
     const next = saveReminderPrefs(nextPrefs);
     setReminders(next);
     setReminderError('');
+    setReminderTestMessage('');
     setSavingReminders(true);
     try {
       const applied = await applyReminderSettings(next, requestPermission);
@@ -234,6 +238,20 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
   };
 
   const remindersEnabled = REMINDER_CATALOG.some(({ id }) => reminders.categories[id].enabled);
+
+  const handleTestReminder = async () => {
+    setReminderError('');
+    setReminderTestMessage('');
+    setSendingReminderTest(true);
+    try {
+      await sendTestReminder();
+      setReminderTestMessage('Prueba enviada. Si no aparece en unos segundos, verifica los permisos de notificación de este teléfono.');
+    } catch (err) {
+      setReminderError(err instanceof Error ? err.message : 'No se pudo enviar la notificación de prueba.');
+    } finally {
+      setSendingReminderTest(false);
+    }
+  };
 
   const handleLogout = async () => {
     setSigningOut(true);
@@ -579,6 +597,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
           );
         })}
         {reminderError && <p role="alert" style={styles.reminderError}>{reminderError}</p>}
+        {reminderTestMessage && <p role="status" style={styles.reminderSuccess}>{reminderTestMessage}</p>}
+        {!native && (
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ alignSelf: 'flex-start', marginTop: 10 }}
+            disabled={savingReminders || sendingReminderTest || !remindersEnabled}
+            onClick={() => void handleTestReminder()}
+          >
+            {sendingReminderTest ? 'Enviando prueba…' : 'Enviar notificación de prueba'}
+          </button>
+        )}
         {!native && remindersEnabled && getNotificationPermission() === 'default' && (
           <button
             type="button"
@@ -925,6 +955,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   reminderError: {
     margin: '10px 0 0',
     color: 'var(--accent-rose)',
+    fontSize: 12,
+    lineHeight: 1.5,
+  },
+  reminderSuccess: {
+    margin: '10px 0 0',
+    color: 'var(--accent-sage)',
     fontSize: 12,
     lineHeight: 1.5,
   },

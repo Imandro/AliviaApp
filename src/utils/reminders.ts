@@ -107,6 +107,9 @@ const requestJson = async <T>(path: string, init: RequestInit = {}): Promise<T> 
   });
   if (!response.ok) {
     const result = await response.json().catch(() => null);
+    if (response.status === 404 && path.startsWith('/api/notifications/')) {
+      throw new Error('El servidor publicado todavía no tiene las funciones push. Despliega la rama que incluye las notificaciones en Vercel.');
+    }
     throw new Error(result?.error || `No se pudo sincronizar (${response.status}).`);
   }
   return response.json() as Promise<T>;
@@ -343,6 +346,21 @@ export const loadRemoteReminderPrefs = async (): Promise<ReminderPrefs | null> =
   const saved = normalizeReminderPrefs(response.settings);
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return timezone ? { ...saved, timezone } : saved;
+};
+
+export const sendTestReminder = async (): Promise<void> => {
+  if (isNative()) throw new Error('La prueba Web Push solo está disponible en la PWA.');
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    throw new Error('Este navegador no admite Web Push. En iPhone, instala la PWA desde Safari y prueba desde su icono.');
+  }
+  if (Notification.permission !== 'granted') {
+    throw new Error('Permite las notificaciones en los ajustes del navegador antes de hacer la prueba.');
+  }
+  const registration = await navigator.serviceWorker.ready;
+  if (!(await registration.pushManager.getSubscription())) {
+    throw new Error('Este teléfono aún no está suscrito. Activa un recordatorio para registrar este dispositivo.');
+  }
+  await requestJson<{ ok: boolean }>('/api/notifications/test', { method: 'POST' });
 };
 
 export const applyDailyReminder = async (prefs = getReminderPrefs()): Promise<void> => {
