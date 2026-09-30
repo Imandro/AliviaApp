@@ -214,9 +214,9 @@ Las categorías son: respiración, estado de ánimo, chequeo de bienestar, diari
 - En la PWA instalada, el service worker recibe Web Push incluso cuando la app está cerrada. Requiere HTTPS y un navegador con soporte Push API; en iPhone/iPad, instala la PWA desde Safari (iOS/iPadOS 16.4+) y acepta el permiso.
 - Las preferencias y suscripciones push se guardan por cuenta; el texto enviado no incluye resultados del chequeo ni datos clínicos.
 
-Genera un par VAPID con `npx web-push generate-vapid-keys`. Configura `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` y `CRON_SECRET` en el entorno servidor; configura la misma clave pública como `VITE_VAPID_PUBLIC_KEY` al compilar el cliente. No guardes las claves reales en el repositorio.
+Genera un par VAPID con `npx web-push generate-vapid-keys`. Configura `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` y `CRON_SECRET` en el entorno servidor; configura la misma clave pública como `VITE_VAPID_PUBLIC_KEY` al compilar el cliente. El mismo `CRON_SECRET` debe guardarse como secreto `CRON_SECRET` del repositorio de GitHub para el workflow de despacho. No guardes las claves reales en el repositorio.
 
-Vercel Cron está configurado en `vercel.json` para llamar cada minuto a `/api/notifications/dispatch`. Esta frecuencia requiere un plan de Vercel que admita cron cada minuto (Pro o superior); Hobby limita los cron jobs a una ejecución diaria y no puede entregar recordatorios a la hora elegida. Configura las variables indicadas arriba en *Vercel → Settings → Environment Variables* y vuelve a desplegar para activar el envío. El endpoint es idempotente por cuenta, categoría y fecha local.
+GitHub Actions ejecuta `.github/workflows/notifications-dispatch.yml` cada 5 minutos y llama a `/api/notifications/dispatch`; así funciona con Vercel Hobby, cuyo cron integrado solo permite una ejecución diaria. El workflow depende del secreto GitHub `CRON_SECRET`, y el endpoint sigue alojado en Vercel. Las acciones programadas pueden retrasarse unos minutos, por lo que la entrega no es al segundo exacto. Configura las variables indicadas arriba en *Vercel → Settings → Environment Variables*, agrega el secreto del repositorio y despliega el workflow y las funciones para activar el envío. El endpoint es idempotente por cuenta, categoría y fecha local.
 
 ## API
 
