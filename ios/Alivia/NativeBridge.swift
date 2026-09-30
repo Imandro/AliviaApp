@@ -222,12 +222,17 @@ final class NativeBridge: NSObject, WKScriptMessageHandler {
             // Parse schedule
             var trigger: UNNotificationTrigger?
             if let schedule = notif["schedule"] as? [String: Any] {
-                if let on = schedule["on"] as? [String: Any] {
+                if let at = schedule["at"] as? String {
+                    guard let date = ISO8601DateFormatter().date(from: at),
+                          date.timeIntervalSinceNow > 0 else { continue }
+                    trigger = UNTimeIntervalNotificationTrigger(timeInterval: date.timeIntervalSinceNow, repeats: false)
+                } else if let on = schedule["on"] as? [String: Any] {
                     // Calendar-based trigger
                     var comps = DateComponents()
                     comps.year = on["year"] as? Int
                     comps.month = on["month"] as? Int
                     comps.day = on["day"] as? Int
+                    comps.weekday = on["weekday"] as? Int
                     comps.hour = on["hour"] as? Int
                     comps.minute = on["minute"] as? Int
                     let repeats = schedule["repeats"] as? Bool ?? false

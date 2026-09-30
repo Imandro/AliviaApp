@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { LogOut, Pencil, Mail, Phone as PhoneIcon, AtSign, HeartPulse, ChevronRight, ShieldCheck, Download, Fingerprint, Bell } from 'lucide-react';
 import { SafeUser, logout, setToken } from '../utils/auth';
 import { getMyAssessments, DIMENSION_INFO, LEVEL_INFO, type AssessmentRecord } from '../utils/assessment';
@@ -12,7 +13,14 @@ import {
   type PrivacyPrefs,
 } from '../utils/appLock';
 import { downloadHtmlReport, downloadJsonExport } from '../utils/exportData';
-import { applyDailyReminder, getReminderPrefs, saveReminderPrefs, syncCheckInReminder } from '../utils/reminders';
+import {
+  applyReminderSettings,
+  getNotificationPermission,
+  getReminderPrefs,
+  loadRemoteReminderPrefs,
+  saveReminderPrefs,
+} from '../utils/reminders';
+import { REMINDER_CATALOG, type ReminderId, type ReminderPrefs, type ReminderSchedule } from '../utils/reminderCatalog';
 import { isNativeShell } from '../utils/nativeShell';
 import { getLang, setLang, t } from '../i18n';
 import logoVertical from '../assets/logo-vertical.png';
@@ -41,6 +49,12 @@ const RenderList = ({ items }: { items: string[] }) => {
       ))}
     </div>
   );
+};
+
+const localDateString = (value: string): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
 interface ToggleRowProps {
@@ -92,7 +106,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
   const [bioAvailable, setBioAvailable] = useState(false);
   const [exporting, setExporting] = useState<'json' | 'reporte' | null>(null);
   const [reminders, setReminders] = useState(() => getReminderPrefs());
+  const [reminderError, setReminderError] = useState('');
+  const [savingReminders, setSavingReminders] = useState(false);
+  const [remoteRemindersLoaded, setRemoteRemindersLoaded] = useState(false);
   const native = isNativeShell;
+  const nativeReminderHorizon = Capacitor.getPlatform() === 'ios' || (native && !Capacitor.isNativePlatform()) ? 20 : 90;
+  const todayReminderDate = new Date();
+  const todayReminderDateString = `${todayReminderDate.getFullYear()}-${String(todayReminderDate.getMonth() + 1).padStart(2, '0')}-${String(todayReminderDate.getDate()).padStart(2, '0')}`;
+  const maxReminderDate = new Date();
+  maxReminderDate.setDate(maxReminderDate.getDate() + nativeReminderHorizon - 1);
+  const maxReminderDateString = `${maxReminderDate.getFullYear()}-${String(maxReminderDate.getMonth() + 1).padStart(2, '0')}-${String(maxReminderDate.getDate()).padStart(2, '0')}`;
 
   useEffect(() => {
     getMyAssessments().then(setAssessments);
@@ -103,6 +126,53 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
       });
     }
   }, [native]);
+
+  useEffect(() => {
+    if (native) {
+      setRemoteRemindersLoaded(true);
+      return;
+    }
+    let active = true;
+    loadRemoteReminderPrefs()
+      .then(async (remote) => {
+        if (active) setRemoteRemindersLoaded(true);
+        if (!active || !remote) return;
+        const saved = saveReminderPrefs(remote);
+        setReminders(saved);
+        if (REMINDER_CATALOG.some(({ id }) => saved.categories[id].enabled)) {
+          await applyReminderSettings(saved);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setRemoteRemindersLoaded(true);
+          setReminderError('No se pudieron sincronizar los recordatorios guardados.');
+        }
+      });
+    return () => { active = false; };
+  }, [native]);
+
+  useEffect(() => {
+    if (!remoteRemindersLoaded) return;
+    const latest = assessments[0]?.created_at;
+    if (!latest) return;
+    const startDate = localDateString(latest);
+    const schedule = reminders.categories['wellbeing-checkin'];
+    if (!startDate || schedule.startDate === startDate) return;
+    const next = {
+      ...reminders,
+      categories: {
+        ...reminders.categories,
+        'wellbeing-checkin': { ...schedule, startDate },
+      },
+    };
+    setReminders(next);
+    void import('../utils/reminders').then(({ syncCheckInReminder }) =>
+      syncCheckInReminder(next, latest)
+    ).catch((err) => {
+      setReminderError(err instanceof Error ? err.message : 'No se pudo actualizar el siguiente chequeo.');
+    });
+  }, [assessments, reminders, remoteRemindersLoaded]);
 
   const togglePrivacyScreen = () => {
     const next = setPrivacyPrefs({ privacyScreen: !privacy.privacyScreen });
@@ -130,15 +200,40 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
     }
   };
 
-  const updateReminders = (patch: Partial<typeof reminders>) => {
-    const next = saveReminderPrefs(patch);
+  const updateReminders = async (nextPrefs: ReminderPrefs, requestPermission = true) => {
+    const next = saveReminderPrefs(nextPrefs);
     setReminders(next);
-    void applyDailyReminder(next);
-    if ('checkinEnabled' in patch) {
-      const last = assessments[0]?.created_at ?? null;
-      void syncCheckInReminder(next, last);
+    setReminderError('');
+    setSavingReminders(true);
+    try {
+      const applied = await applyReminderSettings(next, requestPermission);
+      if (!applied) {
+        setReminderError('Permite las notificaciones para activar tus recordatorios.');
+      }
+    } catch (err) {
+      setReminderError(err instanceof Error ? err.message : 'No se pudieron guardar los recordatorios.');
+    } finally {
+      setSavingReminders(false);
     }
   };
+
+  const updateReminderSchedule = (id: ReminderId, patch: Partial<ReminderSchedule>) => {
+    const current = reminders.categories[id];
+    if (patch.enabled === true && current.frequency === 'once' && !current.date) {
+      setReminderError('Elige una fecha futura para este recordatorio.');
+      return;
+    }
+    const next = {
+      ...reminders,
+      categories: {
+        ...reminders.categories,
+        [id]: { ...reminders.categories[id], ...patch },
+      },
+    };
+    void updateReminders(next, patch.enabled === true);
+  };
+
+  const remindersEnabled = REMINDER_CATALOG.some(({ id }) => reminders.categories[id].enabled);
 
   const handleLogout = async () => {
     setSigningOut(true);
@@ -332,37 +427,185 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
           <Bell size={15} color="var(--accent-gold)" />
           <p style={styles.label} className="m-0">{t('perfil_recordatorios')}</p>
         </div>
-
-        <ToggleRow
-          title="Respiración diaria"
-          desc="Un aviso suave a la hora que elijas. Solo en la app instalada."
-          on={reminders.dailyEnabled}
-          disabled={!native}
-          onToggle={() => updateReminders({ dailyEnabled: !reminders.dailyEnabled })}
-        />
-        {reminders.dailyEnabled && native && (
-          <div style={styles.timeRow}>
-            <span style={styles.privDesc}>Hora</span>
+        <p style={{ ...styles.privDesc, marginTop: 0 }}>
+          {native
+            ? 'Se programan en este dispositivo y pueden llegar sin conexión.'
+            : 'La PWA usa notificaciones push para avisarte aunque esté cerrada.'}
+        </p>
+        <div style={styles.reminderGlobal}>
+          <label style={styles.privDesc}>
             <input
+              type="checkbox"
+              checked={reminders.quietHours.enabled}
+              onChange={(event) => void updateReminders({
+                ...reminders,
+                quietHours: { ...reminders.quietHours, enabled: event.target.checked },
+              })}
+            />
+            {' '}Horario silencioso
+          </label>
+          <div style={styles.reminderTimes}>
+            <input
+              aria-label="Inicio de horario silencioso"
               type="time"
-              value={`${String(reminders.dailyHour).padStart(2, '0')}:${String(reminders.dailyMinute).padStart(2, '0')}`}
-              onChange={(e) => {
-                const [h, m] = e.target.value.split(':').map(Number);
-                updateReminders({ dailyHour: h || 20, dailyMinute: m || 0 });
-              }}
+              value={reminders.quietHours.start}
+              onChange={(event) => void updateReminders({
+                ...reminders,
+                quietHours: { ...reminders.quietHours, start: event.target.value },
+              })}
               style={styles.timeInput}
+              disabled={!reminders.quietHours.enabled}
+            />
+            <span style={styles.privDesc}>a</span>
+            <input
+              aria-label="Fin de horario silencioso"
+              type="time"
+              value={reminders.quietHours.end}
+              onChange={(event) => void updateReminders({
+                ...reminders,
+                quietHours: { ...reminders.quietHours, end: event.target.value },
+              })}
+              style={styles.timeInput}
+              disabled={!reminders.quietHours.enabled}
             />
           </div>
+          <label style={styles.privDesc}>
+            Máximo de avisos al día
+            <select
+              value={reminders.maxPerDay}
+              onChange={(event) => void updateReminders({ ...reminders, maxPerDay: Number(event.target.value) })}
+              style={styles.reminderSelect}
+            >
+              {[1, 2, 3, 4, 5, 6, 8, 10].map((limit) => <option key={limit} value={limit}>{limit}</option>)}
+            </select>
+          </label>
+        </div>
+        {REMINDER_CATALOG.map((definition) => {
+          const schedule = reminders.categories[definition.id];
+          return (
+            <details key={definition.id} style={styles.reminderItem}>
+              <summary style={styles.reminderSummary}>
+                <span>
+                  <b style={styles.privTitle}>{definition.title}</b>
+                  <small style={styles.reminderGroup}>{definition.group}</small>
+                </span>
+                <input
+                  type="checkbox"
+                  aria-label={`Activar ${definition.title}`}
+                  checked={schedule.enabled}
+                  disabled={savingReminders}
+                  onChange={(event) => updateReminderSchedule(definition.id, { enabled: event.target.checked })}
+                  onClick={(event) => event.stopPropagation()}
+                />
+              </summary>
+              <p style={styles.privDesc}>{definition.body}</p>
+              <div style={styles.reminderFields}>
+                <label style={styles.privDesc}>
+                  Hora
+                  <input
+                    aria-label={`Hora de ${definition.title}`}
+                    type="time"
+                    value={schedule.time}
+                    onChange={(event) => updateReminderSchedule(definition.id, { time: event.target.value })}
+                    style={styles.timeInput}
+                  />
+                </label>
+                <label style={styles.privDesc}>
+                  Frecuencia
+                  <select
+                    value={schedule.frequency}
+                    onChange={(event) => updateReminderSchedule(definition.id, {
+                      frequency: event.target.value as ReminderSchedule['frequency'],
+                    })}
+                    style={styles.reminderSelect}
+                  >
+                    <option value="daily">Diaria</option>
+                    <option value="weekly">Días de la semana</option>
+                    <option value="interval">Cada cierto número de días</option>
+                    <option value="once">Una sola vez</option>
+                  </select>
+                </label>
+                {schedule.frequency === 'weekly' && (
+                  <div style={styles.weekdayRow} aria-label={`Días de ${definition.title}`}>
+                    {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((label, day) => (
+                      <label key={day} style={styles.weekday}>
+                        <input
+                          type="checkbox"
+                          checked={schedule.daysOfWeek.includes(day)}
+                          disabled={schedule.daysOfWeek.length === 1 && schedule.daysOfWeek.includes(day)}
+                          onChange={(event) => updateReminderSchedule(definition.id, {
+                            daysOfWeek: event.target.checked
+                              ? [...new Set([...schedule.daysOfWeek, day])]
+                              : schedule.daysOfWeek.filter((item) => item !== day),
+                          })}
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {schedule.frequency === 'interval' && (
+                  <label style={styles.privDesc}>
+                    Repetir cada
+                    <select
+                      value={schedule.intervalDays}
+                      onChange={(event) => updateReminderSchedule(definition.id, { intervalDays: Number(event.target.value) })}
+                      style={styles.reminderSelect}
+                    >
+                      {[2, 3, 5, 7, 10, 14, 21, 30].map((days) => <option key={days} value={days}>{days} días</option>)}
+                    </select>
+                  </label>
+                )}
+                {schedule.frequency === 'once' && (
+                  <>
+                    <label style={styles.privDesc}>
+                      Fecha
+                      <input
+                        type="date"
+                        min={todayReminderDateString}
+                        max={maxReminderDateString}
+                        value={schedule.date}
+                        onChange={(event) => updateReminderSchedule(definition.id, { date: event.target.value })}
+                        style={styles.timeInput}
+                      />
+                    </label>
+                    {(!schedule.date || new Date(`${schedule.date}T${schedule.time}:00`).getTime() <= Date.now()) && (
+                      <p style={styles.reminderError}>Selecciona una fecha y hora futuras para programarlo.</p>
+                    )}
+                  </>
+                )}
+              </div>
+            </details>
+          );
+        })}
+        {reminderError && <p role="alert" style={styles.reminderError}>{reminderError}</p>}
+        {!native && remindersEnabled && getNotificationPermission() === 'default' && (
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ alignSelf: 'flex-start', marginTop: 10 }}
+            disabled={savingReminders}
+            onClick={() => void updateReminders(reminders, true)}
+          >
+            Permitir notificaciones
+          </button>
         )}
-
-        <ToggleRow
-          title="Chequeo cada 5 días"
-          desc="Te avisamos cuando toque tu siguiente chequeo de bienestar."
-          icon={<HeartPulse size={15} />}
-          on={reminders.checkinEnabled}
-          disabled={!native}
-          onToggle={() => updateReminders({ checkinEnabled: !reminders.checkinEnabled })}
-        />
+        {native && remindersEnabled && (
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ alignSelf: 'flex-start', marginTop: 10 }}
+            disabled={savingReminders}
+            onClick={() => void updateReminders(reminders, true)}
+          >
+            Activar o actualizar permisos y horarios
+          </button>
+        )}
+        {!native && getNotificationPermission() === 'denied' && (
+          <p style={styles.reminderError}>
+            Las notificaciones están bloqueadas en el navegador. Actívalas en los ajustes del sitio para recibir avisos.
+          </p>
+        )}
       </div>
 
       <button className="btn-danger" style={styles.logoutBtn} onClick={handleLogout} disabled={signingOut}>
@@ -618,6 +861,72 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'var(--font-display)',
     fontSize: 14,
     padding: '6px 10px',
+  },
+  reminderGlobal: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    padding: '12px 0',
+    borderTop: '1px solid var(--border-color)',
+    borderBottom: '1px solid var(--border-color)',
+  },
+  reminderTimes: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+  reminderSelect: {
+    display: 'block',
+    marginTop: 4,
+    maxWidth: '100%',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-color)',
+    borderRadius: 10,
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-display)',
+    fontSize: 13,
+    padding: '7px 9px',
+  },
+  reminderItem: {
+    padding: '11px 0',
+    borderBottom: '1px solid var(--border-color)',
+  },
+  reminderSummary: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    cursor: 'pointer',
+  },
+  reminderGroup: {
+    display: 'block',
+    marginTop: 2,
+    color: 'var(--text-muted)',
+    fontSize: 10,
+  },
+  reminderFields: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 10,
+    marginTop: 10,
+  },
+  weekdayRow: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  weekday: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    color: 'var(--text-secondary)',
+    fontSize: 12,
+  },
+  reminderError: {
+    margin: '10px 0 0',
+    color: 'var(--accent-rose)',
+    fontSize: 12,
+    lineHeight: 1.5,
   },
   linkBtn: {
     background: 'none',

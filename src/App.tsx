@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
-import { HashRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -29,6 +29,31 @@ const ProfileView = mk(import('./views/ProfileView'), 'ProfileView');
 const AssessmentView = mk(import('./views/AssessmentView'), 'AssessmentView');
 const GamesView = mk(import('./views/GamesView'), 'GamesView');
 const GameView = mk(import('./views/GameView'), 'GameView');
+const NotFoundView = mk(import('./views/NotFoundView'), 'NotFoundView');
+
+const ROUTE_PATTERNS = [
+  '/',
+  '/breathe',
+  '/journal',
+  '/coping',
+  '/retos',
+  '/sos',
+  '/explore',
+  '/chat',
+  '/radar',
+  '/plans',
+  '/community',
+  '/library',
+  '/library/:id',
+  '/games',
+  '/games/:id',
+  '/connect',
+  '/assessment',
+  '/profile',
+];
+
+const isKnownRoute = (pathname: string): boolean =>
+  ROUTE_PATTERNS.some((path) => matchPath({ path, end: true }, pathname) !== null);
 
 import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import { syncSystemBarsTheme } from './utils/systemBars';
@@ -125,6 +150,7 @@ function AppShell({
                   path="/profile"
                   element={<ProfileView user={user} onEdit={onEditProfile} onLogout={onLogout} />}
                 />
+                <Route path="*" element={<NotFoundView />} />
               </Routes>
               </div>
             </Suspense>
@@ -184,6 +210,7 @@ function SplashScreen() {
 function Root() {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<SafeUser | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     let cancelled = false;
@@ -209,6 +236,18 @@ function Root() {
 
   if (status === 'loading') {
     return <SplashScreen />;
+  }
+
+  if (!isKnownRoute(location.pathname)) {
+    return (
+      <div className="app-shell">
+        <main className="app-content">
+          <Suspense fallback={<SplashScreen />}>
+            <NotFoundView />
+          </Suspense>
+        </main>
+      </div>
+    );
   }
 
   if (status === 'welcome') {
