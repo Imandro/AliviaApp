@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
       manifest: false,
       workbox: {
         importScripts: ['/push-sw.js'],
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json,webm}'],
         globIgnores: ['sw.js', 'workbox-*.js', '**/ALIVIA-*.apk'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/landing/],

@@ -46,22 +46,19 @@
         background: radial-gradient(circle at center, #2C533D 0%, #1a2a20 100%);
         transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .preloader-glow {
-        width: 72px;
-        height: 72px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(242, 227, 160, 0.4) 0%, rgba(140, 176, 141, 0.1) 70%, transparent 100%);
-        box-shadow: 0 0 40px rgba(242, 227, 160, 0.2);
-        animation: pulsePreloader 3s infinite alternate ease-in-out;
+      .preloader-media {
+        position: relative;
+        width: min(280px, 80vw);
+        aspect-ratio: 16 / 9;
+        background: #EAEBDD;
+        border-radius: 24px;
+        overflow: hidden;
       }
-      .preloader-logo {
-        margin-top: 24px;
-        height: 34px;
-      }
-      .preloader-logo img {
-        height: 100%;
-        width: auto;
-        display: block;
+      .preloader-media video { width: 100%; height: 100%; display: block; object-fit: contain; }
+      .preloader-media img { box-sizing: border-box; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 24px; z-index: 1; }
+      @media (prefers-reduced-motion: reduce) {
+        .preloader-media video { display: none; }
+        #app-preloader { transition: none; }
       }
       .preloader-sub {
         margin-top: 8px;
@@ -70,25 +67,15 @@
         color: #8CB08D;
         opacity: 0.5;
       }
-      @keyframes pulsePreloader {
-        0% {
-          transform: scale(0.85);
-          box-shadow: 0 0 30px rgba(242, 227, 160, 0.15);
-          opacity: 0.7;
-        }
-        100% {
-          transform: scale(1.15);
-          box-shadow: 0 0 60px rgba(242, 227, 160, 0.4);
-          opacity: 1;
-        }
-      }
     </style>
   </head>
   <body>
     <!-- Preloader estético que desaparece al inicializarse la App -->
     <div id="app-preloader">
-      <div class="preloader-glow"></div>
-      <div class="preloader-logo"><img src="/logo-banner.png" alt="ALIVIA" /></div>
+      <div class="preloader-media">
+        <img id="preloader-poster" src="/logo-banner.png" alt="ALIVIA" />
+        <video id="preloader-video" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
+      </div>
       <div class="preloader-sub">cargando espacio seguro...</div>
     </div>
     
@@ -103,6 +90,28 @@
       document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
     </script>
     <script>
+      const loadingVideo = document.getElementById('preloader-video');
+      const loadingPoster = document.getElementById('preloader-poster');
+      const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const updateLoadingMotion = () => {
+        loadingPoster.style.visibility = 'visible';
+        if (motionPreference.matches) {
+          loadingVideo.pause();
+          loadingVideo.removeAttribute('src');
+          loadingVideo.load();
+        } else {
+          loadingVideo.src = '%BASE_URL%videos/alivia-reveal.webm';
+          loadingVideo.play().catch(() => {});
+        }
+      };
+      loadingVideo.addEventListener('playing', () => {
+        loadingPoster.style.visibility = 'hidden';
+      });
+      loadingVideo.addEventListener('error', () => {
+        loadingPoster.style.visibility = 'visible';
+      });
+      motionPreference.addEventListener('change', updateLoadingMotion);
+      updateLoadingMotion();
       // Ocultar preloader cuando la aplicación esté cargada e inicializada
       window.addEventListener('load', function() {
         const preloader = document.getElementById('app-preloader');
@@ -111,6 +120,8 @@
             preloader.style.opacity = '0';
             setTimeout(() => {
               preloader.style.display = 'none';
+              loadingVideo.pause();
+              motionPreference.removeEventListener('change', updateLoadingMotion);
             }, 600);
           }, 350);
         }

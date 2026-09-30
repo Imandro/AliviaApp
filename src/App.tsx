@@ -59,7 +59,7 @@ import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import { syncSystemBarsTheme } from './utils/systemBars';
 import { SyncToast } from './components/SyncToast';
 import { AppLock } from './components/AppLock';
-import logoVertical from './assets/logo-vertical.png';
+import { LoadingBrand } from './components/LoadingBrand';
 
 const ROUTE_MAP: Record<string, TabId> = {
   '/': 'dashboard',
@@ -180,28 +180,7 @@ function SplashScreen() {
         gap: '16px',
         alignItems: 'center',
       }}>
-        <img
-          className="fade-in"
-          src={logoVertical}
-          alt="ALIVIA"
-          style={{
-            height: '110px',
-            width: 'auto',
-            objectFit: 'contain',
-            filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.35))',
-          }}
-        />
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '13px',
-          fontWeight: 500,
-          letterSpacing: '0.3em',
-          margin: 0,
-          color: 'var(--text-muted)',
-          animation: 'fadeIn 1s ease forwards',
-        }}>
-          CARGANDO...
-        </h1>
+        <LoadingBrand />
       </div>
     </div>
   );
