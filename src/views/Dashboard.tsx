@@ -12,7 +12,6 @@ import {
   Compass,
   Users,
   Target,
-  Bot,
   HeartPulse,
   Gamepad2,
   LayoutGrid,
@@ -190,7 +189,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
       </div>
 
-      {/* Banner VIA — chat IA siempre a la vista */}
+      {/* Acceso directo al acompañamiento de VIA */}
       <div
         className="cm-card cm-press dash-span"
         style={styles.viaBanner}
@@ -203,14 +202,18 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={styles.viaIconWrap}>
             <div style={styles.viaIcon} className="cm-float">
-              <Bot size={26} color="#0c1810" />
+              <img
+                src="/avatars/via-normal-64.png"
+                alt="VIA, mascota de Alivia"
+                style={styles.viaMascot}
+              />
             </div>
             <span style={styles.viaPing} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={styles.viaLabel}>
               <Sparkles size={11} color="rgba(12, 24, 16, 0.75)" />
-              <span>VIA · IA DE ORIENTACIÓN</span>
+              <span>VIA · ACOMPAÑAMIENTO EMOCIONAL</span>
             </div>
             <h3 style={styles.viaTitle}>¿Cómo te sientes hoy?</h3>
             <p style={styles.viaSub}>Conversa con Alivia: te escucha y te acompaña sin juicios.</p>
@@ -771,6 +774,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 8px 20px rgba(0, 0, 0, 0.18)',
+    overflow: 'hidden',
+  },
+  viaMascot: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
   },
   viaPing: {
     position: 'absolute',

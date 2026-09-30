@@ -710,7 +710,11 @@ export const ChatView: React.FC = () => {
       <div className="glass-card flex flex-col gap-3" style={styles.introCard}>
         <div style={styles.introHeader}>
           <div style={styles.badgeGlow}>
-            <Sparkles size={15} color="var(--accent-gold)" />
+            <img
+              src="/avatars/via-normal-64.png"
+              alt="VIA, mascota de Alivia"
+              style={styles.viaMascot}
+            />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 className="title-small" style={{ color: 'var(--text-primary)', fontSize: '13px' }}>VIA · ORIENTACIÓN EMOCIONAL</h3>
@@ -811,7 +815,7 @@ export const ChatView: React.FC = () => {
 
               {msg.role === 'ai' && msg.source && (
                 <span style={styles.sourceTag}>
-                  {msg.source === 'groq' ? 'IA en línea' : 'Modo guiado'}
+                  {msg.source === 'groq' ? 'Acompañamiento en línea' : 'Modo guiado'}
                 </span>
               )}
             </div>
@@ -1127,11 +1131,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: '38px',
     height: '38px',
     borderRadius: '50%',
-    background: 'rgba(var(--accent-gold-rgb), 0.12)',
+    background: 'rgba(255, 255, 255, 0.92)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     boxShadow: '0 0 14px rgba(var(--accent-gold-rgb), 0.15)',
+    overflow: 'hidden',
+    flexShrink: 0,
+  },
+  viaMascot: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
   },
   iconBtn: {
     background: 'none',
