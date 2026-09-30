@@ -288,7 +288,7 @@ Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consu
 
 ## Hoja de ruta
 
-- [ ] Notificaciones locales de recordatorio de chequeo
+- [x] Notificaciones locales de recordatorio de chequeo
 - [ ] Exportación del historial personal (JSON/PDF)
 - [ ] Modo acompañante: compartir progreso con persona de confianza
 - [ ] Publicación en Google Play (AAB firmado)
