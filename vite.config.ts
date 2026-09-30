@@ -12,7 +12,10 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       // El registro se hace manualmente en src/main.tsx (omite shells nativos)
       injectRegister: false,
+      // La metadata real de ALIVIA y sus iconos vive en public/manifest.json.
+      manifest: false,
       workbox: {
+        importScripts: ['/push-sw.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json}'],
         globIgnores: ['sw.js', 'workbox-*.js', '**/ALIVIA-*.apk'],
         navigateFallback: '/index.html',
