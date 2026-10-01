@@ -59,7 +59,7 @@ import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import { syncSystemBarsTheme } from './utils/systemBars';
 import { SyncToast } from './components/SyncToast';
 import { AppLock } from './components/AppLock';
-import { FirstRunTutorial } from './components/FirstRunTutorial';
+import { FirstRunSpotlight } from './components/FirstRunSpotlight';
 import { LoadingBrand } from './components/LoadingBrand';
 
 const ROUTE_MAP: Record<string, TabId> = {
@@ -276,7 +276,7 @@ function App() {
       <Root />
       <SyncToast />
       <AppLock />
-      <FirstRunTutorial />
+      <FirstRunSpotlight />
     </HashRouter>
   );
 }

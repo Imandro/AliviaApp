@@ -61,6 +61,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
           return (
             <button
               key={item.id}
+              data-tour={item.id}
               onClick={() => { haptic(); setActiveTab(item.id); }}
               style={styles.navBtn}
               title={t(NAV_KEYS[item.id])}

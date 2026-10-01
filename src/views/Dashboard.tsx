@@ -183,7 +183,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </div>
           <div style={styles.heroRight}>
             <span style={styles.heroLevel}>✦ Nivel {level}</span>
-            <button onClick={() => navigate('/sos')} title="Emergencias" style={styles.sosCircleBtn}>
+            <button data-tour="sos" onClick={() => navigate('/sos')} title="Emergencias" style={styles.sosCircleBtn}>
               <Shield size={20} color="#ffffff" fill="#ffffff" fillOpacity={0.3} />
             </button>
           </div>
@@ -193,6 +193,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       {/* Banner VIA — chat IA siempre a la vista */}
       <div
         className="cm-card cm-press dash-span"
+        data-tour="via"
         style={styles.viaBanner}
         onClick={() => navigate('/chat')}
         role="button"
