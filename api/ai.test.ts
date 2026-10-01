@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import aiHandler from './ai';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from '../_types.js';
 
 interface Captured {
   status: number;
@@ -8,7 +8,7 @@ interface Captured {
   body: unknown;
 }
 
-const makeRes = (): { res: VercelResponse; captured: Captured } => {
+const makeRes = (): { res: ApiResponse; captured: Captured } => {
   const captured: Captured = { status: 200, headers: {}, body: undefined };
   const res = {
     status(code: number) {
@@ -31,43 +31,98 @@ const makeRes = (): { res: VercelResponse; captured: Captured } => {
       return res;
     },
   };
-  return { res: res as unknown as VercelResponse, captured };
+  return { res: res as unknown as ApiResponse, captured };
 };
 
-const makeReq = (over: Partial<VercelRequest> = {}): VercelRequest =>
+const makeReq = (over: Partial<ApiRequest> = {}): ApiRequest =>
   ({
     method: 'POST',
     url: '/api/ai/chat',
     headers: {},
     query: {},
     ...over,
-  }) as VercelRequest;
+  }) as ApiRequest;
 
-const originalKey = process.env.GROQ_API_KEY;
+const originalOpenAIKey = process.env.OPENAI_API_KEY;
+const originalGroqKey = process.env.GROQ_API_KEY;
+const originalOpenAIModels = process.env.OPENAI_MODELS;
 const originalFetch = globalThis.fetch;
 
-const groqJson = (text: string, status = 200): Response =>
+/** Shape de respuesta de chat, identico en OpenAI y Groq. */
+const chatJson = (text: string, status = 200): Response =>
   new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
 
 beforeEach(() => {
-  process.env.GROQ_API_KEY = 'test-key';
-  process.env.GROQ_MODELS = 'openai/gpt-oss-20b,openai/gpt-oss-120b';
+  process.env.OPENAI_API_KEY = 'test-openai-key';
+  process.env.GROQ_API_KEY = 'test-groq-key';
+  delete process.env.OPENAI_MODELS;
 });
 
 afterEach(() => {
-  process.env.GROQ_API_KEY = originalKey;
+  if (originalOpenAIKey === undefined) delete process.env.OPENAI_API_KEY;
+  else process.env.OPENAI_API_KEY = originalOpenAIKey;
+  if (originalGroqKey === undefined) delete process.env.GROQ_API_KEY;
+  else process.env.GROQ_API_KEY = originalGroqKey;
+  if (originalOpenAIModels === undefined) delete process.env.OPENAI_MODELS;
+  else process.env.OPENAI_MODELS = originalOpenAIModels;
   globalThis.fetch = originalFetch;
 });
 
 describe('configuracion', () => {
-  it('responde 503 si la Lambda no tiene GROQ_API_KEY', async () => {
+  it('responde 503 si la Lambda no tiene ninguna clave', async () => {
+    process.env.OPENAI_API_KEY = '';
     process.env.GROQ_API_KEY = '';
     const { res, captured } = makeRes();
     await aiHandler(makeReq(), res);
     expect(captured.status).toBe(503);
+  });
+
+  it('el chat va a OpenAI cuando hay OPENAI_API_KEY', async () => {
+    let url = '';
+    globalThis.fetch = (async (u: string, init?: RequestInit) => {
+      url = u;
+      return chatJson('ok');
+    }) as typeof fetch;
+
+    const { res } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(url).toContain('api.openai.com');
+  });
+
+  it('el chat cae a Groq si OPENAI_API_KEY no esta', async () => {
+    delete process.env.OPENAI_API_KEY;
+    let url = '';
+    globalThis.fetch = (async (u: string) => {
+      url = u;
+      return chatJson('ok');
+    }) as typeof fetch;
+
+    const { res } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(url).toContain('api.groq.com');
+  });
+
+  it('la transcripcion SIEMPRE va a Groq aunque haya clave de OpenAI', async () => {
+    let url = '';
+    globalThis.fetch = (async (u: string) => {
+      url = u;
+      return new Response(JSON.stringify({ text: 'hola' }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const { res } = makeRes();
+    await aiHandler(
+      makeReq({
+        url: '/api/ai/transcribe',
+        body: { size: 2000, type: 'audio/webm', buffer: (e?: string) => '' },
+      }),
+      res
+    );
+    expect(url).toContain('api.groq.com');
   });
 
   it('rechaza metodos distintos de POST', async () => {
@@ -105,7 +160,7 @@ describe('sanitizacion del prompt', () => {
     let captured = '';
     globalThis.fetch = (async (_u: unknown, init?: RequestInit) => {
       captured = String(init?.body);
-      return groqJson('ok');
+      return chatJson('ok');
     }) as typeof fetch;
     const { res } = makeRes();
     await aiHandler(makeReq({ body: { messages, params } }), res);
@@ -146,7 +201,7 @@ describe('sanitizacion del prompt', () => {
 
   it('usa el primer modelo de la lista permitida', async () => {
     const raw = await run([{ role: 'user', content: 'hola' }]);
-    expect(JSON.parse(raw).model).toBe('openai/gpt-oss-20b');
+    expect(JSON.parse(raw).model).toBe('gpt-4.1-mini');
   });
 });
 
@@ -169,16 +224,16 @@ describe('fallo hacia Groq', () => {
     globalThis.fetch = (async (_u: unknown, init?: RequestInit) => {
       const model = JSON.parse(String(init?.body)).model;
       usados.push(model);
-      return model === 'openai/gpt-oss-20b'
+      return model === 'gpt-4.1-mini'
         ? new Response(JSON.stringify({ error: 'boom' }), { status: 500 })
-        : groqJson('Respuesta del segundo modelo');
+        : chatJson('Respuesta del segundo modelo');
     }) as typeof fetch;
 
     const { res, captured } = makeRes();
     await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
     expect(captured.status).toBe(200);
     expect((captured.body as { text: string }).text).toBe('Respuesta del segundo modelo');
-    expect(usados).toContain('openai/gpt-oss-120b');
+    expect(usados).toContain('gpt-4.1-nano');
   });
 
   it('devuelve 502 si Groq no esta disponible', async () => {

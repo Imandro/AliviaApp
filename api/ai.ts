@@ -1,33 +1,57 @@
 /* ----------------------------------------------------
-   ALIVIA - PROXY DE IA (Groq)
-   El navegador NO lleva la clave de Groq: habla con esta
-   Lambda, que la mantiene en process.env.GROQ_API_KEY y
-   reenvia la peticion a Groq.
+   ALIVIA - PROVEEDOR DE IA (hibrido)
+   El navegador NO lleva ninguna clave: habla con la Lambda
+   `alivia-ai`, que decide el upstream segun el endpoint.
 
-   Por que una Lambda aparte y no la del API: la Lambda de
-   datos esta dentro del VPC (para llegar a RDS) y desde ahi
-   no hay salida a internet sin pagar un NAT Gateway. Esto es
-   el mismo motivo por el que el TTS tiene su propia Lambda.
+   Chat        -> OpenAI  (gpt-4.1-mini: mejor en espanol)
+   Transcripcion -> Groq  (Whisper v3 turbo, $0.04/hora)
 
-   Este archivo es el handler con forma Vercel (api/ai.ts);
-   el de Lambda es api/lambda/ai-handler.ts, que ademas
-   transmite la respuesta en streaming.
+   Se separan porque las economias no coinciden: el chat mejora
+   claramente en OpenAI, mientras que la voz alli cuesta ~$0.006
+   por minuto frente a $0.04 por hora. Llevar la transcripcion a
+   OpenAI multiplicaria su costo por unas nueve veces.
+
+   Groq y OpenAI hablan el mismo formato (compatible con la API de
+   OpenAI), asi que el proxy cambia de base y modelo, no de codigo.
+
+   Por que una Lambda aparte y no la del API: la Lambda de datos esta
+   dentro del VPC (para llegar a RDS) y desde ahi no hay salida a
+   internet sin pagar un NAT Gateway. Es el mismo motivo que el TTS.
+
+   Este archivo es el handler con forma Vercel (api/ai.ts); el de
+   Lambda es api/lambda/ai-handler.ts, que ademas transmite la
+   respuesta en streaming.
    ---------------------------------------------------- */
 
 import type { ApiRequest, ApiResponse } from './_types.js';
 
-const GROQ_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
+export type Upstream = 'openai' | 'groq';
+
+export interface UpstreamConfig {
+  base: string;
+  key: string;
+  defaultModel: string;
+  models: string[];
+}
+
+/**
+ * Modelos de chat en orden de preferencia. gpt-4.1-mini primero: es el
+ * equilibrio razonable entre calidad en espanol y costo ($0.40/$1.60 por
+ * 1M). Si se degrada, nano es la misma familia mas barata; 4o-mini es
+ * el ultimo recurso porque responde peor en conversacion empatica.
+ */
+export const OPENAI_MODELS = ['gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o-mini'];
+
+/** Groq solo aparece como respaldo del chat si OpenAI no responde. */
+export const GROQ_CHAT_MODELS = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b'];
+
+const OPENAI_BASE = 'https://api.openai.com/v1';
+const GROQ_BASE = 'https://api.groq.com/openai/v1';
+
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
 
 /** El proxy nunca deberia ser mas lento que el modelo que llama. */
 const UPSTREAM_TIMEOUT_MS = 22000;
-
-/**
- * gpt-oss-20b va primero por velocidad (1000 tok/s) y precio ($0.075/$0.30
- * por 1M), que es lo que hace falta para absorber trafico en una app gratuita.
- */
-const FALLBACK_MODELS = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
 
 /**
  * El cliente decide el modo y envia el prompt ya construido. El proxy no los
@@ -44,18 +68,47 @@ export interface ProxyMessage {
   content: string;
 }
 
-const groqKey = (): string => (process.env.GROQ_API_KEY ?? '').trim();
-
-const allowedModels = (): string[] => {
-  const raw = (process.env.GROQ_MODELS ?? '')
+const listFrom = (raw: string | undefined, fallback: string[]): string[] => {
+  const items = (raw ?? '')
     .split(',')
     .map(m => m.trim())
     .filter(Boolean);
-  return raw.length ? raw : FALLBACK_MODELS;
+  return items.length ? items : fallback;
 };
 
-const isValidModel = (model: unknown): model is string =>
-  typeof model === 'string' && allowedModels().includes(model);
+/**
+ * Si OPENAI_API_KEY no esta configurada, el chat cae a Groq. Asi el deploy
+ * de una Lambda que solo tiene la clave de Groq sigue funcionando (es lo
+ * que pasa hoy), y migrar a OpenAI es solo anadir el secreto.
+ */
+export const chatUpstream = (): UpstreamConfig => {
+  const openaiKey = (process.env.OPENAI_API_KEY ?? '').trim();
+  if (openaiKey) {
+    return {
+      base: OPENAI_BASE,
+      key: openaiKey,
+      defaultModel: OPENAI_MODELS[0],
+      models: listFrom(process.env.OPENAI_MODELS, OPENAI_MODELS),
+    };
+  }
+  return {
+    base: GROQ_BASE,
+    key: (process.env.GROQ_API_KEY ?? '').trim(),
+    defaultModel: GROQ_CHAT_MODELS[0],
+    models: listFrom(process.env.GROQ_MODELS, GROQ_CHAT_MODELS),
+  };
+};
+
+/** La transcripcion siempre va a Groq: alli Whisper es mucho mas barato. */
+export const transcribeUpstream = (): UpstreamConfig => ({
+  base: GROQ_BASE,
+  key: (process.env.GROQ_API_KEY ?? '').trim(),
+  defaultModel: WHISPER_MODEL,
+  models: [WHISPER_MODEL],
+});
+
+const isValidModel = (model: unknown, allowed: string[]): model is string =>
+  typeof model === 'string' && allowed.includes(model);
 
 /**
  * El cliente elige la temperatura segun el modo (baja en crisis). Se acotan
@@ -183,39 +236,44 @@ const sendError = (res: ApiResponse, status: number, message: string): void => {
 
 // ---------- handlers ----------
 
-export interface ChatProxyResult {
-  status: number;
-  body: { text?: string; model?: string; error?: string };
-}
-
 const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
-  const key = groqKey();
-  if (!key) return sendError(res, 503, 'IA no configurada');
+  const upstream = chatUpstream();
+  if (!upstream.key) return sendError(res, 503, 'IA no configurada');
 
   const body = await readBody(req);
   const messages = sanitizeMessages(body.messages);
-  if (!messages) return sendError(res, 400, 'Mensajes invÃ¡lidos');
+  if (!messages) return sendError(res, 400, 'Mensajes inválidos');
 
   const params = sanitizeParams(body.params);
-  const models = isValidModel(body.model) ? [body.model] : allowedModels();
+  const models = isValidModel(body.model, upstream.models)
+    ? [body.model]
+    : upstream.models;
 
-  const payload = (model: string): string =>
-    JSON.stringify({ model, messages, stream: false, ...params });
+  const payload = (model: string, stream: boolean): string =>
+    JSON.stringify({
+      model,
+      messages,
+      stream,
+      // OpenAI rechaza max_completion_tokens en algunos modelos y pide
+      // max_tokens en otros; ambos aceptan max_tokens hoy, asi que se envia
+      // ese. include_usage no hace falta porque no medimos tokens.
+      ...params,
+    });
 
   let lastStatus = 502;
   for (const model of models) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
     try {
-      const upstream = await fetch(GROQ_CHAT_URL, {
+      const res2 = await fetch(`${upstream.base}/chat/completions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
-        body: payload(model),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${upstream.key}` },
+        body: payload(model, false),
         signal: controller.signal,
       });
 
-      if (upstream.ok) {
-        const data = (await upstream.json()) as {
+      if (res2.ok) {
+        const data = (await res2.json()) as {
           choices?: Array<{ message?: { content?: string } }>;
         };
         const text = data?.choices?.[0]?.message?.content;
@@ -224,13 +282,13 @@ const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
           return;
         }
         lastStatus = 502;
-      } else if (upstream.status === 429) {
-        // Limite de cuota de Groq: no tiene sentido reintentar con otro modelo,
-        // la cuota es por cuenta. El cliente cae a las reglas locales.
+      } else if (res2.status === 429) {
+        // Limite de cuota: no tiene sentido reintentar con otro modelo, la
+        // cuota es por cuenta. El cliente cae a las reglas locales.
         res.status(429).json({ error: 'IA saturada' });
         return;
       } else {
-        lastStatus = upstream.status === 401 || upstream.status === 403 ? 500 : 502;
+        lastStatus = res2.status === 401 || res2.status === 403 ? 500 : 502;
       }
     } catch {
       lastStatus = 502;
@@ -243,8 +301,8 @@ const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
 };
 
 const handleTranscribe = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
-  const key = groqKey();
-  if (!key) return sendError(res, 503, 'IA no configurada');
+  const upstream = transcribeUpstream();
+  if (!upstream.key) return sendError(res, 503, 'IA no configurada');
 
   const raw = req.body;
   if (!raw || typeof (raw as { size?: unknown }).size !== 'number') {
@@ -259,31 +317,31 @@ const handleTranscribe = async (req: ApiRequest, res: ApiResponse): Promise<void
   const form = new FormData();
   const filename = audio.type?.includes('mp4') ? 'audio.mp4' : 'audio.webm';
   form.append('file', new Blob([audio.buffer as BlobPart], { type: audio.type || 'audio/webm' }), filename);
-  form.append('model', WHISPER_MODEL);
+  form.append('model', upstream.defaultModel);
   form.append('language', 'es');
   form.append('temperature', '0');
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
-    const upstream = await fetch(GROQ_TRANSCRIBE_URL, {
+    const upstreamRes = await fetch(`${upstream.base}/audio/transcriptions`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${key}` },
+      headers: { Authorization: `Bearer ${upstream.key}` },
       body: form,
       signal: controller.signal,
     });
-    if (!upstream.ok) return sendError(res, 502, 'TranscripciÃ³n no disponible');
-    const data = (await upstream.json()) as { text?: string };
+    if (!upstreamRes.ok) return sendError(res, 502, 'Transcripción no disponible');
+    const data = (await upstreamRes.json()) as { text?: string };
     res.status(200).json({ text: (data?.text ?? '').trim() });
   } catch {
-    sendError(res, 502, 'TranscripciÃ³n no disponible');
+    sendError(res, 502, 'Transcripción no disponible');
   } finally {
     clearTimeout(timer);
   }
 };
 
 export default async function aiHandler(req: ApiRequest, res: ApiResponse): Promise<void> {
-  if (req.method !== 'POST') return sendError(res, 405, 'MÃ©todo no permitido');
+  if (req.method !== 'POST') return sendError(res, 405, 'Método no permitido');
 
   const path = (req.url ?? '').split('?')[0].replace(/\/+$/, '');
   if (path !== '/api/ai/chat' && path !== '/api/ai/transcribe') {

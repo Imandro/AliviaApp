@@ -4,6 +4,9 @@
    con respuesta en streaming: el token del modelo viaja al
    movil a medida que llega, en vez de esperar a que termine.
 
+   El upstream lo decide api/ai.ts (chat a OpenAI, voz a Groq).
+   Aqui solo se replica lo necesario para transmitir la respuesta.
+
    awslambda.streamifyResponse solo existe dentro del runtime de
    Lambda. En local (node scripts/build-lambda.mjs, vercel dev)
    se degrada a un handler normal que responde JSON completo.
@@ -11,23 +14,11 @@
 
 import type { LambdaEvent, LambdaResponse } from './adapter.js';
 import { applyCors } from '../_cors.js';
-import aiHandler from '../ai.js';
+import aiHandler, { chatUpstream } from '../ai.js';
 
-const GROQ_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const UPSTREAM_TIMEOUT_MS = 22000;
-const FALLBACK_MODELS = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
 const MAX_MESSAGES = 24;
 const MAX_CONTENT_CHARS = 4000;
-
-const groqKey = (): string => (process.env.GROQ_API_KEY ?? '').trim();
-
-const allowedModels = (): string[] => {
-  const raw = (process.env.GROQ_MODELS ?? '')
-    .split(',')
-    .map(m => m.trim())
-    .filter(Boolean);
-  return raw.length ? raw : FALLBACK_MODELS;
-};
 
 const clamp = (value: unknown, min: number, max: number, fallback: number): number => {
   const n = typeof value === 'number' ? value : Number(value);
@@ -122,6 +113,7 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
   }).awslambda.HttpResponseStream;
 
   const rawResponse = openStream();
+  const upstream = chatUpstream();
 
   const { metadata, body, params, models } = (() => {
     const parsed = jsonBody(event);
@@ -139,9 +131,9 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
         max_tokens: Math.round(clamp(src.max_tokens, 32, 1024, 320)),
       },
       models:
-        typeof parsed.model === 'string' && allowedModels().includes(parsed.model)
+        typeof parsed.model === 'string' && upstream.models.includes(parsed.model)
           ? [parsed.model]
-          : allowedModels(),
+          : upstream.models,
     };
   })();
 
@@ -151,8 +143,7 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
     return HttpResponseStream.from(rawResponse.stream, metadata);
   }
 
-  const key = groqKey();
-  if (!key) {
+  if (!upstream.key) {
     rawResponse.write(sseEvent({ type: 'error', reason: 'IA no configurada' }));
     rawResponse.end();
     return HttpResponseStream.from(rawResponse.stream, metadata);
@@ -168,20 +159,22 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
     for (const model of models) {
       if (controller.signal.aborted) break;
       try {
-        const upstream = await fetch(GROQ_CHAT_URL, {
+        // OpenAI y Groq comparten formato de streaming: `data:` con
+        // choices[0].delta.content y cierre en `data: [DONE]`.
+        const upstreamRes = await fetch(`${upstream.base}/chat/completions`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${upstream.key}` },
           body: JSON.stringify({ model, messages: body, stream: true, ...params }),
           signal: controller.signal,
         });
 
-        if (upstream.status === 429) {
+        if (upstreamRes.status === 429) {
           rawResponse.write(sseEvent({ type: 'error', reason: 'IA saturada' }));
           break;
         }
-        if (!upstream.ok || !upstream.body) continue;
+        if (!upstreamRes.ok || !upstreamRes.body) continue;
 
-        const reader = upstream.body.getReader();
+        const reader = upstreamRes.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         let guard = false;

@@ -94,10 +94,17 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
 
-  # La IA (Groq) tambien sale a internet, por el mismo motivo que el TTS: la
-  # Lambda de datos esta en el VPC para llegar a RDS y desde ahi no hay salida.
-  # Aqui vive GROQ_API_KEY, de modo que la clave nunca entra en el bundle del
-  # navegador: el cliente llama a /api/ai/* y esta Lambda reenvia a Groq.
+  # La IA tambien sale a internet, por el mismo motivo que el TTS: la Lambda de
+  # datos esta en el VPC para llegar a RDS y desde ahi no hay salida. Aqui viven
+  # las claves, de modo que ninguna entra en el bundle del navegador: el cliente
+  # llama a /api/ai/* y esta Lambda reenvia.
+  #
+  # Proveedor hibrido, porque las economias no coinciden:
+  #   - Chat a OpenAI (gpt-4.1-mini): responde bastante mejor en espanol.
+  #   - Voz a Groq (Whisper v3 turbo): alli la transcripcion cuesta $0.04/hora,
+  #     frente a ~$0.006/minuto en OpenAI. Llevarla a OpenAI la encarece ~9x.
+  # Si OPENAI_API_KEY falta, el chat cae a Groq automaticamente.
+  #
   # InvokeMode RESPONSE_STREAM es lo que permite ir mostrando los tokens segun
   # llegan en vez de esperar a la respuesta completa.
   AiFunction:
@@ -112,7 +119,9 @@ Resources:
         Variables:
           NODE_ENV: production
           GROQ_API_KEY: '{{resolve:secretsmanager:alivia/groq-api-key:SecretString:VITE_GROQ_API_KEY}}'
-          GROQ_MODELS: 'openai/gpt-oss-20b,openai/gpt-oss-120b,qwen/qwen3.6-27b'
+          OPENAI_API_KEY: '{{resolve:secretsmanager:alivia/openai-api-key:SecretString:VITE_OPENAI_API_KEY}}'
+          OPENAI_MODELS: 'gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini'
+          GROQ_MODELS: 'openai/gpt-oss-20b,openai/gpt-oss-120b'
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: RESPONSE_STREAM
@@ -121,7 +130,9 @@ Resources:
           Statement:
             - Effect: Allow
               Action: secretsmanager:GetSecretValue
-              Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/groq-api-key-*'
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/groq-api-key-*'
+                - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/openai-api-key-*'
 
   GitHubActionsRole:
     Type: AWS::IAM::Role

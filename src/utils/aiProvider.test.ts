@@ -28,7 +28,7 @@ const jsonResponse = (body: unknown, status = 200): Response =>
  * Respuesta del proxy. El cliente habla con /api/ai/chat, no con Groq directo,
  * asi que el shape que ve es {text}, no el de OpenAI.
  */
-const proxyChat = (text: string): Response => jsonResponse({ text, model: 'openai/gpt-oss-20b' });
+const proxyChat = (text: string): Response => jsonResponse({ text, model: 'gpt-4.1-mini' });
 
 /**
  * Body SSE con los chunks partidos de forma que rompe un parser ingenuo.
@@ -131,12 +131,12 @@ describe('parseSse', () => {
       'data: {"type":"open"}\n\n',
       proxyDelta('Hola'),
       proxyDelta(' otra vez'),
-      'data: {"type":"done","model":"openai/gpt-oss-20b"}\n\n',
+      'data: {"type":"done","model":"gpt-4.1-mini"}\n\n',
     ], 7);
 
     const deltas = eventos.filter(e => e.type === 'delta').map(e => e.text);
     expect(deltas).toEqual(['Hola', ' otra vez']);
-    expect(eventos[eventos.length - 1]).toEqual({ type: 'done', model: 'openai/gpt-oss-20b' });
+    expect(eventos[eventos.length - 1]).toEqual({ type: 'done', model: 'gpt-4.1-mini' });
   });
 
   it('acepta el sentinel [DONE] de OpenAI', async () => {
@@ -200,7 +200,7 @@ describe('getModelReply - failover y reintentos', () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
       calls.push({ url, init });
       const model = JSON.parse(String(init?.body)).model;
-      return model === 'openai/gpt-oss-20b'
+      return model === 'gpt-4.1-mini'
         ? jsonResponse({ error: 'boom' }, 500)
         : proxyChat('Gracias por contarme eso.');
     }));
@@ -208,8 +208,8 @@ describe('getModelReply - failover y reintentos', () => {
     const reply = await getModelReply('hola, como estas', { history: [], crisisMode: false });
     expect(reply.source).toBe('groq');
     const models = calls.map(c => JSON.parse(String(c.init?.body)).model);
-    expect(models).toContain('openai/gpt-oss-20b');
-    expect(models).toContain('openai/gpt-oss-120b');
+    expect(models).toContain('gpt-4.1-mini');
+    expect(models).toContain('gpt-4.1-nano');
   }, 30000);
 
   it('no reintenta ante un fallo de red: no hay servidor al que preguntar', async () => {

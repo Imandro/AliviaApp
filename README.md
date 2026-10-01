@@ -94,24 +94,26 @@ flowchart LR
     subgraph Nube["Vercel"]
         API["API serverless /api/*<br/>sesiones scrypt · CORS"]
         TTS["Proxy TTS<br/>Edge WS → respaldo"]
-        AI["Proxy IA<br/>Groq · clave en servidor<br/>SSE streaming"]
+        AI["Proxy IA<br/>híbrido · clave en servidor<br/>SSE streaming"]
     end
 
     DB[("Neon PostgreSQL")]
-    GROQ["Groq<br/>chat + Whisper"]
+    OAI["OpenAI<br/>chat gpt-4.1-mini"]
+    GROQ["Groq<br/>Whisper (voz)"]
 
     UI -- "online" --> API
     OUTBOX -.->|"reconexión automática"| API
     UI -.-> TTS
     UI -- "mensajes + historial" --> AI
     AI -- "stream de tokens" --> UI
+    AI --> OAI
     AI --> GROQ
     API --> DB
 ```
 
 > La IA viaja por una función aparte (`alivia-ai`) porque necesita salir a internet, y la
 > API de datos vive dentro del VPC para llegar a la base de datos. Igual que el TTS, evitar
-> un NAT Gateway. La clave de Groq se lee de Secrets Manager: nunca entra en el bundle.
+> un NAT Gateway. Las claves se leen de Secrets Manager: nunca entran en el bundle.
 
 - **Un código, dos nativos:** el mismo bundle corre en navegador y dentro del contenedor Capacitor (`android/`), con icono adaptativo, splash, permiso de micrófono y firma release propia.
 - **Backend serverless:** funciones Node en Vercel con `pg`, contraseñas **scrypt**, sesiones Bearer de 30 días y esquema autogestionado (`db/schema.sql` + `db/functions.sql`).
@@ -202,10 +204,12 @@ vía [GitHub Releases](https://github.com/Imandro/AliviaApp/releases/latest).
 | Variable | Ámbito | Descripción |
 |---|---|---|
 | `DATABASE_URL` | Servidor (Vercel) | Cadena de conexión a Neon PostgreSQL con SSL. |
-| `GROQ_API_KEY` | Lambda `alivia-ai` | Llave de Groq, leída de Secrets Manager (`alivia/groq-api-key`). **No va en el cliente.** |
-| `GROQ_MODELS` | Lambda `alivia-ai` | Lista de modelos con failover, separada por comas. Por defecto `openai/gpt-oss-20b,openai/gpt-oss-120b,qwen/qwen3.6-27b`. |
-| `VITE_GROQ_MODEL` | Build cliente *(opcional)* | Sobrescribe la lista de modelos en desarrollo. |
-| `VITE_GROQ_API_KEY` + `VITE_AI_DIRECT=1` | Solo desarrollo | Salta el proxy y llama a Groq desde el navegador. **Inlina la clave en el bundle: nunca para un build que se publique.** |
+| `OPENAI_API_KEY` | Lambda `alivia-ai` | Llave de OpenAI para el chat, leída de Secrets Manager (`alivia/openai-api-key`). **No va en el cliente.** Si falta, el chat cae a Groq. |
+| `OPENAI_MODELS` | Lambda `alivia-ai` | Lista de failover del chat. Por defecto `gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini`. |
+| `GROQ_API_KEY` | Lambda `alivia-ai` | Llave de Groq para la transcripción de voz (`alivia/groq-api-key`). **No va en el cliente.** |
+| `GROQ_MODELS` | Lambda `alivia-ai` | Modelos de respaldo si OpenAI no responde. Por defecto `openai/gpt-oss-20b,openai/gpt-oss-120b`. |
+| `VITE_OPENAI_MODEL` | Build cliente *(opcional)* | Sobrescribe la lista de modelos en desarrollo. |
+| `VITE_AI_DIRECT=1` + `VITE_OPENAI_API_KEY` / `VITE_GROQ_API_KEY` | Solo desarrollo | Salta el proxy y llama a los proveedores desde el navegador. **Inlina las claves en el bundle: nunca para un build que se publique.** |
 
 Nunca se commitean: `.env`, `.env.local`, `*.jks` y `keystore.properties` están en `.gitignore`.
 
@@ -224,7 +228,7 @@ Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consu
 | `/api/plans` | GET · POST · PUT · DELETE | Planes, metas y actividades. |
 | `/api/assessments` | GET · POST | Chequeos de bienestar y registro de contacto en crisis. |
 | `/api/tts` | GET | Síntesis de voz con doble motor (Edge WebSocket → respaldo). |
-| `/api/ai/chat` | POST | Proxy de Groq para VIA. Acepta `stream: true` y responde SSE token a token. |
+| `/api/ai/chat` | POST | Proxy de OpenAI para VIA. Acepta `stream: true` y responde SSE token a token. |
 | `/api/ai/transcribe` | POST | Transcripción de voz (Whisper `large-v3-turbo`). |
 
 `/api/ai/*` lo sirve `alivia-ai`, una Lambda fuera del VPC. Rate limit por IP (cubos de
@@ -307,7 +311,7 @@ Convención de commits: `feat(área): …`, `fix(área): …`, `docs: …`, `cho
 
 ### Qué sale del dispositivo
 
-El historial del chat **sí** viaja a Groq (proveedor externo, con su propia política de
+El historial del chat **sí** viaja a OpenAI (proveedor externo, con su propia política de
 retención) cuando el modo IA está activo: es lo que permite que VIA recuerde y responda en
 contexto. Los mensajes antiguos donde la persona mencionó riesgo de suicidio o autolesión se
 sustituyen por un marcador antes de enviarse.

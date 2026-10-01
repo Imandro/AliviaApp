@@ -47,16 +47,16 @@ export interface AiTurn {
   content: string;
 }
 
-const GROQ_CHAT_URL = 'https://api.groq.com/openai/v1/chat/completions';
+/**
+ * Solo se usa en desarrollo (VITE_AI_DIRECT=1). En produccion todo va por el
+ * proxy, que es quien decide el upstream real. Chat a OpenAI, voz a Groq.
+ */
+const OPENAI_CHAT_URL = 'https://api.openai.com/v1/chat/completions';
 const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
 
-/**
- * gpt-oss-20b va primero: es el mas rapido (1000 tok/s) y de los mas baratos
- * ($0.075/$0.30 por 1M), asi que aguanta mejor el trafico de una app viral que
- * el 120b. Si se degrada o se cae, el 120b mantiene la calidad.
- */
-const GROQ_MODELS = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
+/** Mismo orden que el proxy: si difieren, el desarrollo no reproduce produccion. */
+const OPENAI_MODELS = ['gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o-mini'];
 
 const LLM_TIMEOUT_MS = 20000;
 const FIRST_TOKEN_TIMEOUT_MS = 12000;
@@ -81,11 +81,13 @@ const env = (key: string): string => {
   }
 };
 
-const directKey = (): string => env('VITE_GROQ_API_KEY');
+/** En desarrollo directo, el chat va a OpenAI y la voz a Groq. */
+const directChatKey = (): string => env('VITE_OPENAI_API_KEY');
+const directVoiceKey = (): string => env('VITE_GROQ_API_KEY');
 
 /** El proxy es el camino normal en produccion; el directo, solo en desarrollo. */
 const transport = (): AiTransport =>
-  env('VITE_GROQ_API_KEY') && env('VITE_AI_DIRECT') === '1' ? 'direct' : 'proxy';
+  env('VITE_AI_DIRECT') === '1' && (directChatKey() || directVoiceKey()) ? 'direct' : 'proxy';
 
 const aiBase = (): string => {
   const base = (import.meta.env.VITE_API_URL || '').trim();
@@ -93,16 +95,16 @@ const aiBase = (): string => {
 };
 
 const configuredModels = (): string[] => {
-  const list = env('VITE_GROQ_MODEL')
+  const list = env('VITE_OPENAI_MODEL')
     .split(',')
     .map(m => m.trim())
     .filter(Boolean);
-  return list.length ? list : GROQ_MODELS;
+  return list.length ? list : OPENAI_MODELS;
 };
 
 export const hasOnlineAI = (): boolean => {
-  if (transport() === 'direct') return directKey().length > 0;
-  return aiBase().length > 0 || directKey().length > 0;
+  if (transport() === 'direct') return directChatKey().length > 0;
+  return aiBase().length > 0;
 };
 
 export const aiTransport = transport;
@@ -403,9 +405,9 @@ const readJson = async (res: Response): Promise<any> => {
 };
 
 const callDirect = async (plan: Plan, model: string, signal: AbortSignal): Promise<AttemptResult> => {
-  const key = directKey();
+  const key = directChatKey();
   if (!key) return { text: null, status: 0, retryAfter: null };
-  const res = await fetch(GROQ_CHAT_URL, {
+  const res = await fetch(OPENAI_CHAT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: groqBody(plan, model, false),
@@ -557,9 +559,9 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
 }
 
 const streamDirect = async (plan: Plan, model: string, handlers: StreamHandlers): Promise<string | null> => {
-  const key = directKey();
+  const key = directChatKey();
   if (!key) return null;
-  const res = await fetch(GROQ_CHAT_URL, {
+  const res = await fetch(OPENAI_CHAT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: groqBody(plan, model, true),
@@ -765,7 +767,7 @@ export const transcribeAudio = async (blob: Blob): Promise<string> => {
       return (data?.text ?? '').trim();
     }
 
-    const key = directKey();
+    const key = directVoiceKey();
     if (!key) return '';
     const res = await fetch(GROQ_TRANSCRIBE_URL, {
       method: 'POST',

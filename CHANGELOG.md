@@ -7,17 +7,28 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Seguridad
 
-- **La clave de Groq ya no viaja en el bundle.** `VITE_GROQ_API_KEY` se compilaba
-  dentro del JavaScript y quedaba accesible para cualquiera que abriera las
-  herramientas de desarrollo del navegador, con la cuota de la app. Ahora el cliente
-  habla con `/api/ai/*` y es una Lambda nueva (`alivia-ai`, fuera del VPC como el
-  TTS) la que guarda la clave en Secrets Manager y reenvía a Groq. Es el único
-  cambio de este bloque que no se puede revertir sin perder la clave.
+- **Las claves ya no viajan en el bundle.** `VITE_GROQ_API_KEY` se compilaba dentro
+  del JavaScript y quedaba accesible para cualquiera que abriera las herramientas
+  de desarrollo del navegador, con la cuota de la app. Ahora el cliente habla con
+  `/api/ai/*` y es una Lambda nueva (`alivia-ai`, fuera del VPC como el TTS) la
+  que guarda las claves en Secrets Manager y reenvía. Es el único cambio de este
+  bloque que no se puede revertir sin perder las claves.
 - **Rate limit por IP** en el proxy (cubos de tokens), con `429` hacia el cliente
   para que caiga a las reglas locales en vez de reintentar en bucle.
 - **El proxy acota lo que le piden**: temperatura y `max_tokens` con techo, lista
   de modelos en servidor y el mensaje `system` forzado al principio. Una petición
-  manipulada ya no puede pedir una respuesta críptica ni saltarse las instrucciones.
+  manipulada ya no puede pedir una respuesta de crisis ni saltarse las instrucciones.
+
+### Cambiado
+
+- **Proveedor híbrido.** El chat pasa a **OpenAI** (`gpt-4.1-mini`, que responde
+  bastante mejor en español) y la transcripción de voz se queda en **Groq**
+  (Whisper v3 turbo). No se unificó porque las eficiencias no coinciden: la voz en
+  OpenAI costaría ~$0.006 por minuto frente a $0.04 por hora en Groq, unas nueve
+  veces más. Si `OPENAI_API_KEY` no está configurado, el chat cae a Groq
+  automáticamente, así que el deploy actual sigue funcionando sin cambios.
+- `VITE_GROQ_MODEL` pasa a `VITE_OPENAI_MODEL`, y el modo directo de desarrollo
+  usa dos claves separadas en vez de una.
 
 ### Añadido
 
@@ -34,8 +45,8 @@ versionado con [SemVer](https://semver.org/lang/es/).
   respuesta completa y añadir 900 ms de espera artificial después.
 - **Red de seguridad en crisis**: si la respuesta del modelo no menciona ninguna
   ayuda humana, se le añade sola antes de mostrarla.
-- **109 tests**, 5 archivos, cubriendo el clasificador de crisis, el failover, el
-  rate limit, el parseo de SSE y la sanitización del proxy.
+- **117 tests**, 6 archivos, cubriendo el clasificador de crisis, el failover, el
+  rate limit, el parseo de SSE, la sanitización del proxy y elección de upstream.
 
 ### Corregido
 
@@ -48,9 +59,11 @@ versionado con [SemVer](https://semver.org/lang/es/).
   palabras, que detecta el eco reformulado.
 - **Un 429 degradaba a todos los usuarios en silencio**; ahora el cliente recibe el
   código y cae a las reglas locales de forma explícita.
-- **La lista de modelos tenía uno inválido**: `qwen/qwen3.6-27b` no existe en el
-  catálogo de Groq, así que uno de los tres intentos de failover siempre fallaba.
-  La lista se corrigió y reordenó: `gpt-oss-20b` primero por velocidad y precio.
+- **La lista de modelos llevaba un id dudoso**: `qwen/qwen3.6-27b` aparecía en
+  listados de terceros pero no en la documentación oficial de Groq, donde hoy
+  figura `qwen/qwen3.8-27b`. Ese 3.6 salía de la lista. Nota de transparencia: en
+  la primera versión de esta entrada afirmé que no existía en el catálogo; era una
+  conclusión sin verificar y fue incorrecta.
 - **Una entrada de diario positiva ("un logro grande") se puntuaba como neutra**:
   el patrón era `logr[ée]`, que no cubre "logro".
 - **El chequeo de bienestar se tragaba los errores** de la llamada IA, sin
@@ -65,8 +78,8 @@ versionado con [SemVer](https://semver.org/lang/es/).
   detectada, para que el modelo sepa si hay un método o solo ideación.
 - El diario completo ya no viaja al modelo: recibe un resumen agregado y, como
   máximo, los últimos 8 turnos de conversación.
-- `VITE_GROQ_MODEL` acepta una lista separada por comas y se documentó
-  `GROQ_MODELS` en el servidor.
+- La lista de modelos acepta un failover separado por comas, en servidor
+  (`OPENAI_MODELS`, `GROQ_MODELS`) y en desarrollo (`VITE_OPENAI_MODEL`).
 
 ## [1.1.2] — 2026-08-23
 
