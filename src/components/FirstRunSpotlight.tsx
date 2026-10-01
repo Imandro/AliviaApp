@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronRight, Check, X } from 'lucide-react';
 import { isNativeShell } from '../utils/nativeShell';
 
@@ -62,7 +62,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   card: {
     position: 'absolute',
-    width: 'min(320px, calc(100vw - 32px))',
+    width: 'min(320px, calc(100vw - 24px))',
+    maxWidth: 'calc(100vw - 24px)',
     background: 'var(--bg-elevated)',
     border: '1px solid var(--border-color-glow)',
     borderRadius: '24px',
@@ -71,6 +72,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition:
       'top 0.4s cubic-bezier(0.34, 1.3, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.3, 0.64, 1)',
     pointerEvents: 'auto',
+    overflowY: 'auto',
+    overscrollBehavior: 'contain',
   },
   step: {
     fontSize: 10,
@@ -144,18 +147,47 @@ export const FirstRunSpotlight: React.FC = () => {
   const [active, setActive] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
   const rafRef = useRef<number | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const measure = useCallback(() => {
-    const target = document.querySelector(STEPS[step].selector);
-    if (!target) {
-      // Si el elemento no existe todavia (o no se renderiza), el paso no
-      // tiene sentido: mejor saltarlo que mostrar un anillo flotando.
-      setRect(null);
-      return;
-    }
-    const r = target.getBoundingClientRect();
-    setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-  }, [step]);
+
+  // Posiciona la tarjeta midiendo su TAMANO REAL, no suponiendo 320x210. Asi el
+// texto mas largo de un paso, un movil estrecho o una pantalla baja no la
+// empujan fuera. Estrategia, en orden: debajo del elemento, encima, y si no cabe
+// de ninguna forma se ancla como hoja al fondo.
+const place = useCallback(
+  (target: Rect): { left: number; top: number; maxHeight: number } | null => {
+    const card = cardRef.current;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const gap = 14;
+
+    const cw = card?.offsetWidth ?? Math.min(320, vw - 24);
+    const ch = card?.offsetHeight ?? 210;
+    const margin = 12;
+
+    const maxH = Math.max(160, vh - margin * 2);
+    const height = Math.min(ch, maxH);
+
+    // Horizontal: centrada bajo el elemento pero nunca saliendo de la pantalla.
+    let left = target.left + target.width / 2 - cw / 2;
+    left = Math.max(margin, Math.min(left, vw - cw - margin));
+
+    const below = target.top + target.height + PAD + gap;
+    const above = target.top - PAD - gap - height;
+    const bottomSheet = vh - height - margin;
+
+    let top: number;
+    if (below + height <= vh - margin) top = below;
+    else if (above >= margin) top = above;
+    else top = Math.max(margin, bottomSheet);
+
+    return { left, top, maxHeight: maxH };
+  },
+  []
+);
+  const [cardPos, setCardPos] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
+
+  
 
   useEffect(() => {
     if (isNativeShell) return;
@@ -171,32 +203,39 @@ export const FirstRunSpotlight: React.FC = () => {
       /* modo privado: se muestra igual */
     }
     // Espera a que el Dashboard termine de montar antes de medir.
-    const t = setTimeout(() => {
-      setActive(true);
-      measure();
-    }, 1200);
+    const t = setTimeout(() => setActive(true), 1200);
     return () => clearTimeout(t);
-  }, [measure]);
+  }, []);
 
-  // Recalcular en resize y en scroll: los elementos se mueven.
+  // Recalcular en resize y en scroll: los elementos se mueven y la tarjeta se
+  // ancla a ellos, asi que ambas medidas se refrescan juntas.
   useEffect(() => {
     if (!active) return;
     const onResize = () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(measure);
+      rafRef.current = requestAnimationFrame(() => {
+        const target = document.querySelector(STEPS[step].selector);
+        if (!target) {
+          setRect(null);
+          setCardPos(null);
+          return;
+        }
+        const r = target.getBoundingClientRect();
+        const next: Rect = { top: r.top, left: r.left, width: r.width, height: r.height };
+        setRect(next);
+        setCardPos(place(next));
+      });
     };
     window.addEventListener('resize', onResize);
     window.addEventListener('scroll', onResize, true);
+    window.addEventListener('orientationchange', onResize);
     return () => {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onResize, true);
+      window.removeEventListener('orientationchange', onResize);
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [active, measure]);
-
-  useEffect(() => {
-    if (active) measure();
-  }, [step, active, measure]);
+  }, [active, step, place]);
 
   const finish = useCallback(() => {
     try {
@@ -219,20 +258,29 @@ export const FirstRunSpotlight: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [active, finish]);
 
-  const cardPos = useMemo(() => {
-    if (!rect) return null;
-    const h = 210;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    let left = rect.left + rect.width / 2 - 160;
-    left = Math.max(16, Math.min(left, vw - 336));
-    // Preferimos putting la tarjeta debajo; si no cabe, arriba.
-    let top = rect.top + rect.height + PAD + 14;
-    if (top + h > vh - 12) top = Math.max(12, rect.top - h - PAD - 14);
-    return { left, top };
-  }, [rect]);
 
-  if (!active) return null;
+
+// Recalcula la posicion cuando cambia el paso o el elemento, y tras pintar.
+useEffect(() => {
+  if (!active) return;
+  const update = () => {
+    const target = document.querySelector(STEPS[step].selector);
+    if (!target) {
+      setRect(null);
+      setCardPos(null);
+      return;
+    }
+    const r = target.getBoundingClientRect();
+    const next: Rect = { top: r.top, left: r.left, width: r.width, height: r.height };
+    setRect(next);
+    setCardPos(place(next));
+  };
+  update();
+  const id = requestAnimationFrame(update);
+  return () => cancelAnimationFrame(id);
+}, [active, step, place]);
+
+if (!active) return null;
 
   const isLast = step === STEPS.length - 1;
   const current = STEPS[step];
@@ -295,7 +343,15 @@ export const FirstRunSpotlight: React.FC = () => {
       )}
 
       {cardPos && (
-        <div style={{ ...styles.card, left: cardPos.left, top: cardPos.top }}>
+        <div
+          ref={cardRef}
+          style={{
+            ...styles.card,
+            left: cardPos.left,
+            top: cardPos.top,
+            maxHeight: cardPos.maxHeight,
+          }}
+        >
           <button style={styles.closeBtn} onClick={finish} aria-label="Cerrar tour">
             <X size={15} />
           </button>
