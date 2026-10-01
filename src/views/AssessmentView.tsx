@@ -35,7 +35,8 @@ import {
   toolLinksFor,
   composeAiPrompt,
 } from '../utils/assessmentTest';
-import { getAiReplyHybrid } from '../utils/aiProvider';
+import { getModelReply } from '../utils/aiProvider';
+import { assessCrisis } from '../utils/crisisSafety';
 import { journalSummaryForPrompt } from '../utils/journalDb';
 import {
   CRISIS_COUNTRIES,
@@ -142,28 +143,45 @@ export const AssessmentView: React.FC = () => {
     }
 
     setAiLoading(true);
-    const journalSummary = journalSummaryForPrompt();
-    const promptBase = composeAiPrompt(counts);
-    const reply = await getAiReplyHybrid(journalSummary ? `${promptBase} ${journalSummary}` : promptBase, []);
-    if (saved && saved.id && reply) {
-      setLastResult((prev) => (prev ? { ...prev, ai_advice: reply.text, ai_source: reply.source } : prev));
-      setRecords((prev) =>
-        prev.map((r) => (r.id === saved.id ? { ...r, ai_advice: reply.text } : r))
-      );
-      await saveAssessment({
-        id: saved.id,
-        stress: counts.stress,
-        anxiety: counts.anxiety,
-        depression: counts.depression,
-        level,
-        crisis,
-        recommendations,
-        ai_advice: reply.text,
-      });
-    } else if (saved) {
-      setRecords((prev) => [saved, ...prev]);
+    try {
+      const journalSummary = journalSummaryForPrompt();
+      const promptBase = composeAiPrompt(counts);
+      const prompt = journalSummary ? `${promptBase} ${journalSummary}` : promptBase;
+
+      // El resumen del diario puede traer una crisis sin que el chequeo la
+      // detecte: se evalua el prompt completo, no solo los conteos.
+      const assessment = assessCrisis(prompt);
+
+      const reply = await getModelReply(prompt, { history: [], crisisMode: false });
+
+      if (saved && saved.id) {
+        setLastResult((prev) => (prev ? { ...prev, ai_advice: reply.text, ai_source: reply.source } : prev));
+        setRecords((prev) =>
+          prev.map((r) => (r.id === saved.id ? { ...r, ai_advice: reply.text } : r))
+        );
+        await saveAssessment({
+          id: saved.id,
+          stress: counts.stress,
+          anxiety: counts.anxiety,
+          depression: counts.depression,
+          level,
+          crisis,
+          recommendations,
+          ai_advice: reply.text,
+        });
+
+        if (assessment.isCrisis) {
+          logCrisisContact(saved.id, 'assessment', assessment.evidence.map(e => e.label).join('; '));
+        }
+      } else if (saved) {
+        setRecords((prev) => [saved, ...prev]);
+      }
+    } catch {
+      // Sin IA el chequeo sigue siendo valido: las recomendaciones locales ya
+      // estan en pantalla, y este bloque solo anade el mensaje de la IA.
+    } finally {
+      setAiLoading(false);
     }
-    setAiLoading(false);
   };
 
   const handleHelpline = (phone: string, name: string) => {

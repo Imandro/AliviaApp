@@ -1,8 +1,10 @@
 /* ----------------------------------------------------
-   ALIVIA - IA DE ORIENTACIÓN EMOCIONAL (sin API externa)
-   Detecta temas clave y genera respuestas empáticas
-   con orientación, herramientas y derivación a SOS.
+   ALIVIA - IA DE ORIENTACION EMOCIONAL (sin API externa)
+   Detecta temas clave y genera respuestas empaticas
+   con orientacion, herramientas y derivacion a SOS.
    ---------------------------------------------------- */
+
+import { assessCrisis } from './crisisSafety';
 
 export interface AiResponse {
   text: string;
@@ -16,14 +18,6 @@ interface TopicRule {
   response: string[];
   suggest?: { label: string; path: string }[];
 }
-
-const CRISIS_KEYWORDS = [
-  'suicid', 'matarme', 'querer morir', 'no quiero vivir', 'acabar con mi vida',
-  'lastimarme', 'autolesion', 'cortarme', 'autoneterse', 'quitarme la vida',
-  'acabar con todo', 'no quiero seguir', 'no quiero seguir existiendo',
-  'desaparecer para siempre', 'hacerme daño', 'hacerme dano', 'ahorcarme',
-  'sobredosis', 'tomar pastillas para no despertar', 'no aguanto más', 'no aguanto mas',
-];
 
 const SUGGEST_SOS = { label: 'Ver líneas de ayuda (SOS)', path: '/sos' };
 const SUGGEST_BREATHE = { label: 'Ejercicio de respiración', path: '/breathe' };
@@ -46,7 +40,7 @@ const RULES: TopicRule[] = [
     keywords: ['triste', 'tristeza', 'llorar', 'lloro', 'deprimido', 'depresion', 'vacío', 'vacias', 'sin ganas', 'desgana', 'apagado', 'apagada'],
     response: [
       'Gracias por confiar en mí lo que estás sintiendo. ¿Qué te tiene triste hoy? Cuéntame qué pasó o desde cuándo pesa esto: quiero entenderte antes de proponerte algo.',
-      'Hoy alcanza con: hidratarte, abrir una ventana o ventana que te dé luz, y escribir dos líneas de lo que sientes en tu diario. Mañana, otra cosa pequeña. La constancia construye el cambio, no la fuerza.',
+      'Hoy alcanza con: hidratarte, abrir una ventana que te dé luz, y escribir dos líneas de lo que sientes en tu diario. Mañana, otra cosa pequeña. La constancia construye el cambio, no la fuerza.',
     ],
     suggest: [SUGGEST_JOURNAL, SUGGEST_PLANS, SUGGEST_RADAR],
   },
@@ -108,7 +102,7 @@ const RULES: TopicRule[] = [
   },
   {
     keywords: ['gracias', 'graciass'],
-    response: ['Estoy aquí para eso. Cuidarte es un acto de valentía, y ya lo estás haciendo. Si vuelve a sentirse pesado, este espacio sigue aquí. '],
+    response: ['Estoy aquí para eso. Cuidarte es un acto de valentía, y ya lo estás haciendo. Si vuelve a sentirse pesado, este espacio sigue aquí.'],
     suggest: [],
   },
   {
@@ -130,7 +124,7 @@ const RULES: TopicRule[] = [
   {
     keywords: ['hola', 'hey', 'buenas', 'que tal', 'holi'],
     response: [
-      'Hola, soy VIA.  ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
+      'Hola, soy VIA. ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
       '¡Hola! Soy VIA, tu acompañamiento emocional. Cuéntame cómo va tu día o qué necesitas en este momento.',
     ],
     suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
@@ -150,6 +144,21 @@ const WITH_TOPIC_REPLY = (topic: string) =>
 const CONTINUE_TOPIC_REPLY = (topic: string) =>
   `Sigo aquí contigo. Me cuentas de "${topic}" y quiero seguir escuchándote: ¿qué ha cambiado desde que hablamos? Respira profundo: acompañarte no es apresurarte.`;
 
+const FALLBACK_ROUTES = ['no se', 'no sé', 'no lo se', 'no lo sé', 'no quiero hablar', 'nada', 'no se que'];
+
+const TOPIC_LABELS: [string, string][] = [
+  ['ansied', 'ansiedad'], ['triste', 'tristeza'], ['enojo', 'enojo'], ['consum', 'ganas de consumir'],
+  ['solo', 'soledad'], ['familia', 'conflicto familiar'], ['sueño', 'sueño'], ['examen', 'estrés'],
+  ['relacion', 'relaciones'], ['ira', 'enojo'], ['stress', 'estrés'], ['presion', 'presión'],
+];
+
+const getTopicByText = (text: string): string | null => {
+  for (const [key, label] of TOPIC_LABELS) {
+    if (text.includes(key)) return label;
+  }
+  return null;
+};
+
 const LAST_TOPIC = (lastTopic: string): string | null => {
   const topic = getTopicByText(lastTopic);
   if (!topic) return null;
@@ -157,20 +166,49 @@ const LAST_TOPIC = (lastTopic: string): string | null => {
   return topic;
 };
 
-const FALLBACK_ROUTES = ['no se', 'no sé', 'no lo se', 'no lo sé', 'no quiero hablar', 'nada', 'no se que'];
+/** Texto sin puntuacion ni tildes, para comparar palabras clave. */
+const searchable = (message: string): string =>
+  (message ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ');
 
-export const getAiReply = (message: string, lastTopic?: string): { text: string; topics: string[]; isCrisis: boolean; suggest: { label: string; path: string }[] } => {
-  const lower = message.toLowerCase();
-  const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
+export const detectCrisis = (message: string, history: string[] = []): boolean =>
+  assessCrisis(message, history).isCrisis;
 
-  const isCrisis = CRISIS_KEYWORDS.some(k => text.includes(k));
-  if (isCrisis) {
+const CRISIS_RESPONSES = {
+  level3: [
+    'Lo que me estás contando es serio y me importa de verdad: gracias por decirlo aquí. No voy a dejarte con esto a solas. ' +
+    'Necesito preguntarte con cuidado: ¿tienes un plan o vas a hacerte algo ahora, y hay alguien cerca de ti en este momento? ' +
+    'Si es sí, llama ya a una línea de crisis gratuita o habla de inmediato con una persona de confianza. Si estás en peligro inmediato, llama a emergencias.',
+  ],
+  level2: [
+    'Gracias por contarme algo tan delicado, de verdad. Lo que sientes pesa y tiene sentido que lo estés pasando mal. ' +
+    '¿Estás a salvo en este momento? Y cuéntame: ¿hay alguien de confianza con quien puedas hablar hoy, aunque sea un momento?',
+  ],
+  level1: [
+    'Gracias por decírmelo, y te tomo en serio. Parece que estás cargando algo más de lo que te cabe ahora. ' +
+    '¿Estás a salvo en este momento? Si esto no afloja, habla hoy con alguien de confianza o con una línea gratuita: no tienes que hacerlo solo.',
+  ],
+};
+
+const crisisText = (level: number): string => {
+  if (level >= 3) return CRISIS_RESPONSES.level3[0];
+  if (level === 2) return CRISIS_RESPONSES.level2[0];
+  return CRISIS_RESPONSES.level1[0];
+};
+
+export const getAiReply = (message: string, lastTopic?: string): AiResponse => {
+  const text = searchable(message);
+
+  const assessment = assessCrisis(message);
+  if (assessment.isCrisis) {
     return {
       isCrisis: true,
       topics: ['crisis'],
-      text:
-        'Lo que me estás compartiendo es muy serio, y quiero que lo tomes como lo es: una señal de que necesitas apoyo humano real HOY, no solo herramientas digitales. ' +
-        'No tienes que cargar esto a solas. Ahora mismo puedes: llamar a una línea de crisis gratuita, hablar con una persona de confianza o ir a emergencias si hay peligro inmediato.',
+      text: crisisText(assessment.level),
       suggest: [SUGGEST_SOS, SUGGEST_CONNECT],
     };
   }
@@ -180,15 +218,15 @@ export const getAiReply = (message: string, lastTopic?: string): { text: string;
     return {
       isCrisis: false,
       topics: [navIntent.label],
-      text: `Claro, te ayudo con eso. Cuando estés lista/o y quieras ir, toca el botón de aquí abajo para abrir el ${navIntent.label}.`,
-      suggest: [{ label: `Abrir ${navIntent.label}`, path: navIntent.path }],
+      text: getNavReply(navIntent),
+      suggest: [],
     };
   }
 
   for (const rule of RULES) {
     const matched = rule.keywords.find(k => text.includes(k));
     if (matched) {
-      const alreadyDiscussed = lastTopic ? lastTopic.toLowerCase().includes(matched) : false;
+      const alreadyDiscussed = lastTopic ? searchable(lastTopic).includes(matched) : false;
       const askWhyFirst = !alreadyDiscussed && rule.response.length > 1;
       const response = askWhyFirst
         ? rule.response[0]
@@ -213,33 +251,13 @@ export const getAiReply = (message: string, lastTopic?: string): { text: string;
       : last
         ? CONTINUE_TOPIC_REPLY(last)
         : FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)],
-    suggest: detectedTopic ? [SUGGEST_JOURNAL, SUGGEST_RADAR] : last ? [SUGGEST_JOURNAL, SUGGEST_RADAR] : [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
+    suggest: [SUGGEST_JOURNAL, SUGGEST_RADAR],
   };
 };
 
-const TOPIC_LABELS: [string, string][] = [
-  ['ansied', 'ansiedad'], ['triste', 'tristeza'], ['enojo', 'enojo'], ['consum', 'ganas de consumir'],
-  ['solo', 'soledad'], ['familia', 'conflicto familiar'], ['sueño', 'sueño'], ['examen', 'estrés'],
-  ['relacion', 'relaciones'], ['ira', 'enojo'], ['stress', 'estrés'], ['presion', 'presión'],
-];
-
-const getTopicByText = (text: string): string | null => {
-  for (const [key, label] of TOPIC_LABELS) {
-    if (text.includes(key)) return label;
-  }
-  return null;
-};
-
-export const detectCrisis = (message: string): boolean => {
-  const lower = message.toLowerCase();
-  const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
-  return CRISIS_KEYWORDS.some(k => text.includes(k));
-};
-
 export const getIntentSuggest = (message: string): { label: string; path: string }[] | null => {
-  const lower = message.toLowerCase();
-  const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
-  if (detectCrisis(message)) return [SUGGEST_SOS, SUGGEST_CONNECT];
+  if (assessCrisis(message).isCrisis) return [SUGGEST_SOS, SUGGEST_CONNECT];
+  const text = searchable(message);
   for (const rule of RULES) {
     if (rule.keywords.some(k => text.includes(k))) return rule.suggest ?? null;
   }
@@ -259,22 +277,21 @@ const INTENT_VERBS = [
 ];
 
 const FEATURE_INTENTS: Array<{ path: string; label: string; keywords: string[] }> = [
-  { path: '/assessment', label: 'chequeo de bienestar', keywords: ['chequeo', 'chequearme', 'evaluacion', 'evaluación', 'evaluarme', 'test', 'test de', 'diagnostico', 'diagnóstico', 'medir mi estado', 'saber como estoy', 'saber cómo estoy'] },
-  { path: '/breathe', label: 'ejercicio de respiración', keywords: ['respirar', 'respiracion', 'respiración', 'respiremos', 'respirando', 'ejercicio de respiracion', 'calmar la ansiedad'] },
+  { path: '/assessment', label: 'chequeo de bienestar', keywords: ['chequeo', 'chequearme', 'evaluacion', 'evaluarme', 'test', 'test de', 'diagnostico', 'medir mi estado', 'saber como estoy'] },
+  { path: '/breathe', label: 'ejercicio de respiración', keywords: ['respirar', 'respiracion', 'respiremos', 'respirando', 'ejercicio de respiracion', 'calmar la ansiedad'] },
   { path: '/journal', label: 'diario de desahogo', keywords: ['diario', 'desahogo', 'desahogarme', 'escribir lo que siento', 'escribir como me siento', 'soltar', 'desahogar', 'soltar todo'] },
   { path: '/coping', label: 'actividades de apoyo', keywords: ['actividad', 'actividades', 'coping', 'distraerme', 'distraer', 'algo que hacer', 'plan de 10', 'apoyo'] },
-  { path: '/radar', label: 'radar de bienestar', keywords: ['radar', 'ver mi animo', 'ver mi ánimo', 'estado de animo', 'estado de ánimo', 'registrar mi animo'] },
+  { path: '/radar', label: 'radar de bienestar', keywords: ['radar', 'ver mi animo', 'estado de animo', 'registrar mi animo'] },
   { path: '/plans', label: 'plan de progreso', keywords: ['plan', 'planes', 'metas', 'progreso', 'seguimiento'] },
   { path: '/connect', label: 'conexión con alguien', keywords: ['conectar', 'conectarme', 'hablar con alguien', 'alguien de confianza', 'escuchar'] },
-  { path: '/community', label: 'comunidad', keywords: ['comunidad', 'foro', 'gente como yo', 'mensaje anonimo', 'mensaje anónimo'] },
+  { path: '/community', label: 'comunidad', keywords: ['comunidad', 'foro', 'gente como yo', 'mensaje anonimo'] },
   { path: '/games', label: 'juegos de relajación', keywords: ['juego', 'juegos', 'jugar', 'mini juego'] },
-  { path: '/sos', label: 'líneas de ayuda', keywords: ['sos', 'linea de ayuda', 'lineas de ayuda', 'línea de ayuda', 'líneas de ayuda', 'ayuda urgente', 'emergencia'] },
+  { path: '/sos', label: 'líneas de ayuda', keywords: ['sos', 'linea de ayuda', 'lineas de ayuda', 'ayuda urgente', 'emergencia'] },
 ];
 
 export const getNavigationIntent = (message: string): NavIntent | null => {
-  if (detectCrisis(message)) return null;
-  const lower = message.toLowerCase();
-  const text = lower.replace(/[^\p{L}\p{N}\s]/gu, ' ');
+  if (assessCrisis(message).isCrisis) return null;
+  const text = searchable(message);
   const wantsAction = INTENT_VERBS.some(v => text.includes(v));
   if (!wantsAction) return null;
   for (const f of FEATURE_INTENTS) {
@@ -288,10 +305,10 @@ export const getNavigationIntent = (message: string): NavIntent | null => {
 export const getNavReply = (nav: NavIntent): string =>
   `¡Claro que sí! Te llevo al ${nav.label} ahora mismo. Mientras llegamos, respira lento: este paso que estás dando es un acto de autocuidado.`;
 
-export const getAiIntro = (): { text: string; topics: string[]; isCrisis: boolean; suggest: { label: string; path: string }[] } => ({
+export const getAiIntro = (): AiResponse => ({
   isCrisis: false,
   topics: [],
   text:
-    'Hola, soy VIA.  Cuéntame cómo te sientes y te acompaño con pasos pequeños y sin juicios. Si estás en crisis, hablar con una persona real es importante.',
+    'Hola, soy VIA. Cuéntame cómo te sientes y te acompaño con pasos pequeños y sin juicios. Si estás en crisis, hablar con una persona real es importante.',
   suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_SOS],
 });

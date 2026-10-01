@@ -8,13 +8,16 @@ const root = join(__dirname, '..');
 const apiDir = join(root, 'api', 'lambda');
 const outDir = join(apiDir, 'dist');
 const ttsOutDir = join(apiDir, 'dist-tts');
+const aiOutDir = join(apiDir, 'dist-ai');
 
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
 rmSync(outDir, { recursive: true, force: true });
 rmSync(ttsOutDir, { recursive: true, force: true });
+rmSync(aiOutDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 mkdirSync(ttsOutDir, { recursive: true });
+mkdirSync(aiOutDir, { recursive: true });
 
 const shared = {
   bundle: true,
@@ -38,6 +41,14 @@ await build({
   ...shared,
   entryPoints: [join(apiDir, 'tts-handler.ts')],
   outfile: join(ttsOutDir, 'handler.js'),
+});
+
+// Lambda de IA: tambien FUERA del VPC (necesita salir a api.groq.com) y sin DB.
+// El directorio lo crean los rmSync/mkdirSync de arriba, junto a los otros dos.
+await build({
+  ...shared,
+  entryPoints: [join(apiDir, 'ai-handler.ts')],
+  outfile: join(aiOutDir, 'handler.js'),
 });
 
 // api/_db.ts lee db/functions.sql desde process.cwd() en tiempo de ejecucion,
@@ -72,6 +83,10 @@ writeRuntimePackage(ttsOutDir, 'alivia-tts', {
   ws: pkg.dependencies.ws,
 });
 
+// La Lambda de IA usa fetch nativo (Node 22), sin dependencias de runtime.
+writeRuntimePackage(aiOutDir, 'alivia-ai', {});
+
 console.log('Lambda build complete:', outDir);
 console.log('TTS Lambda build complete:', ttsOutDir);
+console.log('AI Lambda build complete:', aiOutDir);
 

@@ -76,7 +76,7 @@ ALIVIA pone herramientas de primera línea exactamente ahí — en el bolsillo, 
 
 | Módulo | Descripción |
 |---|---|
-| **VIA (chat IA)** | Compañero conversacional empático: pregunta *por qué* te sientes así antes de aconsejar y te lleva directo a la función correcta de la app. Entrada por voz con transcripción Whisper. |
+| **VIA (chat IA)** | Compañero conversacional empático: pregunta *por qué* te sientes así antes de aconsejar y te lleva directo a la función correcta de la app. Responde token a token, con entrada por voz (Whisper). Detecta señales de crisis y cambia de modo: en crisis baja la temperatura, pide ayuda humana de forma directa y ofrece SOS. Si la IA falla, responde igual con reglas locales. |
 | **Temas** | Calma Profunda (oscuro), Salvia Suave (claro) y monocromático, con transiciones suaves. |
 
 ## Arquitectura
@@ -94,15 +94,24 @@ flowchart LR
     subgraph Nube["Vercel"]
         API["API serverless /api/*<br/>sesiones scrypt · CORS"]
         TTS["Proxy TTS<br/>Edge WS → respaldo"]
+        AI["Proxy IA<br/>Groq · clave en servidor<br/>SSE streaming"]
     end
 
     DB[("Neon PostgreSQL")]
+    GROQ["Groq<br/>chat + Whisper"]
 
     UI -- "online" --> API
     OUTBOX -.->|"reconexión automática"| API
     UI -.-> TTS
+    UI -- "mensajes + historial" --> AI
+    AI -- "stream de tokens" --> UI
+    AI --> GROQ
     API --> DB
 ```
+
+> La IA viaja por una función aparte (`alivia-ai`) porque necesita salir a internet, y la
+> API de datos vive dentro del VPC para llegar a la base de datos. Igual que el TTS, evitar
+> un NAT Gateway. La clave de Groq se lee de Secrets Manager: nunca entra en el bundle.
 
 - **Un código, dos nativos:** el mismo bundle corre en navegador y dentro del contenedor Capacitor (`android/`), con icono adaptativo, splash, permiso de micrófono y firma release propia.
 - **Backend serverless:** funciones Node en Vercel con `pg`, contraseñas **scrypt**, sesiones Bearer de 30 días y esquema autogestionado (`db/schema.sql` + `db/functions.sql`).
@@ -185,8 +194,6 @@ keyPassword=TU_CLAVE
 Artefactos en `android/app/build/outputs/`. Las descargas públicas se distribuyen
 vía [GitHub Releases](https://github.com/Imandro/AliviaApp/releases/latest).
 
-El favicon (`public/favicon.ico`), los iconos PWA y los recursos launcher/adaptive del APK usan el icono de Alivia compartido para mantener la misma identidad visual.
-
 > `scripts/post-sync.js` elimina el APK descargable de los assets nativos tras cada
 > `cap sync` para que el binario no se empaquete a sí mismo.
 
@@ -195,28 +202,12 @@ El favicon (`public/favicon.ico`), los iconos PWA y los recursos launcher/adapti
 | Variable | Ámbito | Descripción |
 |---|---|---|
 | `DATABASE_URL` | Servidor (Vercel) | Cadena de conexión a Neon PostgreSQL con SSL. |
-| `VITE_GROQ_API_KEY` | Build cliente | Llave de Groq para VIA: chat, transcripción de voz y TTS alternativo. |
-| `VAPID_PUBLIC_KEY` | Servidor (Vercel) | Clave pública Web Push usada para enviar notificaciones. |
-| `VAPID_PRIVATE_KEY` | Servidor (Vercel) | Clave privada Web Push; mantener como secreto. |
-| `VAPID_SUBJECT` | Servidor (Vercel) | Contacto VAPID, por ejemplo `mailto:soporte@tu-dominio`. |
-| `CRON_SECRET` | Servidor y scheduler externo | Secreto enviado como `Authorization: Bearer ...` al despachador. |
-| `VITE_VAPID_PUBLIC_KEY` | Build cliente | La misma clave pública VAPID; puede ser visible en el bundle. |
+| `GROQ_API_KEY` | Lambda `alivia-ai` | Llave de Groq, leída de Secrets Manager (`alivia/groq-api-key`). **No va en el cliente.** |
+| `GROQ_MODELS` | Lambda `alivia-ai` | Lista de modelos con failover, separada por comas. Por defecto `openai/gpt-oss-20b,openai/gpt-oss-120b,qwen/qwen3.6-27b`. |
+| `VITE_GROQ_MODEL` | Build cliente *(opcional)* | Sobrescribe la lista de modelos en desarrollo. |
+| `VITE_GROQ_API_KEY` + `VITE_AI_DIRECT=1` | Solo desarrollo | Salta el proxy y llama a Groq desde el navegador. **Inlina la clave en el bundle: nunca para un build que se publique.** |
 
 Nunca se commitean: `.env`, `.env.local`, `*.jks` y `keystore.properties` están en `.gitignore`.
-
-### Recordatorios y Web Push
-
-Alivia ofrece 20 categorías de recordatorios en **Perfil → Recordatorios**. Cada categoría se puede activar por separado y configurar por hora, días de la semana, intervalo o fecha única. El horario silencioso predeterminado es de 22:00 a 08:00 y el límite predeterminado es de 3 avisos por día. Las categorías nuevas empiezan desactivadas; el permiso se solicita al activar una.
-
-Las categorías son: respiración, estado de ánimo, chequeo de bienestar, diario emocional, grounding, gratitud, rutina de sueño, hidratación, movimiento suave, descanso de pantalla, pausas de estudio/trabajo, metas personales, retos, juegos de bienestar, biblioteca, conversación con VIA, red de apoyo, mindfulness, plan de afrontamiento y revisión de progreso.
-
-- En Android, Capacitor programa avisos locales en el dispositivo; no dependen de la conexión.
-- En la PWA instalada, el service worker recibe Web Push incluso cuando la app está cerrada. Requiere HTTPS y un navegador con soporte Push API; en iPhone/iPad, instala la PWA desde Safari (iOS/iPadOS 16.4+) y acepta el permiso.
-- Las preferencias y suscripciones push se guardan por cuenta; el texto enviado no incluye resultados del chequeo ni datos clínicos.
-
-Genera un par VAPID con `npx web-push generate-vapid-keys`. Configura `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` y `CRON_SECRET` en el entorno servidor; configura la misma clave pública como `VITE_VAPID_PUBLIC_KEY` al compilar el cliente. No guardes las claves reales en el repositorio.
-
-Vercel Cron está configurado en `vercel.json` para llamar cada minuto a `/api/notifications/dispatch`. Esta frecuencia requiere un plan de Vercel que admita cron cada minuto (Pro o superior); Hobby limita los cron jobs a una ejecución diaria y no puede entregar recordatorios a la hora elegida. Configura las variables indicadas arriba en *Vercel → Settings → Environment Variables* y vuelve a desplegar para activar el envío. El endpoint es idempotente por cuenta, categoría y fecha local.
 
 ## API
 
@@ -232,11 +223,13 @@ Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consu
 | `/api/posts` · `/posts/like` | GET · POST · DELETE | Comunidad anónima por temas. |
 | `/api/plans` | GET · POST · PUT · DELETE | Planes, metas y actividades. |
 | `/api/assessments` | GET · POST | Chequeos de bienestar y registro de contacto en crisis. |
-| `/api/notifications/preferences` | GET · PUT | Preferencias de notificaciones del usuario autenticado. |
-| `/api/notifications/subscriptions` | POST · DELETE | Alta y baja de endpoints Web Push por cuenta. |
-| `/api/notifications/test` | POST | Envía una notificación Push inmediata al usuario autenticado para probar este dispositivo. |
-| `/api/notifications/dispatch` | GET · POST | Despacho programado, protegido por `CRON_SECRET`. |
 | `/api/tts` | GET | Síntesis de voz con doble motor (Edge WebSocket → respaldo). |
+| `/api/ai/chat` | POST | Proxy de Groq para VIA. Acepta `stream: true` y responde SSE token a token. |
+| `/api/ai/transcribe` | POST | Transcripción de voz (Whisper `large-v3-turbo`). |
+
+`/api/ai/*` lo sirve `alivia-ai`, una Lambda fuera del VPC. Rate limit por IP (cubos de
+tokens en memoria), temperatures acotadas y el mensaje `system` siempre primero, para que una
+petición manipulada no pueda degradar las respuestas de crisis.
 
 ## Estructura del proyecto
 
@@ -308,9 +301,24 @@ Convención de commits: `feat(área): …`, `fix(área): …`, `docs: …`, `cho
 ## Seguridad y privacidad
 
 - Contraseñas con **scrypt**; sesiones Bearer con expiración a 30 días.
-- Secretos solo en variables de entorno; claves de firma excluidas del repositorio.
+- Secretos solo en variables de entorno y Secrets Manager; claves de firma excluidas del repositorio.
 - Sin anuncios ni perfiles públicos: la comunidad es anónima y moderada por temas.
 - Los datos personales se guardan primero en el dispositivo; la nube recibe lo mínimo para sincronizar.
+
+### Qué sale del dispositivo
+
+El historial del chat **sí** viaja a Groq (proveedor externo, con su propia política de
+retención) cuando el modo IA está activo: es lo que permite que VIA recuerde y responda en
+contexto. Los mensajes antiguos donde la persona mencionó riesgo de suicidio o autolesión se
+sustituyen por un marcador antes de enviarse.
+
+Todo lo demás —ánimo, diario, planes, contactos, publicaciones de la comunidad— se guarda en
+el dispositivo y solo se sincroniza lo que la persona registra.
+
+La transcripción de voz va a Groq (`whisper-large-v3-turbo`) y no se conserva en ningún
+servicio propio. Las conversaciones se guardan en el dispositivo (`alivia-chat-v1`), nunca
+en el servidor.
+
 - Contenido de crisis contrastado contra fuentes oficiales. Reporta imprecisiones abriendo un issue con etiqueta `content`.
 
 ### Recursos de crisis incluidos en la app
