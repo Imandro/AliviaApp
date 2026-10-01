@@ -101,6 +101,14 @@ jobs:
         run: npx tsc --noEmit -p tsconfig.app.json
 
       - name: Build frontend
+        # Vite solo lee VITE_* del entorno en tiempo de build. Las variables de
+        # GitHub no llegan solas: hay que declararlas aqui en env:, o el bundle
+        # sale sin la clave VAPID publica y el service worker no puede
+        # suscribirse a las notificaciones.
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_TTS_URL: ${{ vars.VITE_TTS_URL }}
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
         run: npm run build
 
       - name: Deploy to S3

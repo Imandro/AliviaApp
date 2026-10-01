@@ -14,7 +14,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          # 22 y no 24 a proposito: deploy-aws.yml corre en Node 22 (npm 10) y las
+          # Lambdas usan el runtime nodejs:22. Con 24 aqui, CI usaria npm 11 y
+          # `npm ci` fallaria con "Missing: lightningcss-* from lock file",
+          # porque el package-lock.json solo puede satisfacer una de las dos
+          # versiones de npm. Todos los workflows que usan npm ci van en 22.
+          node-version: 22
           cache: npm
 
       - name: Instalar dependencias
