@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Sparkles,
   MessageCircleHeart,
@@ -254,11 +254,57 @@ export const FirstRunTutorial: React.FC = () => {
   const isLast = step === STEPS.length - 1;
   const Icon = current.icon;
 
+  // Escape cierra, flechas navegan. Sin esto el modal es un bucle de teclado
+  // trampa: el foco se queda dentro y no hay forma de salir con el teclado.
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        finish();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setStep((s) => Math.min(s + 1, STEPS.length - 1));
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setStep((s) => Math.max(s - 1, 0));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, step]);
+
+  // Bloquea el scroll de fondo mientras el modal está abierto.
+  useEffect(() => {
+    if (!visible) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [visible]);
+
+  // Mueve el foco al botón principal al abrir y lo mantiene dentro del modal,
+  // para que un lector de pantalla y el teclado entren al tour.
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!visible) return;
+    const first = cardRef.current?.querySelector<HTMLElement>('button');
+    first?.focus();
+  }, [visible, step]);
+
+  const onFocusTrap = (e: React.FocusEvent) => {
+    if (!cardRef.current) return;
+    if (!cardRef.current.contains(e.target as Node)) {
+      cardRef.current.querySelector<HTMLElement>('button')?.focus();
+    }
+  };
+
   if (!visible) return null;
 
   return (
     <div style={styles.overlay} role="dialog" aria-modal="true" aria-label="Tour de bienvenida">
-      <div style={styles.card}>
+      <div ref={cardRef} onFocus={onFocusTrap} style={styles.card}>
         <div
           style={{ ...styles.halo, background: `rgb(${current.rgb})` }}
           aria-hidden="true"

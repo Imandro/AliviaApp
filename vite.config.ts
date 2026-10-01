@@ -17,7 +17,15 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         importScripts: ['/push-sw.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json,webm}'],
-        globIgnores: ['sw.js', 'workbox-*.js', '**/ALIVIA-*.apk'],
+        // Las 3 imagenes de la mascota (511 KB) solo se usan en la pantalla 404,
+        // un caso raro. Precachearlas obliga a descargarlas en la primera visita
+        // sin aportar nada al arranque offline habitual.
+        globIgnores: [
+          'sw.js',
+          'workbox-*.js',
+          '**/ALIVIA-*.apk',
+          '**/mascota-*.png',
+        ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/landing/],
         cleanupOutdatedCaches: true,
