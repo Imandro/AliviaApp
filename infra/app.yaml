@@ -137,17 +137,14 @@ Resources:
             Condition:
               StringEquals:
                 token.actions.githubusercontent.com:aud: sts.amazonaws.com
-              # El claim sub de GitHub usa el nombre canonico del repositorio
-              # (Imandro/AliviaApp) mientras que el remote local usa otra
-              # capitalizacion. AWS compara este claim de forma sensible a
-              # mayusculas, asi que se aceptan ambas variantes.
+              # El claim sub real de este repositorio incluye los IDs numericos:
+              #   repo:Imandro@148641475/AliviaApp@1316806573:ref:refs/heads/main
+              # No es el formato clasico OWNER/REPO, por eso no basta con
+              # "repo:Imandro/AliviaApp:*". AWS compara el claim de forma
+              # sensible a mayusculas, asi que se escribe tal cual lo emite GitHub.
               StringLike:
                 token.actions.githubusercontent.com:sub:
-                  - !Sub 'repo:${GitHubOwner}/${GitHubRepo}:*'
-                  - 'repo:imandro/AliviaApp:*'
-                  - 'repo:imandro/AliviaAPP:*'
-                  - 'repo:Imandro/AliviaApp:*'
-                  - 'repo:Imandro/AliviaAPP:*'
+                  - !Sub 'repo:${GitHubOwner}@148641475/${GitHubRepo}@1316806573:*'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
