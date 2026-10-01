@@ -316,7 +316,7 @@ const handleTranscribe = async (req: ApiRequest, res: ApiResponse): Promise<void
 
   const form = new FormData();
   const filename = audio.type?.includes('mp4') ? 'audio.mp4' : 'audio.webm';
-  form.append('file', new Blob([audio.buffer as BlobPart], { type: audio.type || 'audio/webm' }), filename);
+  form.append('file', new Blob([audio.buffer as unknown as BlobPart], { type: audio.type || 'audio/webm' }), filename);
   form.append('model', upstream.defaultModel);
   form.append('language', 'es');
   form.append('temperature', '0');

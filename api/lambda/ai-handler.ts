@@ -16,6 +16,14 @@ import type { LambdaEvent, LambdaResponse } from './adapter.js';
 import { applyCors } from '../_cors.js';
 import aiHandler, { chatUpstream } from '../ai.js';
 
+// writableStream que AWS inyecta como segundo argumento del handler registrado
+// con streamifyResponse.
+type ResponseStream = {
+  write: (chunk: string) => unknown;
+  end: () => void;
+  setContentType?: (type: string) => void;
+};
+
 const UPSTREAM_TIMEOUT_MS = 22000;
 const MAX_MESSAGES = 24;
 const MAX_CONTENT_CHARS = 4000;
@@ -66,64 +74,40 @@ const eventPath = (event: LambdaEvent): string => {
 
 const sseEvent = (payload: Record<string, unknown>): string => `data: ${JSON.stringify(payload)}\n\n`;
 
-const supportsStreaming = (): boolean =>
-  typeof (globalThis as { awslambda?: { streamifyResponse?: unknown } }).awslambda?.streamifyResponse === 'function';
+// El runtime de Lambda expone streamifyResponse solo dentro de la funcion; si
+// no esta, el handler responde JSON normal (util en local). El stream de
+// respuesta llega como segundo argumento del handler.
+type StreamingHandler = (
+  event: LambdaEvent,
+  responseStream: ResponseStream
+) => Promise<unknown>;
 
-/**
- * ReadableStream controlable desde fuera: se usa en vez de `stream.PassThrough`
- * para no arrastrar el modulo nativo de Node, que no existe en el runtime.
- */
-const openStream = (): { stream: ReadableStream<Uint8Array>; write: (chunk: string) => void; end: () => void } => {
-  let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
-  let pending: Uint8Array[] = [];
-  let closed = false;
+const streamifyRuntime = (globalThis as unknown as {
+  awslambda?: { streamifyResponse?: (handler: StreamingHandler) => unknown };
+}).awslambda?.streamifyResponse;
 
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      controllerRef = controller;
-      for (const chunk of pending) controller.enqueue(chunk);
-      pending = [];
-      if (closed) controller.close();
-    },
-  });
-
-  return {
-    stream,
-    write(chunk: string) {
-      if (closed) return;
-      const bytes = new TextEncoder().encode(chunk);
-      if (controllerRef) controllerRef.enqueue(bytes);
-      else pending.push(bytes);
-    },
-    end() {
-      if (closed) return;
-      closed = true;
-      controllerRef?.close();
-    },
-  };
-};
+const supportsStreaming = (): boolean => typeof streamifyRuntime === 'function';
 
 // ---------- camino con streaming ----------
 
-const streamChat = async (event: LambdaEvent): Promise<unknown> => {
-  const HttpResponseStream = (globalThis as {
-    awslambda: {
-      HttpResponseStream: { from: (s: unknown, m: unknown) => unknown };
-    };
-  }).awslambda.HttpResponseStream;
+// AWS inyecta el responseStream como SEGUNDO argumento del handler envuelto con
+// streamifyResponse. Es un writableStream de Node ya preparado: por eso no hay
+// que pasar nada por HttpResponseStream.from (que exige setContentType y no lo
+// tiene un PassThrough propio).
+const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): Promise<void> => {
+  const write = (chunk: string): void => {
+    responseStream.write(chunk);
+  };
 
-  const rawResponse = openStream();
+  responseStream.setContentType?.('text/event-stream');
+
   const upstream = chatUpstream();
 
-  const { metadata, body, params, models } = (() => {
+  const { body, params, models } = (() => {
     const parsed = jsonBody(event);
     const messages = sanitizeMessages(parsed.messages);
     const src = (parsed.params ?? {}) as Record<string, unknown>;
     return {
-      metadata: {
-        statusCode: messages ? 200 : 400,
-        headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform' },
-      },
       body: messages,
       params: {
         temperature: clamp(src.temperature, 0, 1, 0.8),
@@ -138,18 +122,18 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
   })();
 
   if (!body) {
-    rawResponse.write(sseEvent({ type: 'error', reason: 'Mensajes inválidos' }));
-    rawResponse.end();
-    return HttpResponseStream.from(rawResponse.stream, metadata);
+    write(sseEvent({ type: 'error', reason: 'Mensajes inválidos' }));
+    responseStream.end();
+    return;
   }
 
   if (!upstream.key) {
-    rawResponse.write(sseEvent({ type: 'error', reason: 'IA no configurada' }));
-    rawResponse.end();
-    return HttpResponseStream.from(rawResponse.stream, metadata);
+    write(sseEvent({ type: 'error', reason: 'IA no configurada' }));
+    responseStream.end();
+    return;
   }
 
-  rawResponse.write(sseEvent({ type: 'open' }));
+  write(sseEvent({ type: 'open' }));
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
@@ -169,7 +153,7 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
         });
 
         if (upstreamRes.status === 429) {
-          rawResponse.write(sseEvent({ type: 'error', reason: 'IA saturada' }));
+          write(sseEvent({ type: 'error', reason: 'IA saturada' }));
           break;
         }
         if (!upstreamRes.ok || !upstreamRes.body) continue;
@@ -199,7 +183,7 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
                 if (typeof delta === 'string' && delta) {
                   delivered = true;
                   guard = true;
-                  rawResponse.write(sseEvent({ type: 'delta', text: delta }));
+                  write(sseEvent({ type: 'delta', text: delta }));
                 }
               } catch {
                 /* fragmento incompleto */
@@ -210,7 +194,7 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
         }
 
         if (delivered || guard) {
-          rawResponse.write(sseEvent({ type: 'done', model }));
+          write(sseEvent({ type: 'done', model }));
           reader.releaseLock();
           return;
         }
@@ -219,32 +203,48 @@ const streamChat = async (event: LambdaEvent): Promise<unknown> => {
         if (controller.signal.aborted) break;
       }
     }
-    rawResponse.write(sseEvent({ type: 'error', reason: 'IA no disponible' }));
+    write(sseEvent({ type: 'error', reason: 'IA no disponible' }));
   })()
     .catch(() => {
       /* el stream ya se cerro con un evento de error */
     })
     .finally(() => {
       clearTimeout(timer);
-      rawResponse.end();
+      responseStream.end();
     });
 
-  return HttpResponseStream.from(rawResponse.stream, metadata);
+  return;
 };
 
 // ---------- entrypoint ----------
 
-export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
+// Handler de chat en streaming: recibe el responseStream que inyecta AWS.
+const streamingHandler = async (
+  event: LambdaEvent,
+  responseStream: ResponseStream
+): Promise<void> => {
   const path = eventPath(event);
   const method = event.requestContext?.http?.method || event.httpMethod || 'GET';
 
-  const isChat = path === '/api/ai/chat';
-
-  if (supportsStreaming() && isChat && method === 'POST') {
-    return (await streamChat(event)) as LambdaResponse;
+  if (path === '/api/ai/chat' && method === 'POST') {
+    await streamChat(event, responseStream);
+    return;
   }
 
-  // Sin streaming (local, o ruta que no lo necesita) cae al handler HTTP.
+  // Cualquier otra ruta (p.ej. /api/ai/transcribe) responde JSON normal.
+  const result = await bufferedHandler(event);
+  responseStream.setContentType?.('application/json');
+  responseStream.write(result.body);
+  responseStream.end();
+};
+
+async function bufferedHandler(event: LambdaEvent): Promise<LambdaResponse> {
+  const path = eventPath(event);
+
+  // El chat con streaming se resuelve en streamingHandler; aqui solo llegan las
+  // rutas que responden JSON (transcripcion, etc.).
+  const method = event.requestContext?.http?.method || event.httpMethod || 'GET';
+
   const headers = (event.headers ?? {}) as Record<string, string>;
   const req = {
     method,
@@ -316,3 +316,19 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
       });
   });
 }
+
+// Entry point real de la Lambda.
+//
+// La Function URL usa InvokeMode RESPONSE_STREAM, asi que AWS tiene que ejecutar
+// la funcion en modo streaming. Eso exige registrar el handler con
+// streamifyResponse, que inyecta el writableStream como SEGUNDO argumento.
+// Sin ese envoltorio el runtime lo invoca en modo bufferizado y el chat no
+// transmite token a token.
+//
+// Fuera del runtime (local, tests) no existe awslambda, asi que se expone el
+// handler normal que responde JSON.
+export const handler = (
+  typeof streamifyRuntime === 'function'
+    ? streamifyRuntime(streamingHandler)
+    : (event: LambdaEvent) => bufferedHandler(event)
+) as (event: LambdaEvent) => Promise<unknown>;
