@@ -21,6 +21,12 @@ env:
   APPLE_MOBILE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_MOBILE_PROVISIONING_PROFILE_BASE64 }}
   IOS_SIGNING_IDENTITY: ${{ secrets.IOS_SIGNING_IDENTITY }}
   DEVELOPMENT_TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM_ID }}
+  # En un shell nativo las rutas /api/* relativas apuntan a file:// y no
+  # funcionan: hay que compilar con el origen absoluto de CloudFront. Son URLs
+  # publicas (las Function URL van con AuthType NONE), asi que van como variables
+  # del repo y no como secrets.
+  VITE_API_URL: ${{ vars.VITE_API_URL }}
+  VITE_TTS_URL: ${{ vars.VITE_TTS_URL }}
 
 jobs:
   ipa:
@@ -36,6 +42,20 @@ jobs:
 
       - name: Instalar dependencias
         run: npm ci
+
+      # Sin esta URL el build compila pero la app nativa no puede llamar a la
+      # API (las rutas relativas apuntan a file://). Falla aqui y no en el
+      # dispositivo de un usuario.
+      - name: Verificar origen de la API
+        run: |
+          if [ -z "$VITE_API_URL" ]; then
+            echo "::error::Falta la variable VITE_API_URL en el repositorio (Settings > Secrets and variables > Actions > Variables)."
+            exit 1
+          fi
+          echo "Origen de la API: $VITE_API_URL"
+          curl -sf -o /dev/null "$VITE_API_URL/api/tts?text=ok" \
+            && echo "El origen responde OK" \
+            || echo "::warning::No se pudo contactar con $VITE_API_URL desde el runner"
 
       - name: Build web assets iOS (ios/Web)
         run: npm run sync:ios
