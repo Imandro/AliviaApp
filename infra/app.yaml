@@ -129,7 +129,10 @@ Resources:
           GROQ_API_KEY: '{{resolve:secretsmanager:alivia/groq-api-key:SecretString:VITE_GROQ_API_KEY}}'
           OPENAI_API_KEY: '{{resolve:secretsmanager:alivia/openai-api-key:SecretString:VITE_OPENAI_API_KEY}}'
           OPENAI_MODELS: 'gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini'
-          GROQ_MODELS: 'openai/gpt-oss-20b,openai/gpt-oss-120b'
+          # Modelos que la cuenta de Groq tiene realmente. qwen/qwen3.8-27b va
+          # primero porque responde mejor en espanol; los gpt-oss quedan de
+          # respaldo. Los llama-3.x de Groq ya no existen en /v1/models.
+          GROQ_MODELS: 'qwen/qwen3.8-27b,openai/gpt-oss-120b,openai/gpt-oss-20b'
       FunctionUrlConfig:
         AuthType: NONE
         InvokeMode: RESPONSE_STREAM
