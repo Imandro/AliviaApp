@@ -8,7 +8,7 @@
    Aqui solo se replica lo necesario para transmitir la respuesta.
 
    awslambda.streamifyResponse solo existe dentro del runtime de
-   Lambda. En local (node scripts/build-lambda.mjs, vercel dev)
+   Lambda. En local (node scripts/build-lambda.mjs)
    se degrada a un handler normal que responde JSON completo.
    ---------------------------------------------------- */
 
@@ -244,7 +244,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
     return (await streamChat(event)) as LambdaResponse;
   }
 
-  // Sin streaming (local, o ruta que no lo necesita) cae al handler Vercel.
+  // Sin streaming (local, o ruta que no lo necesita) cae al handler HTTP.
   const headers = (event.headers ?? {}) as Record<string, string>;
   const req = {
     method,

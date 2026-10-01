@@ -42,6 +42,14 @@ Resources:
               - Fn::ImportValue: alivia-db-endpoint
               - ':5432/alivia'
           NODE_ENV: production
+          # El dispatch de notificaciones lo invoca EventBridge Scheduler con
+          # "Authorization: Bearer <CRON_SECRET>". Las claves VAPID salen del
+          # mismo secret (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT) y
+          # hay que rellenarlas a mano: sin ellas no hay push, aunque el cron corra.
+          CRON_SECRET: !Sub '{{resolve:secretsmanager:alivia/notification-secret:SecretString:CRON_SECRET}}'
+          VAPID_PUBLIC_KEY: '{{resolve:secretsmanager:alivia/notification-secret:SecretString:VAPID_PUBLIC_KEY}}'
+          VAPID_PRIVATE_KEY: '{{resolve:secretsmanager:alivia/notification-secret:SecretString:VAPID_PRIVATE_KEY}}'
+          VAPID_SUBJECT: '{{resolve:secretsmanager:alivia/notification-secret:SecretString:VAPID_SUBJECT}}'
       VpcConfig:
         SecurityGroupIds:
           - !Ref ApiSecurityGroup
@@ -126,6 +134,7 @@ Resources:
         AuthType: NONE
         InvokeMode: RESPONSE_STREAM
       Policies:
+        # Formato de politica inline de SAM: Version + Statement directamente.
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
@@ -160,6 +169,84 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonS3FullAccess
         - arn:aws:iam::aws:policy/AWSLambda_FullAccess
         - arn:aws:iam::aws:policy/CloudFrontFullAccess
+
+  # --- Cron de notificaciones (sustituye al cron de vercel.json) -------------
+  # El dispatch se llama cada minuto por HTTP contra la Function URL de la API.
+  # El secreto CRON_SECRET se genera aqui y se reutiliza tanto en la Connection
+  # como en las variables de la Lambda, asi que no queda expuesto en el repo.
+  NotificationSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: alivia/notification-secret
+      Description: CRON_SECRET para invocar /api/notifications/dispatch
+      GenerateSecretString:
+        # CRON_SECRET se genera; las claves VAPID se dejan vacias y se rellenan a
+        # mano con las del navegador. Existen como claves (aunque vacias) para
+        # que las referencias dinamicas de la Lambda no fallen.
+        SecretStringTemplate: '{"CRON_SECRET":"GENERATE","VAPID_PUBLIC_KEY":"","VAPID_PRIVATE_KEY":"","VAPID_SUBJECT":""}'
+        GenerateStringKey: CRON_SECRET
+        PasswordLength: 40
+
+  NotificationConnection:
+    Type: AWS::Events::Connection
+    Properties:
+      Name: alivia-notifications
+      Description: Invoca el dispatch de notificaciones con su secreto
+      AuthorizationType: API_KEY
+      # ApiKeyAuthParameters va anidado dentro de AuthParameters; al nivel superior
+      # CloudFormation rechaza la plantilla con PropertyValidation.
+      AuthParameters:
+        ApiKeyAuthParameters:
+          ApiKeyName: Authorization
+          # La Lambda espera "Bearer <secreto>", igual que recibia de Vercel Cron.
+          ApiKeyValue: 'Bearer {{resolve:secretsmanager:alivia/notification-secret:SecretString:CRON_SECRET}}'
+
+  NotificationApiDestination:
+    Type: AWS::Events::ApiDestination
+    Properties:
+      Name: alivia-notifications-dispatch
+      ConnectionArn: !GetAtt NotificationConnection.Arn
+      # Dominio de la Function URL: https://<id>.lambda-url.us-east-1.on.aws/
+      InvocationEndpoint: !Sub
+        - 'https://${Host}/api/notifications/dispatch'
+        - Host: !Select [2, !Split ['/', !GetAtt ApiFunctionUrl.FunctionUrl]]
+      HttpMethod: POST
+      InvocationRateLimitPerSecond: 1
+
+  # AWS::Scheduler::Schedule NO admite un intrinsic (Fn::GetAtt/Fn::Sub) en
+  # Target.RoleArn: su patron lo valida antes de resolverlo y el changeset falla
+  # con PropertyValidation. Por eso el cron usa AWS::Events::Rule, que si lo
+  # acepta. Misma frecuencia que el cron de Vercel.
+  NotificationSchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeNotificationsApiDestination
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: events:InvokeApiDestination
+                Resource: !GetAtt NotificationApiDestination.Arn
+
+  NotificationSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: alivia-notification-dispatch
+      Description: Cada minuto, como hacia el cron de Vercel
+      ScheduleExpression: rate(1 minute)
+      State: ENABLED
+      Targets:
+        - Id: dispatch
+          Arn: !GetAtt NotificationApiDestination.Arn
+          RoleArn: !GetAtt NotificationSchedulerRole.Arn
 
 Outputs:
   LambdaFunctionUrl:

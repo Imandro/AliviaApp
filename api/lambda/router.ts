@@ -1,5 +1,5 @@
 import type { ApiRequest, ApiResponse } from '../_types.js';
-import { LambdaEvent, LambdaResponse, createVercelLikeRes, parseEvent } from './adapter.js';
+import { LambdaEvent, LambdaResponse, createApiRes, parseEvent } from './adapter.js';
 import { applyCors } from '../_cors.js';
 
 import loginHandler from '../auth/login.js';
@@ -59,7 +59,7 @@ export async function route(event: LambdaEvent): Promise<LambdaResponse> {
       resolve(result);
     };
 
-    const res = createVercelLikeRes((_err, result) => finish(result));
+    const res = createApiRes((_err, result) => finish(result));
 
     if (applyCors(req, res as unknown as ApiResponse)) {
       res.end();

@@ -11,18 +11,18 @@
 [![CI](https://github.com/Imandro/AliviaApp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Imandro/AliviaApp/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Imandro/AliviaApp?style=flat-square&color=E9C86B)](https://github.com/Imandro/AliviaApp/releases/latest)
 [![License](https://img.shields.io/github/license/Imandro/AliviaApp?style=flat-square&color=8CB08D)](LICENSE)
-[![Web](https://img.shields.io/badge/web-alivia--tu--salud.vercel.app-2C533D?style=flat-square)](https://alivia-tu-salud.vercel.app)
+[![Web](https://img.shields.io/badge/web-CloudFront-2C533D?style=flat-square)](https://d3gm2ziao5tkw0.cloudfront.net)
 
 ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript_5.6-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white)
 ![Capacitor](https://img.shields.io/badge/Capacitor_8-119EFF?style=flat-square&logo=capacitor&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-serverless-000000?style=flat-square&logo=vercel&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-RDS-336791?style=flat-square&logo=postgresql&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-Lambda%20%2B%20S3%20%2B%20CloudFront%20%2B%20RDS-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)
 
-**[Abrir la web](https://alivia-tu-salud.vercel.app)** ·
+**[Abrir la web](https://d3gm2ziao5tkw0.cloudfront.net)** ·
 **[Descargar Android](https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-1.0.apk)** ·
-**[Landing del proyecto](https://alivia-tu-salud.vercel.app/landing)** ·
+**[Landing del proyecto](https://d3gm2ziao5tkw0.cloudfront.net/landing)** ·
 **[Reportar un problema](https://github.com/Imandro/AliviaApp/issues)**
 
 </div>
@@ -91,7 +91,7 @@ flowchart LR
         UI --> OUTBOX
     end
 
-    subgraph Nube["Vercel"]
+    subgraph Nube["AWS (CloudFront + Lambda)"]
         API["API serverless /api/*<br/>sesiones scrypt · CORS"]
         TTS["Proxy TTS<br/>Edge WS → respaldo"]
         AI["Proxy IA<br/>híbrido · clave en servidor<br/>SSE streaming"]
@@ -116,7 +116,7 @@ flowchart LR
 > un NAT Gateway. Las claves se leen de Secrets Manager: nunca entran en el bundle.
 
 - **Un código, dos nativos:** el mismo bundle corre en navegador y dentro del contenedor Capacitor (`android/`), con icono adaptativo, splash, permiso de micrófono y firma release propia.
-- **Backend serverless:** funciones Node en Vercel con `pg`, contraseñas **scrypt**, sesiones Bearer de 30 días y esquema autogestionado (`db/schema.sql` + `db/functions.sql`).
+- **Backend serverless:** funciones Node en AWS Lambda con `pg`, contraseñas **scrypt**, sesiones Bearer de 30 días y esquema autogestionado (`db/schema.sql` + `db/functions.sql`).
 - **Tipografía y assets propios:** Quicksand variable + Lato auto-hospedadas; sin CDNs externos.
 
 ## Offline-first
@@ -203,7 +203,7 @@ vía [GitHub Releases](https://github.com/Imandro/AliviaApp/releases/latest).
 
 | Variable | Ámbito | Descripción |
 |---|---|---|
-| `DATABASE_URL` | Servidor (Vercel) | Cadena de conexión a Neon PostgreSQL con SSL. |
+| `DATABASE_URL` | Servidor (AWS Lambda) | Cadena de conexión a RDS PostgreSQL. |
 | `OPENAI_API_KEY` | Lambda `alivia-ai` | Llave de OpenAI para el chat, leída de Secrets Manager (`alivia/openai-api-key`). **No va en el cliente.** Si falta, el chat cae a Groq. |
 | `OPENAI_MODELS` | Lambda `alivia-ai` | Lista de failover del chat. Por defecto `gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini`. |
 | `GROQ_API_KEY` | Lambda `alivia-ai` | Llave de Groq para la transcripción de voz (`alivia/groq-api-key`). **No va en el cliente.** |
@@ -238,7 +238,7 @@ petición manipulada no pueda degradar las respuestas de crisis.
 ## Estructura del proyecto
 
 ```text
-├── api/                  # Funciones serverless (Vercel + pg)
+├── api/                  # Funciones serverless (AWS Lambda + pg)
 │   ├── _db.ts            #   Pool, esquema y funciones SQL
 │   ├── _cors.ts          #   Cabeceras CORS compartidas
 │   ├── tts.ts            #   Síntesis de voz (doble motor)
@@ -265,11 +265,30 @@ petición manipulada no pueda degradar las respuestas de crisis.
 
 ## Despliegue
 
-**Web + API (Vercel):**
+**Web + API (AWS):**
 
-1. Crea el proyecto en Vercel con framework **Vite**, o despliega por CLI: `npx vercel deploy --prod --yes`.
-2. Configura `DATABASE_URL` en *Settings → Environment Variables*.
-3. La app y la API `/api/*` se publican juntas (`vercel.json`). La landing vive en [`/landing`](https://alivia-tu-salud.vercel.app/landing).
+Todo se despliega con CloudFormation (SAM) en cuatro stacks, en `us-east-1`:
+
+```bash
+aws cloudformation deploy --template-file infra/net.yaml      --stack-name alivia-net
+aws cloudformation deploy --template-file infra/database.yaml  --stack-name alivia-db \
+  --parameter-overrides DatabasePassword=<password>
+npm run build:lambda
+sam build --template-file infra/app.yaml --build-dir .aws-sam/build-app
+sam deploy --template-file .aws-sam/build-app/template.yaml --stack-name alivia-app --region us-east-1 \
+  --parameter-overrides DatabasePassword=<password> GitHubOwner=<owner> GitHubRepo=<repo> \
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --resolve-s3
+aws cloudformation deploy --template-file infra/web.yaml --stack-name alivia-web
+```
+
+1. **alivia-net** — VPC con dos subredes públicas, IGW y security groups.
+2. **alivia-db** — RDS PostgreSQL 16 (`db.t4g.micro`), privada, con retención de backups de 1 día.
+3. **alivia-app** — Lambdas `alivia-api` (dentro del VPC, habla con RDS), `alivia-tts` y `alivia-ai` (fuera del VPC, necesitan salida a internet), más el cron de notificaciones.
+4. **alivia-web** — S3 + CloudFront. La web se sirve desde S3 y `/api/*` va a `alivia-api`; `/api/tts` va a `alivia-tts`.
+
+La web y la API se publican en el mismo dominio de CloudFront, así que no hay CORS ni URLs distintas. La landing vive en [`/landing`](https://d3gm2ziao5tkw0.cloudfront.net/landing).
+
+Los **recordatorios push** necesitan las claves VAPID en el secret `alivia/notification-secret` (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`). Sin ellas el cron corre pero no se entrega nada.
 
 **Play Store:** genera el AAB (`bundleRelease`) súbelo con la misma clave de firma de los releases anteriores.
 

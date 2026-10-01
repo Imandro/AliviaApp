@@ -18,7 +18,7 @@
    dentro del VPC (para llegar a RDS) y desde ahi no hay salida a
    internet sin pagar un NAT Gateway. Es el mismo motivo que el TTS.
 
-   Este archivo es el handler con forma Vercel (api/ai.ts); el de
+   Este archivo es el handler HTTP (api/ai.ts); el de
    Lambda es api/lambda/ai-handler.ts, que ademas transmite la
    respuesta en streaming.
    ---------------------------------------------------- */

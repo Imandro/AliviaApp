@@ -25,21 +25,21 @@ export interface LambdaResponse {
   isBase64Encoded?: boolean;
 }
 
-export interface VercelLikeResponse {
-  status: (code: number) => VercelLikeResponse;
-  json: (data: unknown) => VercelLikeResponse;
-  send: (data: unknown) => VercelLikeResponse;
+export interface ApiRes {
+  status: (code: number) => ApiRes;
+  json: (data: unknown) => ApiRes;
+  send: (data: unknown) => ApiRes;
   setHeader: (key: string, value: string) => void;
   end: () => void;
 }
 
-export function createVercelLikeRes(callback: (err: null, result: LambdaResponse) => void): VercelLikeResponse {
+export function createApiRes(callback: (err: null, result: LambdaResponse) => void): ApiRes {
   let statusCode = 200;
   let headers: Record<string, string> = {};
   let bodyData: unknown = null;
   let ended = false;
 
-  const res: VercelLikeResponse = {
+  const res: ApiRes = {
     status(code: number) {
       statusCode = code;
       return res;

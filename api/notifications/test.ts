@@ -1,11 +1,11 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from '../_types.js';
 import type { PushSubscription } from 'web-push';
 import webpush from 'web-push';
 import { applyCors } from '../_cors.js';
 import { ensureSchema, getPool } from '../_db.js';
 import { getUserFromRequest } from '../auth/_auth.js';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
   const vapidSubject = process.env.VAPID_SUBJECT;
   if (!vapidPublicKey || !vapidPrivateKey || !vapidSubject) {
-    return res.status(503).json({ error: 'Web Push no está configurado en Vercel (faltan las variables VAPID).' });
+    return res.status(503).json({ error: 'Web Push no está configurado en el servidor (faltan las variables VAPID).' });
   }
 
   try {

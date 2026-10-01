@@ -108,7 +108,7 @@ const requestJson = async <T>(path: string, init: RequestInit = {}): Promise<T> 
   if (!response.ok) {
     const result = await response.json().catch(() => null);
     if (response.status === 404 && path.startsWith('/api/notifications/')) {
-      throw new Error('El servidor publicado todavía no tiene las funciones push. Despliega la rama que incluye las notificaciones en Vercel.');
+      throw new Error('El servidor publicado todavía no tiene las funciones push. Despliega el stack de la API (alivia-app).');
     }
     throw new Error(result?.error || `No se pudo sincronizar (${response.status}).`);
   }

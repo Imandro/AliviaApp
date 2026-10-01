@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from '../_types.js';
 import { applyCors } from '../_cors.js';
 import { ensureSchema, getPool } from '../_db.js';
 import { getUserFromRequest } from '../auth/_auth.js';
@@ -18,7 +18,7 @@ const isValidSubscription = (value: unknown): value is {
     subscription.keys.auth.length <= 256;
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'POST' && req.method !== 'DELETE') {
     res.setHeader('Allow', 'POST, DELETE');

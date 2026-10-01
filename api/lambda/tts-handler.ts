@@ -1,5 +1,5 @@
 import type { LambdaEvent } from './adapter.js';
-import { LambdaResponse, createVercelLikeRes, parseEvent } from './adapter.js';
+import { LambdaResponse, createApiRes, parseEvent } from './adapter.js';
 import { applyCors } from '../_cors.js';
 import ttsHandler from '../tts.js';
 
@@ -29,7 +29,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
       resolve(result);
     };
 
-    const res = createVercelLikeRes((_err, result) => finish(result));
+    const res = createApiRes((_err, result) => finish(result));
 
     if (applyCors(req, res as never)) {
       res.end();

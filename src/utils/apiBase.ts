@@ -3,7 +3,7 @@ import { isNativeShell } from './nativeShell';
 // Origen de la API de base de datos. En web las llamadas a /api/* son relativas
 // (mismo origen servido por CloudFront). En shells nativos (Capacitor o iOS
 // WKWebView) se apunta a la Lambda desplegada en AWS.
-export const PROD_API_ORIGIN = import.meta.env.VITE_API_URL || 'https://alivia-tu-salud.vercel.app';
+export const PROD_API_ORIGIN = import.meta.env.VITE_API_URL || '';
 
 // El TTS corre en una Lambda separada FUERA del VPC, porque necesita salida a
 // internet (Bing Edge TTS / Google Translate) y una Lambda en VPC lo exigiria
