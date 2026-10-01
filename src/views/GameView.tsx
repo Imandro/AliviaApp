@@ -6,12 +6,20 @@ import { BubblePop } from '../games/BubblePop';
 import { MemoMatch } from '../games/MemoMatch';
 import { Grounding } from '../games/Grounding';
 import { SimonVia } from '../games/SimonVia';
+import { BreathingMarea } from '../games/BreathingMarea';
+import { GridGrounding } from '../games/GridGrounding';
+import { ThoughtPilot } from '../games/ThoughtPilot';
+import { SeedGarden } from '../games/SeedGarden';
 
 const GAME_COMPONENTS: Record<string, React.FC<{ onExit: () => void }>> = {
   burbujas: BubblePop,
   memoria: MemoMatch,
   grounding: Grounding,
   secuencia: SimonVia,
+  marea: BreathingMarea,
+  cuadricula: GridGrounding,
+  piloto: ThoughtPilot,
+  semilla: SeedGarden,
 };
 
 export const GameView: React.FC = () => {

@@ -31,6 +31,9 @@ export const BubblePop: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   const [pops, setPops] = useState(0);
   const [timeLeft, setTimeLeft] = useState(ROUND_MS / 1000);
   const [finished, setFinished] = useState(false);
+  // Se fija al terminar la tirada. Antes se sorteaba en cada render, asi que el
+  // texto cambiando solo mientras leias la pantalla final.
+  const [affirmation] = useState(() => AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)]);
   const idRef = useRef(0);
 
   useEffect(() => {
@@ -67,8 +70,6 @@ export const BubblePop: React.FC<{ onExit: () => void }> = ({ onExit }) => {
   }, []);
 
   const rating = pops >= 26 ? 3 : pops >= 17 ? 2 : 1;
-  const affirmation = AFFIRMATIONS[Math.floor(Math.random() * AFFIRMATIONS.length)];
-  const done = finished && pops === 0;
 
   if (finished) {
     return (
