@@ -89,18 +89,34 @@ Resources:
   # VPC. No toca la base de datos, por lo que no necesita ruta privada.
   # El navegador movil llama directamente a esta Function URL.
   TtsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: alivia-tts
-      CodeUri: ../api/lambda/dist-tts/
-      Handler: handler.handler
-      Timeout: 30
-      MemorySize: 256
-      Environment:
-        Variables:
-          NODE_ENV: production
-      FunctionUrlConfig:
-        AuthType: NONE
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: alivia-tts
+        CodeUri: ../api/lambda/dist-tts/
+        Handler: handler.handler
+        Timeout: 30
+        MemorySize: 256
+        Environment:
+          Variables:
+            NODE_ENV: production
+            # ElevenLabs es el motor principal de la voz de VIA; si falta la clave
+            # o falla, la Lambda cae a Edge TTS y luego a Google, para que VIA nunca
+            # se quede muda. La clave va en Secrets Manager, no en el bundle.
+            ELEVENLABS_API_KEY: '{{resolve:secretsmanager:alivia/elevenlabs-api-key:SecretString:ELEVENLABS_API_KEY}}'
+            ELEVENLABS_VOICE_ID: 'EXAVITQu4vr4xnSDxMaL'
+            ELEVENLABS_MODEL: 'eleven_multilingual_v2'
+        FunctionUrlConfig:
+          AuthType: NONE
+      Policies:
+        - PolicyName: ReadElevenLabsSecret
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                # Comillas obligatorias: sin ellas el ":*" final se lee como un
+                # alias YAML y el template deja de parsear.
+                Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/elevenlabs-api-key-*'
 
   # La IA tambien sale a internet, por el mismo motivo que el TTS: la Lambda de
   # datos esta en el VPC para llegar a RDS y desde ahi no hay salida. Aqui viven

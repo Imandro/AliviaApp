@@ -7,6 +7,76 @@ const EDGE_VOICE = 'es-AR-ElenaNeural';
 const EDGE_OUTPUT = 'audio-24khz-96kbitrate-mono-mp3';
 const MAX_TEXT = 800;
 
+// ---------- ElevenLabs (motor principal) ----------
+// La voz de VIA sale de ElevenLabs cuando hay clave configurada. Es un servicio
+// de pago con cupo de caracteres, asi que:
+//   - la clave va en Secrets Manager, nunca en el bundle ni en el repo;
+//   - hay cache en memoria: el TTS de la app repite mucho las frases cortas.
+const ELEVEN_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
+const ELEVEN_MODEL = process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2';
+const ELEVEN_VOICE = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
+const ELEVEN_TIMEOUT_MS = 9000;
+const ELEVEN_CACHE_MAX = 120;
+
+const elevenKey = (process.env.ELEVENLABS_API_KEY ?? '').trim();
+const elevenCache = new Map<string, Buffer>();
+
+const cacheGet = (key: string): Buffer | undefined => {
+  const hit = elevenCache.get(key);
+  if (!hit) return undefined;
+  // LRU barato: al tocar la clave la recolocamos al final.
+  elevenCache.delete(key);
+  elevenCache.set(key, hit);
+  return hit;
+};
+
+const cacheSet = (key: string, audio: Buffer): void => {
+  elevenCache.set(key, audio);
+  while (elevenCache.size > ELEVEN_CACHE_MAX) {
+    const first = elevenCache.keys().next();
+    if (first.done) break;
+    elevenCache.delete(first.value);
+  }
+};
+
+const synthesizeElevenLabs = async (text: string): Promise<Buffer> => {
+  if (!elevenKey) throw new Error('sin clave ElevenLabs');
+  const cacheKey = `${ELEVEN_VOICE}|${text}`;
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ELEVEN_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${ELEVEN_URL}/${ELEVEN_VOICE}`, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'xi-api-key': elevenKey,
+        Accept: 'audio/mpeg',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        model_id: ELEVEN_MODEL,
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.8,
+          style: 0.25,
+          use_speaker_boost: true,
+        },
+      }),
+    });
+    if (!res.ok) throw new Error(`elevenlabs ${res.status}`);
+    const audio = Buffer.from(new Uint8Array(await res.arrayBuffer()));
+    if (audio.length < 512) throw new Error('elevenlabs audio vacio');
+    cacheSet(cacheKey, audio);
+    return audio;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
 const uuid = (): string => {
   const p = (x: number) => (x < 16 ? '0' : '') + x.toString(16);
   const b = new Uint8Array(16);
@@ -49,7 +119,7 @@ const splitForGoogle = (text: string): string[] => {
 
 const synthesizeGoogle = async (text: string): Promise<Buffer> => {
   const parts = splitForGoogle(text);
-  if (parts.length === 0) throw new Error('texto vacÃ­o');
+  if (parts.length === 0) throw new Error('texto vacio');
   const bufs: Buffer[] = [];
   for (const p of parts) {
     const res = await fetch(
@@ -99,7 +169,13 @@ const synthesize = (text: string): Promise<Buffer> =>
           },
         })
       );
-      const clean = text.replace(/[^a-zA-ZÃ¡Ã©Ã­Ã³ÃºÃ¼Ã±ÃÃ‰ÃÃ“ÃšÃœÃ‘Â¿Â¡\s.,;:!?()'"â€™-]/gu, ' ').replace(/\s+/g, ' ').trim();
+      // Regex con escapes \u en vez de literales: evita que un guardado con la
+      // codificacion rota borre las vocales acentuadas y diga "como estas" como
+      // "como ests".
+      const clean = text
+        .replace(/[^\p{L}\p{N}\s.,;:!?()'"’-]/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
       const safe = clean.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='es-AR'><voice name='${EDGE_VOICE}'><prosody rate='-12%' pitch='-2%' volume='loud'>${safe || 'Hola'}</prosody></voice></speak>`;
       const ts2 = new Date().toUTCString().replace('GMT', 'GMT');
@@ -159,16 +235,33 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(400).json({ error: 'text requerido' });
     }
     let audio: Buffer | null = null;
-    try {
-      audio = await synthesize(text);
-    } catch {
-      audio = null;
+    let engine = 'ninguno';
+
+    // Prioridad: ElevenLabs (la voz que define a VIA) > Edge > Google.
+    // Los de respaldo existen para que un corte de ElevenLabs no deje a VIA muda.
+    if (elevenKey) {
+      try {
+        audio = await synthesizeElevenLabs(text);
+        engine = 'elevenlabs';
+      } catch (err) {
+        console.error('TTS ElevenLabs fallo:', err);
+      }
+    }
+
+    if (!audio) {
+      try {
+        audio = await synthesize(text);
+        engine = 'edge';
+      } catch {
+        audio = null;
+      }
     }
     if (!audio || audio.length === 0) {
       try {
         audio = await synthesizeGoogle(text);
+        engine = 'google';
       } catch (err) {
-        console.error('TTS Google fallÃ³:', err);
+        console.error('TTS Google fallo:', err);
       }
     }
     if (!audio || audio.length === 0) {
@@ -176,6 +269,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Cache-Control', 'no-store');
+    // Solo diagnostico: permite comprobar desde el navegador que motor respondio.
+    res.setHeader('X-TTS-Engine', engine);
     return res.status(200).send(audio);
   } catch (err) {
     console.error('Error en /api/tts:', err);
