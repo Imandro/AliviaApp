@@ -59,6 +59,7 @@ import { getMe, getToken, setToken, type SafeUser } from './utils/auth';
 import { syncSystemBarsTheme } from './utils/systemBars';
 import { SyncToast } from './components/SyncToast';
 import { AppLock } from './components/AppLock';
+import { FirstRunTutorial } from './components/FirstRunTutorial';
 import { LoadingBrand } from './components/LoadingBrand';
 
 const ROUTE_MAP: Record<string, TabId> = {
@@ -201,7 +202,11 @@ function Root() {
       .then((u) => {
         if (cancelled) return;
         setUser(u);
-        setStatus('app');
+        // El onboarding guardaba onboarding_done en la BD pero nunca se
+        // consultaba al entrar, asi que el cuestionario inicial era inalcanzable
+        // (solo se llegaba desde "Editar mi perfil"). Ahora un usuario que aún no
+        // lo completó pasa por él al iniciar sesión.
+        setStatus(u.onboarding_done ? 'app' : 'onboarding');
       })
       .catch(() => {
         if (cancelled) return;
@@ -271,6 +276,7 @@ function App() {
       <Root />
       <SyncToast />
       <AppLock />
+      <FirstRunTutorial />
     </HashRouter>
   );
 }
