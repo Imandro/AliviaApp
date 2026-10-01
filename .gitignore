@@ -64,6 +64,7 @@ api/lambda/dist-ai/
 api/lambda/lambda.zip
 api/lambda/lambda-api.zip
 api/lambda/lambda-tts.zip
+api/lambda/lambda-ai.zip
 
 # SAM
 .aws-sam/

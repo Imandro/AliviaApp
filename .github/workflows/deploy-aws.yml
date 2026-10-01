@@ -48,12 +48,27 @@ jobs:
           zip -qr ../lambda-tts.zip .
           cd ../..
 
+      # alivia-ai no tiene dependencias de runtime (usa fetch nativo de Node 22).
+      - name: Package AI Lambda
+        run: |
+          cd api/lambda/dist-ai
+          npm install --omit=dev --no-audit --no-fund
+          zip -qr ../lambda-ai.zip .
+          cd ../..
+
       - name: Deploy API Lambda
         run: |
           aws lambda update-function-code \
             --function-name alivia-api \
             --zip-file fileb://api/lambda/lambda-api.zip
           aws lambda wait function-updated --function-name alivia-api
+
+      - name: Deploy AI Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name alivia-ai \
+            --zip-file fileb://api/lambda/lambda-ai.zip
+          aws lambda wait function-updated --function-name alivia-ai
 
       - name: Deploy TTS Lambda
         run: |
