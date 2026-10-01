@@ -1,0 +1,223 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AliviaAPP - Frontend estatico (S3 + CloudFront) con /api/* en la Lambda
+
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'alivia-frontend-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: alivia-frontend
+
+  # Las politicas gestionadas de CloudFront bloquean los metodos en GET/HEAD
+  # (Managed-CachingDisabled incluida), asi que POST/PUT/PATCH/DELETE reciben un
+  # 403 y el custom error response devolvia index.html. Esta politica propia no
+  # cachea nada y permite elegir los metodos en cada cache behavior.
+  ApiCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: alivia-api-no-cache
+        Comment: Sin cache efectiva para la API y el TTS
+        # CloudFront no permite comprimir ni reenviar query strings cuando el
+        # cache esta totalmente desactivado (TTL 0). Con DefaultTTL 0 y MaxTTL 1
+        # no se cachea nada salvo que el origen lo pida, y sigue permitiendo
+        # comprimir y reenviar query strings.
+        DefaultTTL: 0
+        MaxTTL: 1
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          # Authorization entra en la clave de cache para que, si algo se
+          # cachease, jamas se comparta entre usuarios distintos.
+          HeadersConfig:
+            HeaderBehavior: whitelist
+            Headers:
+              - Authorization
+          QueryStringsConfig:
+            QueryStringBehavior: all
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+
+  # Reenvía al origen la query string (TTS: ?text=...) y todas las cabeceras del
+  # viewer, incluida Authorization. Sin esto la API no recibe el token.
+  ApiOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: alivia-api-forward-all
+        Comment: Reenvia query string y cabeceras a la API
+        CookiesConfig:
+          CookieBehavior: none
+        HeadersConfig:
+          # allViewer reenviaria la cabecera Host del viewer (el dominio de
+          # CloudFront) y la Lambda Function URL la rechaza con 403. Se reenvia
+          # todo menos Host para que CloudFront ponga el host del origen.
+          HeaderBehavior: allExcept
+          Headers:
+            - Host
+        QueryStringsConfig:
+          QueryStringBehavior: all
+
+  # OAC firma las peticiones con sigv4, pero S3 sigue exigiendo que una bucket
+  # policy autorice a esa distribucion. Sin ella CloudFront recibe 403.
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub
+                  - 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionId}'
+                  - DistributionId: !Ref Distribution
+
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: alivia-oac
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: AliviaAPP web + api
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        PriceClass: PriceClass_100
+        Origins:
+          # Sitios estaticos en S3
+          - Id: S3Origin
+            DomainName: !GetAtt FrontendBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt OriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+          # API en Lambda Function URL. El export es
+          # https://<id>.lambda-url.us-east-1.on.aws/ -> al partir por "/" el
+          # dominio es el indice 2. No se define OriginPath (quedaria vacio y
+          # CloudFront no lo admite); la ruta /api/* la anade la cache behavior.
+          - Id: ApiOrigin
+            DomainName: !Select [2, !Split ['/', !ImportValue alivia-function-url]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+              HTTPPort: 80
+              HTTPSPort: 443
+          # TTS en su propia Lambda, FUERA del VPC (necesita salida a internet).
+          - Id: TtsOrigin
+            DomainName: !Select [2, !Split ['/', !ImportValue alivia-tts-url]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+              HTTPPort: 80
+              HTTPSPort: 443
+          # IA (Groq) tambien FUERA del VPC, igual que el TTS.
+          - Id: AiOrigin
+            DomainName: !Select [2, !Split ['/', !ImportValue alivia-ai-url]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+              HTTPPort: 80
+              HTTPSPort: 443
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SpaFallback.FunctionMetadata.FunctionARN
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        CacheBehaviors:
+          # /api/ai/* va a la Lambda de IA (Groq), sin cache.
+          # Compress va desactivado a proposito: comprimir obliga a CloudFront a
+          # hacer buffering del origen, y el streaming de tokens se queda
+          # atrapado en un buffer hasta que llega el final de la respuesta.
+          - PathPattern: /api/ai/*
+            TargetOriginId: AiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: false
+            CachePolicyId: !Ref ApiCachePolicy
+            OriginRequestPolicyId: !Ref ApiOriginRequestPolicy
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+          # /api/tts va a la Lambda de voz, sin cache
+          - PathPattern: /api/tts
+            TargetOriginId: TtsOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref ApiCachePolicy
+            OriginRequestPolicyId: !Ref ApiOriginRequestPolicy
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+          # /api/* va siempre a la Lambda, sin cache
+          - PathPattern: /api/*
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref ApiCachePolicy
+            OriginRequestPolicyId: !Ref ApiOriginRequestPolicy
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+
+  # Los SPA necesitan que /cualquier/ruta sirva index.html, pero los errores de
+  # /api/* deben llegar al cliente sin transformar. Esta CloudFront Function
+  # reescribe a index.html solo en el origen estatico cuando la ruta no tiene
+  # extension y no es /api/*, de modo que los custom error responses solo se
+  # activan por assets realmente inexistentes.
+  SpaFallback:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: alivia-spa-fallback
+      AutoPublish: true
+      FunctionConfig:
+        Comment: SPA fallback to index.html
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var uri = event.request.uri;
+          if (uri.indexOf('/api/') === 0) return event.request;
+          if (uri.indexOf('.') !== -1) return event.request;
+          event.request.uri = '/index.html';
+          return event.request;
+        }
+
+Outputs:
+  FrontendBucketName:
+    Value: !Ref FrontendBucket
+  DistributionId:
+    Value: !Ref Distribution
+  DomainName:
+    Value: !GetAtt Distribution.DomainName

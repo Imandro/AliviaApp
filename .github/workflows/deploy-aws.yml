@@ -1,0 +1,109 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Lambda
+        run: npm run build:lambda
+
+      # SAM genera los package.json de runtime y ahi se instalan las dependencias
+      # nativas. Zippear solo el codigo sin node_modules produce un 502 en Lambda.
+      - name: Package API Lambda
+        run: |
+          cd api/lambda/dist
+          npm install --omit=dev --no-audit --no-fund
+          zip -qr ../lambda-api.zip .
+          cd ../..
+
+      - name: Package TTS Lambda
+        run: |
+          cd api/lambda/dist-tts
+          npm install --omit=dev --no-audit --no-fund
+          zip -qr ../lambda-tts.zip .
+          cd ../..
+
+      - name: Deploy API Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name alivia-api \
+            --zip-file fileb://api/lambda/lambda-api.zip
+          aws lambda wait function-updated --function-name alivia-api
+
+      - name: Deploy TTS Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name alivia-tts \
+            --zip-file fileb://api/lambda/lambda-tts.zip
+          aws lambda wait function-updated --function-name alivia-tts
+
+  deploy-web:
+    runs-on: ubuntu-latest
+    needs: deploy-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.app.json
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/ "s3://${{ secrets.FRONTEND_BUCKET_NAME }}" --delete
+          # Los assets con hash nunca cambian: cache largo e inmutable.
+          aws s3 sync dist/assets/ "s3://${{ secrets.FRONTEND_BUCKET_NAME }}/assets" \
+            --delete --cache-control "public,max-age=31536000,immutable"
+          # index.html y service worker deben recargarse siempre.
+          for f in index.html sw.js manifest.webmanifest; do
+            if [ -f "dist/$f" ]; then
+              aws s3 cp "dist/$f" "s3://${{ secrets.FRONTEND_BUCKET_NAME }}/$f" \
+                --cache-control "no-cache,must-revalidate"
+            fi
+          done
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"

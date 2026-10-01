@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AliviaAPP - RDS PostgreSQL
+
+Parameters:
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    MinLength: 12
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for AliviaAPP RDS
+      SubnetIds:
+        - Fn::ImportValue: alivia-subnet1
+        - Fn::ImportValue: alivia-subnet2
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: alivia-db
+      DBInstanceClass: db.t4g.micro
+      Engine: postgres
+      EngineVersion: '16'
+      AllocatedStorage: 20
+      StorageType: gp3
+      DBName: alivia
+      MasterUsername: alivia_admin
+      MasterUserPassword: !Ref DatabasePassword
+      VPCSecurityGroups:
+        - Fn::ImportValue: alivia-db-sg
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 1
+      DeletionProtection: false
+      Tags:
+        - Key: Name
+          Value: alivia-postgres
+
+Outputs:
+  DatabaseEndpoint:
+    Value: !GetAtt Database.Endpoint.Address
+    Export:
+      Name: alivia-db-endpoint
+  DatabasePort:
+    Value: !GetAtt Database.Endpoint.Port

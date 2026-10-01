@@ -2,6 +2,9 @@
 .env
 .env.local
 .env.production
+# Cualquier .env.* queda fuera salvo el ejemplo, que si se versiona.
+.env.*
+!.env.example
 
 # Logs
 logs
@@ -53,4 +56,18 @@ ios/*.xcworkspace
 ios/Pods/
 ios/DerivedData/
 ios/Web/.gitkeep
-.env*
+
+# Lambda build artifacts
+api/lambda/dist/
+api/lambda/dist-tts/
+api/lambda/dist-ai/
+api/lambda/lambda.zip
+api/lambda/lambda-api.zip
+api/lambda/lambda-tts.zip
+
+# SAM
+.aws-sam/
+
+# Secreto: contiene DatabasePassword en texto plano
+infra/samconfig.toml
+samconfig.toml

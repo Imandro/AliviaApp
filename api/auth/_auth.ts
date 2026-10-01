@@ -1,5 +1,5 @@
 import { scryptSync, randomBytes, timingSafeEqual, randomUUID } from 'crypto';
-import { VercelRequest } from '@vercel/node';
+import type { ApiRequest } from '../_types.js';
 import { getPool } from '../_db.js';
 
 const SESSION_DAYS = 30;
@@ -84,7 +84,7 @@ export interface SessionUser {
   email: string;
 }
 
-export async function getUserFromRequest(req: VercelRequest): Promise<SessionUser | null> {
+export async function getUserFromRequest(req: ApiRequest): Promise<SessionUser | null> {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return null;
   const token = auth.slice(7).trim();
@@ -99,7 +99,7 @@ export async function getUserFromRequest(req: VercelRequest): Promise<SessionUse
   return rows[0] ?? null;
 }
 
-export function extractToken(req: VercelRequest): string | null {
+export function extractToken(req: ApiRequest): string | null {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return null;
   const token = auth.slice(7).trim();

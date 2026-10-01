@@ -1,14 +1,14 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from '../_types.js';
 import { ensureSchema, ensureFunctions, getPool } from '../_db.js';
 import { getUserFromRequest, toSafeUser, PHONE_RE } from './_auth.js';
 
 import { applyCors } from '../_cors.js';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'PUT') {
     res.setHeader('Allow', 'PUT');
-    return res.status(405).json({ error: 'Método no permitido' });
+    return res.status(405).json({ error: 'MÃƒÂ©todo no permitido' });
   }
 
   try {
@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const sessionUser = await getUserFromRequest(req);
     if (!sessionUser) {
-      return res.status(401).json({ error: 'Sesión no válida' });
+      return res.status(401).json({ error: 'SesiÃƒÂ³n no vÃƒÂ¡lida' });
     }
 
     const pool = getPool();
@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const phone = body.phone !== undefined ? String(body.phone).trim() || null : current.phone;
     if (phone && !PHONE_RE.test(phone)) {
-      return res.status(400).json({ error: 'Ingresa un teléfono válido' });
+      return res.status(400).json({ error: 'Ingresa un telÃƒÂ©fono vÃƒÂ¡lido' });
     }
 
     const updated = await pool.query(

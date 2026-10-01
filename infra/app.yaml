@@ -1,0 +1,173 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AliviaAPP - Lambda API + Function URL
+
+Parameters:
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    MinLength: 12
+    Description: Must match the password used to create alivia-db
+  GitHubOwner:
+    Type: String
+    Default: imandro
+  GitHubRepo:
+    Type: String
+    Default: AliviaAPP
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
+    Timeout: 30
+    MemorySize: 256
+
+Resources:
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: alivia-api
+      CodeUri: ../api/lambda/dist/
+      Handler: handler.handler
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          DATABASE_URL: !Join
+            - ''
+            - - 'postgresql://alivia_admin:'
+              - !Ref DatabasePassword
+              - '@'
+              - Fn::ImportValue: alivia-db-endpoint
+              - ':5432/alivia'
+          NODE_ENV: production
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref ApiSecurityGroup
+        SubnetIds:
+          - Fn::ImportValue: alivia-subnet1
+          - Fn::ImportValue: alivia-subnet2
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      FunctionUrlConfig:
+        AuthType: NONE
+
+  # El SG de la Lambda vive aqui, y no en alivia-net, para no exportar un SG a
+  # otro stack. CloudFormation rechaza cualquier actualizacion de alivia-net que
+  # toque un recurso con un export consumido ("Cannot update export
+  # alivia-lambda-sg as it is in use by alivia-app"), lo que dejaba alivia-net
+  # atascado en UPDATE_ROLLBACK_COMPLETE.
+  # Solo se permite salida a PostgreSQL (5432) dentro del VPC: la Lambda no tiene
+  # IP publica ni ruta a IGW, y el TTS se ejecuta en alivia-tts, fuera del VPC.
+  ApiSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the API Lambda function
+      VpcId:
+        Fn::ImportValue: alivia-vpc-id
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: alivia-lambda-sg
+
+  # El TTS necesita salir a internet (Bing Edge TTS / Google Translate) para
+  # sintetizar voz. Una Lambda dentro del VPC no tiene salida a internet y eso
+  # exigiria un NAT Gateway (~$32/mes), asi que esta Lambda se queda FUERA del
+  # VPC. No toca la base de datos, por lo que no necesita ruta privada.
+  # El navegador movil llama directamente a esta Function URL.
+  TtsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: alivia-tts
+      CodeUri: ../api/lambda/dist-tts/
+      Handler: handler.handler
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          NODE_ENV: production
+      FunctionUrlConfig:
+        AuthType: NONE
+
+  # La IA (Groq) tambien sale a internet, por el mismo motivo que el TTS: la
+  # Lambda de datos esta en el VPC para llegar a RDS y desde ahi no hay salida.
+  # Aqui vive GROQ_API_KEY, de modo que la clave nunca entra en el bundle del
+  # navegador: el cliente llama a /api/ai/* y esta Lambda reenvia a Groq.
+  # InvokeMode RESPONSE_STREAM es lo que permite ir mostrando los tokens segun
+  # llegan en vez de esperar a la respuesta completa.
+  AiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: alivia-ai
+      CodeUri: ../api/lambda/dist-ai/
+      Handler: handler.handler
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          NODE_ENV: production
+          GROQ_API_KEY: '{{resolve:secretsmanager:alivia/groq-api-key:SecretString:VITE_GROQ_API_KEY}}'
+          GROQ_MODELS: 'openai/gpt-oss-20b,openai/gpt-oss-120b,qwen/qwen3.6-27b'
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/groq-api-key-*'
+
+  GitHubActionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: alivia-github-actions-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Sub 'arn:aws:iam::${AWS::AccountId}:oidc-provider/token.actions.githubusercontent.com'
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              # El claim sub de GitHub usa el nombre canonico del repositorio
+              # (Imandro/AliviaApp) mientras que el remote local usa otra
+              # capitalizacion. AWS compara este claim de forma sensible a
+              # mayusculas, asi que se aceptan ambas variantes.
+              StringLike:
+                token.actions.githubusercontent.com:sub:
+                  - !Sub 'repo:${GitHubOwner}/${GitHubRepo}:*'
+                  - 'repo:imandro/AliviaApp:*'
+                  - 'repo:imandro/AliviaAPP:*'
+                  - 'repo:Imandro/AliviaApp:*'
+                  - 'repo:Imandro/AliviaAPP:*'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AWSLambda_FullAccess
+        - arn:aws:iam::aws:policy/CloudFrontFullAccess
+
+Outputs:
+  LambdaFunctionUrl:
+    # AWS::Lambda::Url devuelve el ARN con !Ref; la URL se obtiene con Fn::GetAtt.
+    Value: !GetAtt ApiFunctionUrl.FunctionUrl
+    Export:
+      Name: alivia-function-url
+  TtsFunctionUrl:
+    Value: !GetAtt TtsFunctionUrl.FunctionUrl
+    Export:
+      Name: alivia-tts-url
+  AiFunctionUrl:
+    Value: !GetAtt AiFunctionUrl.FunctionUrl
+    Export:
+      Name: alivia-ai-url
+  LambdaFunctionArn:
+    Value: !GetAtt ApiFunction.Arn
+  GitHubActionsRoleArn:
+    Value: !GetAtt GitHubActionsRole.Arn

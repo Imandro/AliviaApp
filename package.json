@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "build:lambda": "node scripts/build-lambda.mjs",
     "sync:android": "npm run build && cap sync android && node scripts/post-sync.js",
     "build:ios:web": "tsc -b && vite build --base=./ --outDir dist-ios --mode ios",
     "sync:ios": "npm run build:ios:web && node scripts/ios-sync.js"
@@ -25,20 +26,23 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.16.0",
-    "web-push": "^3.6.7",
     "ws": "^8.21.3"
   },
   "devDependencies": {
     "@types/pg": "^8.21.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@types/web-push": "^3.6.4",
     "@vercel/node": "^5.10.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "esbuild": "^0.24.0",
     "typescript": "~5.6.3",
     "vercel": "^59.1.3",
     "vite": "^5.4.11",
     "vite-plugin-pwa": "^0.21.2",
     "vitest": "^4.1.11"
+  },
+  "allowScripts": {
+    "esbuild@0.24.2": true,
+    "esbuild@0.21.5": true
   }
 }

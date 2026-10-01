@@ -1,4 +1,4 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from './_types.js';
 import { Buffer } from 'node:buffer';
 import WebSocket from 'ws';
 
@@ -49,7 +49,7 @@ const splitForGoogle = (text: string): string[] => {
 
 const synthesizeGoogle = async (text: string): Promise<Buffer> => {
   const parts = splitForGoogle(text);
-  if (parts.length === 0) throw new Error('texto vacío');
+  if (parts.length === 0) throw new Error('texto vacÃ­o');
   const bufs: Buffer[] = [];
   for (const p of parts) {
     const res = await fetch(
@@ -99,7 +99,7 @@ const synthesize = (text: string): Promise<Buffer> =>
           },
         })
       );
-      const clean = text.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ¿¡\s.,;:!?()'"’-]/gu, ' ').replace(/\s+/g, ' ').trim();
+      const clean = text.replace(/[^a-zA-ZÃ¡Ã©Ã­Ã³ÃºÃ¼Ã±ÃÃ‰ÃÃ“ÃšÃœÃ‘Â¿Â¡\s.,;:!?()'"â€™-]/gu, ' ').replace(/\s+/g, ' ').trim();
       const safe = clean.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='es-AR'><voice name='${EDGE_VOICE}'><prosody rate='-12%' pitch='-2%' volume='loud'>${safe || 'Hola'}</prosody></voice></speak>`;
       const ts2 = new Date().toUTCString().replace('GMT', 'GMT');
@@ -151,7 +151,7 @@ const synthesize = (text: string): Promise<Buffer> =>
 
 import { applyCors } from './_cors.js';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   try {
     const text = String(req.query.text ?? '').trim().slice(0, MAX_TEXT);
@@ -168,7 +168,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         audio = await synthesizeGoogle(text);
       } catch (err) {
-        console.error('TTS Google falló:', err);
+        console.error('TTS Google fallÃ³:', err);
       }
     }
     if (!audio || audio.length === 0) {

@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from './_types.js';
 
 // Permite que la app nativa (Capacitor/WebView) consuma la API desde otro origen.
 const CORS_HEADERS: Array<[string, string]> = [
@@ -8,8 +8,8 @@ const CORS_HEADERS: Array<[string, string]> = [
   ['Access-Control-Max-Age', '86400'],
 ];
 
-// Aplica cabeceras CORS y responde preflight OPTIONS. Devuelve true si la petición ya fue respondida.
-export function applyCors(req: VercelRequest, res: VercelResponse): boolean {
+// Aplica cabeceras CORS y responde preflight OPTIONS. Devuelve true si la peticiÃ³n ya fue respondida.
+export function applyCors(req: ApiRequest, res: ApiResponse): boolean {
   for (const [key, value] of CORS_HEADERS) {
     res.setHeader(key, value);
   }

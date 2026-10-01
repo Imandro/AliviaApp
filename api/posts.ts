@@ -1,9 +1,9 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
+import type { ApiRequest, ApiResponse } from './_types.js';
 import { ensureSchema, ensureFunctions, getPool } from './_db.js';
 
 import { applyCors } from './_cors.js';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   const isLike = /\/posts\/like/i.test(req.url ?? '');
 
@@ -15,11 +15,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (isLike) {
       if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
-        return res.status(405).json({ error: 'Método no permitido' });
+        return res.status(405).json({ error: 'MÃ©todo no permitido' });
       }
       const postId = Number(req.query.postId ?? NaN);
       if (!Number.isFinite(postId)) {
-        return res.status(400).json({ error: 'postId inválido' });
+        return res.status(400).json({ error: 'postId invÃ¡lido' });
       }
       const { rows } = await pool.query(`SELECT * FROM fn_like_post($1)`, [postId]);
       if (rows.length === 0) {
@@ -31,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const methods = ['GET', 'POST'];
     if (!methods.includes(req.method!)) {
       res.setHeader('Allow', methods.join(', '));
-      return res.status(405).json({ error: 'Método no permitido' });
+      return res.status(405).json({ error: 'MÃ©todo no permitido' });
     }
 
     if (req.method === 'GET') {
@@ -46,11 +46,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { author, content, topic } = req.body ?? {};
     const cleanContent = String(content ?? '').trim();
     if (!cleanContent || cleanContent.length > 500) {
-      return res.status(400).json({ error: 'El mensaje es requerido (máx. 500 caracteres)' });
+      return res.status(400).json({ error: 'El mensaje es requerido (mÃ¡x. 500 caracteres)' });
     }
     const { rows } = await pool.query(
       `SELECT * FROM fn_create_post($1, $2, $3)`,
-      [String(author ?? 'Anónimo').slice(0, 30), cleanContent, String(topic ?? 'general').slice(0, 30)]
+      [String(author ?? 'AnÃ³nimo').slice(0, 30), cleanContent, String(topic ?? 'general').slice(0, 30)]
     );
     return res.status(201).json(rows[0]);
   } catch (err) {
