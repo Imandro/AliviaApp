@@ -13,6 +13,12 @@ import assessmentsHandler from '../assessments.js';
 import contactsHandler from '../contacts.js';
 import plansHandler from '../plans.js';
 import postsHandler from '../posts.js';
+import notificationPrefsHandler from '../notifications/preferences.js';
+import notificationSubsHandler from '../notifications/subscriptions.js';
+import notificationTestHandler from '../notifications/test.js';
+// El dispatch lo llama el cron de EventBridge cada minuto con CRON_SECRET,
+// no un usuario: por eso NO usa getUserFromRequest.
+import notificationDispatchHandler from '../notifications/dispatch.js';
 
 type Handler = (req: ApiRequest, res: ApiResponse) => unknown;
 
@@ -28,6 +34,10 @@ const routes: Record<string, Handler> = {
   '/api/contacts': contactsHandler,
   '/api/plans': plansHandler,
   '/api/posts': postsHandler,
+  '/api/notifications/preferences': notificationPrefsHandler,
+  '/api/notifications/subscriptions': notificationSubsHandler,
+  '/api/notifications/test': notificationTestHandler,
+  '/api/notifications/dispatch': notificationDispatchHandler,
   // /api/tts se sirve desde alivia-tts (Lambda fuera del VPC); ver infra/web.yaml.
 };
 

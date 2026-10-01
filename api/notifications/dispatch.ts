@@ -67,6 +67,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret || !validCronRequest(req.headers.authorization, cronSecret)) {
+    // Log sin el valor recibido: solo deja ver si el cron llega a la Lambda y si
+    // su CRON_SECRET no coincide con el de aqui.
+    console.warn('dispatch rechazado: secreto ausente o distinto (secretsManager presente:', Boolean(cronSecret), ')');
     return res.status(401).json({ error: 'No autorizado' });
   }
   const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
@@ -141,6 +144,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         if (delivered) sent++;
       }
     }
+    console.log(`dispatch ok: ${sent} enviados, ${expired} suscripciones caducadas`);
     return res.status(200).json({ ok: true, sent, expiredSubscriptions: expired });
   } catch (err) {
     console.error('Error en /api/notifications/dispatch:', err);

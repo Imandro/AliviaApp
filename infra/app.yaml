@@ -44,8 +44,17 @@ Resources:
           NODE_ENV: production
           # El dispatch de notificaciones lo invoca EventBridge Scheduler con
           # "Authorization: Bearer <CRON_SECRET>". Las claves VAPID salen del
-          # mismo secret (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT) y
-          # hay que rellenarlas a mano: sin ellas no hay push, aunque el cron corra.
+          # mismo secret; se generaron con crypto (P-256, publicKey=87 chars y
+          # privateKey=43) y hay que subirlas con:
+          #   aws secretsmanager put-secret-value --secret-id alivia/notification-secret \
+          #     --secret-string file://vapid.json
+          # Ojo: pasando el JSON en la linea de comandos, el shell se come las
+          # comillas y CloudFormation falla con "Could not parse SecretString
+          # JSON". Siempre por archivo.
+          #
+          # CloudFormation solo resuelve {{resolve:}} cuando el recurso cambia,
+          # asi que rellenar el secret NO refresca la Lambda por si solo: hay que
+          # desplegar con algun cambio real en este archivo.
           CRON_SECRET: !Sub '{{resolve:secretsmanager:alivia/notification-secret:SecretString:CRON_SECRET}}'
           VAPID_PUBLIC_KEY: '{{resolve:secretsmanager:alivia/notification-secret:SecretString:VAPID_PUBLIC_KEY}}'
           VAPID_PRIVATE_KEY: '{{resolve:secretsmanager:alivia/notification-secret:SecretString:VAPID_PRIVATE_KEY}}'

@@ -19,12 +19,17 @@ mkdirSync(outDir, { recursive: true });
 mkdirSync(ttsOutDir, { recursive: true });
 mkdirSync(aiOutDir, { recursive: true });
 
+// `web-push` es CommonJS y usa `require('crypto')` por dentro. Si esbuild lo
+// empaqueta dentro de un bundle ESM, al ejecutarlo en Node 22 revienta con
+// "Dynamic require of crypto is not supported" y la Lambda entera no arranca.
+// Por eso se declara external: se resuelve en tiempo de ejecucion con npm
+// install desde el package.json que se genera mas abajo.
 const shared = {
   bundle: true,
   platform: 'node',
   target: 'node22',
   format: 'esm',
-  external: ['pg', 'ws'],
+  external: ['pg', 'ws', 'web-push'],
   minify: true,
   sourcemap: false,
 };
@@ -73,9 +78,12 @@ function writeRuntimePackage(dir, name, deps) {
   );
 }
 
+// `web-push` va aqui porque va marcada como external arriba: SAM corre
+// `npm install` sobre este package.json y laLambda la encuentra en node_modules.
 writeRuntimePackage(outDir, 'alivia-api', {
   pg: pkg.dependencies.pg,
   ws: pkg.dependencies.ws,
+  'web-push': pkg.dependencies['web-push'],
 });
 
 // La Lambda de TTS solo usa `ws`; no necesita `pg`.
