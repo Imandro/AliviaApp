@@ -14,7 +14,7 @@
 
 import type { LambdaEvent, LambdaResponse } from './adapter.js';
 import { applyCors } from '../_cors.js';
-import aiHandler, { chatFallbacks, GEMINI_BASE } from '../ai.js';
+import aiHandler, { chatFallbacks, GEMINI_BASE, CUENTA_SIN_FONDOS } from '../ai.js';
 
 // writableStream que AWS inyecta como segundo argumento del handler registrado
 // con streamifyResponse.
@@ -90,9 +90,18 @@ type StreamingHandler = (
 const DEFAULT_MAX_TOKENS = 4096;
 const MAX_MAX_TOKENS = 8192;
 
-/** Nombre corto del proveedor, para logs legibles. */
-const nombreProveedor = (base: string): string =>
+/**
+ * La regla de "este limite es de la cuenta, no del modelo" vive en ai.ts y se
+ * importa, en vez de estar escrita en los dos sitios. Cuando estaban
+ * separadas ya se habian desincronizado: el streaming reconocia "quota" y
+ * OpenAI responde "no credits remaining", asi que gastaba tres intentos en
+ * gpt-4.1-mini, nano y 4o-mini, unos 600 ms cada uno, antes de llegar a Groq.
+ */
+const DETALLE_PROVEEDOR = (base: string): string =>
   base === GEMINI_BASE ? 'gemini' : base.includes('openai.com') ? 'openai' : 'groq';
+
+/** Nombre corto del proveedor, para logs legibles. */
+const nombreProveedor = DETALLE_PROVEEDOR;
 
 /**
  * Extrae el motivo de un error de la API sin volcar el cuerpo entero: estos
@@ -225,8 +234,8 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
           if (upstreamRes.status === 429 || upstreamRes.status === 503) {
             const detalle = await upstreamRes.text().catch(() => '');
             console.warn(`[chat] ${nombreProveedor(upstream.base)}/${model} ${upstreamRes.status}: ${motivoDe(detalle)}`);
-            if (/exceeded your current quota|quota|billing/i.test(detalle)) {
-              break; // cuota de la cuenta: el siguiente modelo tampoco entra
+            if (CUENTA_SIN_FONDOS.test(detalle)) {
+              break; // el bucle de modelos: al siguiente proveedor
             }
           } else {
             console.warn(`[chat] ${nombreProveedor(upstream.base)}/${model} ${upstreamRes.status} sin cuerpo`);

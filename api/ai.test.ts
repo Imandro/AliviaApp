@@ -57,6 +57,18 @@ const chatJson = (text: string, status = 200): Response =>
     headers: { 'Content-Type': 'application/json' },
   });
 
+/**
+ * Respuesta de error de la API, con el mensaje que usan los proveedores.
+ * Importante: chatJson(x, 429) no sirve para probar el manejo de un 429,
+ * porque devuelve un cuerpo de exito con status 429 y el proxy no llega a leer
+ * el mensaje. Esto si es lo que devuelven de verdad.
+ */
+const errorJson = (status: number, message: string): Response =>
+  new Response(JSON.stringify({ error: { message } }), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
 beforeEach(() => {
   // Gemini es el proveedor principal. Los tests de proveedor mas abajo lo
   // borran a proposito para probar la cadena de respaldo.
@@ -131,7 +143,7 @@ describe('configuracion', () => {
       const model = JSON.parse(String(init?.body)).model;
       pedidos.push(model);
       return model === 'gemini-3.6-flash'
-        ? chatJson('saturado', 429)
+        ? errorJson(429, 'You exceeded your current quota, please check your plan and billing details.')
         : chatJson('respuesta del modelo de respaldo');
     }) as typeof fetch;
 
@@ -142,12 +154,70 @@ describe('configuracion', () => {
     expect(captured.status).toBe(200);
   });
 
-  it('el 429 de OpenAI sigue cortando: es cuota de la cuenta', async () => {
+  it('el 429 de OpenAI con "no credits" salta al proveedor siguiente', async () => {
+    // Con credito agotado no se reintenta con gpt-4.1-nano ni 4o-mini: es saldo
+    // de la cuenta, no del modelo.
     delete process.env.GEMINI_API_KEY;
-    globalThis.fetch = (async () => chatJson('saturado', 429)) as typeof fetch;
+    globalThis.fetch = (async () =>
+      errorJson(429, 'You have no credits remaining. Add credits to continue using the API')) as typeof fetch;
     const { res, captured } = makeRes();
     await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    // Agotada toda la cadena, el cliente recibe el ultimo estado de error.
     expect(captured.status).toBe(429);
+  });
+
+  it('"no credits remaining" de OpenAI se salta sin probar mas modelos', async () => {
+    // La cuenta de OpenAI responde 429 con "You have no credits remaining",
+    // que no es lo mismo que "quota exceeded". Si no se reconoce, el proxy
+    // prueba los tres modelos de OpenAI (gpt-4.1-mini, nano y 4o-mini) y cada
+    // intento cuesta ~600 ms antes de llegar a Groq.
+    delete process.env.GEMINI_API_KEY;
+    const probados: string[] = [];
+    globalThis.fetch = (async (u: string, init?: RequestInit) => {
+      const modelo = JSON.parse(String(init?.body)).model;
+      // Ojo: Groq tambien sirve en api.* (api.groq.com), asi que buscar la
+      // palabra "openai" en la URL no distingue uno de otro. Se mira el host.
+      const esOpenAI = String(u).includes('api.openai.com');
+      probados.push(esOpenAI ? 'openai:' + modelo : 'groq:' + modelo);
+      if (esOpenAI) {
+        return errorJson(429, 'You have no credits remaining. Add credits to continue using the API');
+      }
+      return chatJson('respuesta desde groq');
+    }) as typeof fetch;
+
+    const { res, captured } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(captured.status).toBe(200);
+    // Solo un intento a OpenAI, y despues Groq: no tres.
+    expect(probados.filter((m) => m.startsWith('openai:')).length).toBe(1);
+    expect(probados.some((m) => m.startsWith('groq:'))).toBe(true);
+  });
+
+  it('"rate limit reached" de Groq SI se reintenta con otro modelo', async () => {
+    // Es limite por modelo, no de la cuenta: el siguiente puede funcionar, y
+    // cortar ahi dejaria a VIA muda.
+    //
+    // La cadena real con esta cuenta seria gemini -> openai -> groq, pero para
+    // aislar el comportamiento de Groq se dejan solo su clave. El primer modelo
+    // de su lista (qwen/qwen3.8-27b) devuelve 429 por modelo y el segundo tiene
+    // que responder.
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    const probados: string[] = [];
+    globalThis.fetch = (async (_u: string, init?: RequestInit) => {
+      const modelo = JSON.parse(String(init?.body)).model;
+      probados.push(modelo);
+      if (probados.length === 1) {
+        // Primer intento: limite por modelo de Groq.
+        return errorJson(429, 'Rate limit reached for model `qwen/qwen3.8-27b` in organization');
+      }
+      return chatJson('respuesta del segundo modelo de groq');
+    }) as typeof fetch;
+
+    const { res, captured } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(captured.status).toBe(200);
+    expect(probados.length).toBeGreaterThan(1);
   });
 
   it('el chat cae a OpenAI cuando no hay GEMINI_API_KEY', async () => {
@@ -325,20 +395,24 @@ describe('sanitizacion del prompt', () => {
 });
 
 describe('fallo hacia Groq', () => {
-  it('propaga 429 sin reintentar, para que el cliente caiga a reglas', async () => {
-    // Sin la clave de Gemini, el proveedor principal pasa a ser OpenAI, cuyo 429
-    // es cuota de la cuenta y no mejora cambiando de modelo.
+  it('un 429 sin mensaje reconocible prueba el resto de la cadena', async () => {
+    // Antes este test afirmaba que un 429 cortaba en seco con n=1. Con la regla
+    // nueva solo cortamos si el mensaje dice que el limite es de la cuenta
+    // ("no credits", "quota"); si no lo dice, se prueban los otros modelos, que
+    // es lo que evita que VIA se quede muda por un error poco claro del
+    // proveedor. El cliente recibe 429 al final, que es lo que le permite caer a
+    // sus reglas locales.
     delete process.env.GEMINI_API_KEY;
     let n = 0;
     globalThis.fetch = (async () => {
       n += 1;
-      return new Response(JSON.stringify({ error: 'rate' }), { status: 429 });
+      return errorJson(429, 'rate');
     }) as typeof fetch;
 
     const { res, captured } = makeRes();
     await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
     expect(captured.status).toBe(429);
-    expect(n).toBe(1);
+    expect(n).toBeGreaterThan(1);
   });
 
   it('prueba el segundo modelo si el primero falla', async () => {
