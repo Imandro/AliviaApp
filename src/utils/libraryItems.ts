@@ -148,6 +148,31 @@ export const LIBRARY: LibraryItem[] = [
     desc: 'Cómo escuchar sin juzgar, preguntar directo por el suicidio y buscar ayuda con él sin traicionar su confianza.',
     category: ['amistades', 'suicidio'], age: '13+',
   },
+  {
+    id: 'l26', type: 'libro', title: 'Activación conductual para la depresión',
+    desc: 'Pequeñas acciones diarias y un registro de placer: cómo activarte cuando la depresión pone las piernas de plomo.',
+    category: 'depresion', age: '14+',
+  },
+  {
+    id: 'l27', type: 'libro', title: 'Exposición gradual para la ansiedad',
+    desc: 'Sube la escalera del miedo poquito a poco: jerarquía, exposición y dejar atrás las conductas de seguridad.',
+    category: 'ansiedad', age: '14+',
+  },
+  {
+    id: 'l28', type: 'articulo', title: 'Detectar y salir del gaslighting',
+    desc: 'Señales, frases típicas y guion para poner límites: no es amor, es manipulación.',
+    category: ['noviazgo', 'amistades'], age: '14+',
+  },
+  {
+    id: 'l29', type: 'articulo', title: 'Duelo y pérdidas',
+    desc: 'Fases, rituales y cuándo buscar apoyo: cómo cuidar tu duelo y acompañar a quien lo padece.',
+    category: ['depresion', 'bienestar'], age: '14+',
+  },
+  {
+    id: 'l30', type: 'articulo', title: 'TDAH y regulación emocional',
+    desc: 'Dopamina, ceguera temporal y herramientas externas: estrategias reales para un cerebro con termostato descalibrado.',
+    category: ['ansiedad', 'bienestar'], age: '14+',
+  },
 ];
 
 const LUCHA_META: Record<string, { emoji: string; color: string }> = {
