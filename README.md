@@ -68,7 +68,7 @@ ALIVIA pone herramientas de primera línea exactamente ahí — en el bolsillo, 
 | Experiencia | Estado | Detalle |
 |---|---|---|
 | Web responsive | Producción ([alivia.lat](https://alivia.lat)) | SPA instalable como PWA: manifest + precache completo con Workbox |
-| App Android nativa | APK en GitHub Releases · AAB listo para Play | Capacitor 8: ícono adaptativo, splash screen, permisos y firma propios |
+| App Android nativa | APK servido desde el propio dominio ([alivia.lat/releases](https://alivia.lat/releases.json)) y también en GitHub Releases · AAB listo para Play | Capacitor 8: ícono adaptativo, splash screen, permisos y firma propios. Servirlo desde CloudFront permite descarga con progreso real y verificación SHA-256 en el navegador |
 | App iOS nativa | IPA ad-hoc / TestFlight | Shell Swift (WKWebView) propio con puente nativo: biometría, hápticos, notificaciones y cortina de privacidad. El IPA se firma en GitHub Actions |
 | PWA instalada | iOS / Android | Al instalarse, el modo standalone redirige todo a la app |
 
@@ -375,6 +375,20 @@ En `main` el workflow **Deploy to AWS** (`.github/workflows/deploy-aws.yml`) rep
 de Lambdas y el deploy vía OIDC (`AWS_ROLE_ARN`), sin claves de AWS en el repositorio.
 
 La web y la API se publican en el mismo dominio de CloudFront, así que no hay CORS ni URLs distintas. La landing vive en [`/landing.html`](https://alivia.lat/landing.html) y la página de descarga del APK en [`/descarga.html`](https://alivia.lat/descarga.html); ambas llevan extensión a propósito, porque el fallback SPA de CloudFront solo reescribe a `index.html` las URI sin extensión.
+
+### El APK también vive en el bucket
+
+El APK se publica **en el mismo bucket que la web**, en `/releases/`, y se sirve desde `alivia.lat` en lugar de saltar a GitHub Releases. Eso no es cosmético: al ser *same-origin*, la página de descarga puede leer el `ReadableStream` y mostrar una barra de progreso que no es inventada, y calcular el SHA-256 con WebCrypto para comprobar el archivo antes de guardarlo. Con un origen ajeno las tres cosas son imposibles sin descargar dos veces.
+
+No hace falta tocar la plantilla de CloudFormation: la CloudFront Function `alivia-spa-fallback` deja pasar cualquier URI con un punto, así que `/releases/ALIVIA-android.apk` llega a S3 tal cual.
+
+`public/releases.json` es la **única fuente de verdad** de versión, tamaño y hash. `scripts/release-apk.mjs` lo deriva del APK real y lo sube:
+
+```bash
+npm run release:apk -- ruta/al.apk --version 1.2.0 --publish --invalidate
+```
+
+El script rechaza cualquier archivo que no empiece por la firma `PK` de un ZIP, así que no se puede publicar por error un HTML de descarga a medias. Sin `--publish` solo regenera el manifiesto, que es lo que hay que ejecutar cuando cambia el binario.
 
 Los **recordatorios push** necesitan las claves VAPID y el `CRON_SECRET` en el secret
 `alivia/notification-secret` (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`).

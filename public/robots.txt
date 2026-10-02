@@ -13,6 +13,11 @@ Allow: /
 Disallow: /api/
 Disallow: /api/tts
 
+# El APK y su manifiesto son un binario y un JSON de datos, no paginas. Que un
+# crawler descargue 4,8 MB para no indexarlos es gastar presupuesto de rastreo.
+Disallow: /releases/
+Disallow: /releases.json
+
 # La SPA exige login para casi todo. No tiene sentido que un crawler entre a
 # paginas privadas: solo veria la pantalla de acceso, que no aporta contenido.
 Disallow: /#/chat

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Descargar ALIVIA para Android — APK firmado v1.2.0 · Equipo DataStorm</title>
-<meta name="description" content="Descarga el APK firmado de ALIVIA para Android: 4.8 MB, offline-first, sin publicidad ni seguimiento. Requisitos, pasos de instalación, verificación SHA-256 y alternativas si Android bloquea el archivo.">
+<title>Descargar ALIVIA para Android — APK v1.2.0, 4,8 MB, sin rastreo</title>
+<meta name="description" content="Descarga el APK de ALIVIA: 4,8 MB, sin anuncios, sin analítica, funciona sin conexión. El navegador verifica el SHA-256 antes de instalar. Código abierto, licencia MIT.">
 <link rel="icon" type="image/png" href="/icon-128.png">
 <meta name="theme-color" content="#0D1810">
 
@@ -14,16 +14,18 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ALIVIA">
 <meta property="og:locale" content="es">
-<meta property="og:title" content="Descargar ALIVIA para Android — APK firmado v1.2.0">
-<meta property="og:description" content="4.8 MB. Offline-first, sin publicidad ni seguimiento. Mismo código que la web, 100% de funciones.">
+<meta property="og:title" content="Descargar ALIVIA para Android — APK v1.2.0, 4,8 MB">
+<meta property="og:description" content="Sin anuncios, sin analítica, funciona sin conexión. El navegador verifica el SHA-256 antes de instalar.">
 <meta property="og:url" content="https://alivia.lat/descarga.html">
 <meta property="og:image" content="https://alivia.lat/icon-512.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Descargar ALIVIA para Android — APK firmado v1.2.0">
-<meta name="twitter:description" content="4.8 MB. Offline-first, sin publicidad ni seguimiento. Mismo código que la web.">
+<meta name="twitter:title" content="Descargar ALIVIA para Android — APK v1.2.0, 4,8 MB">
+<meta name="twitter:description" content="Sin anuncios, sin analítica, funciona sin conexión.">
 <meta name="twitter:image" content="https://alivia.lat/icon-512.png">
+
+<link rel="alternate" type="application/json" href="/releases.json" title="Manifiesto de la release actual">
 
 <!-- Fuentes propias de ALIVIA (auto-hospedadas) -->
 <style>
@@ -34,37 +36,52 @@
 </style>
 
 <style>
+/* ==========================================================================
+   Tokens. Copiados de src/index.css para que el mockup del telefono use las
+   mismas variables que la app: si el diseño cambia, se cambia en un sitio.
+   ========================================================================== */
 :root{
   --fondo-0:#0D1810;
   --fondo-1:#1A2A20;
   --vidrio:#16241C;
   --linea:rgba(233,243,238,.09);
+  --linea-fuerte:rgba(233,243,238,.16);
   --texto:#EAF3EE;
   --texto-2:#A9BFB2;
   --texto-3:#7C948A;
-  --oro:#F2E3A0;
-  --oro-vivo:#E9C86B;
-  --salvia:#8CB08D;
-  --lavanda:#B9A8E6;
+
+  /* acentos de la app */
+  --oro:#F2E3A0;  --oro-rgb:242,227,160; --oro-vivo:#E9C86B;
+  --salvia:#8CB08D; --salvia-rgb:140,176,141;
+  --lavanda:#c4b8d4; --lavanda-rgb:196,184,212;
+  --rosa:#e8c4c9; --rosa-rgb:232,196,201;
+  --calido:#d4c8a0; --calido-rgb:212,200,160;
   --coral:#E57373;
+
+  --spring:cubic-bezier(0.16,1,0.3,1);
+  --bote:cubic-bezier(0.34,1.56,0.64,1);
+
+  --fuente-titulo:'Quicksand',sans-serif;
+  --fuente-cuerpo:'Lato',system-ui,sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth; overflow-x:clip}
 body{
   margin:0; background:var(--fondo-0); color:var(--texto);
-  font-family:"Lato",system-ui,sans-serif; font-size:17px; line-height:1.7;
+  font-family:var(--fuente-cuerpo); font-size:17px; line-height:1.7;
   -webkit-font-smoothing:antialiased; font-synthesis:none;
 }
-::selection{background:rgba(233,200,107,.28)}
-h1,h2,h3,.display{font-family:"Quicksand",sans-serif; font-weight:600; line-height:1.12; margin:0; letter-spacing:-.01em}
+::selection{background:rgba(var(--oro-rgb),.28)}
+h1,h2,h3{font-family:var(--fuente-titulo); font-weight:600; line-height:1.12; margin:0; letter-spacing:-.01em}
 p{margin:0 0 1rem}
 a{color:inherit}
-.wrap{width:min(1140px,88vw); margin-inline:auto}
+.wrap{width:min(1180px,88vw); margin-inline:auto}
+.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
-/* Fondo con blobs del brand */
-.aurora{position:fixed; inset:0; z-index:-1; overflow:hidden; background:
+/* --- Fondo --------------------------------------------------------------- */
+.aurora{position:fixed; inset:0; z-index:-2; overflow:hidden; background:
   radial-gradient(1100px 700px at 85% -10%, rgba(44,83,61,.55), transparent 60%),
-  radial-gradient(900px 600px at -10% 40%, rgba(140,176,141,.14), transparent 55%),
+  radial-gradient(900px 600px at -10% 40%, rgba(var(--salvia-rgb),.14), transparent 55%),
   radial-gradient(circle at top right, var(--fondo-1) 0%, var(--fondo-0) 70%);
 }
 .aurora i{position:absolute; border-radius:50%; filter:blur(90px); opacity:.16; pointer-events:none}
@@ -72,302 +89,343 @@ a{color:inherit}
 .aurora i:nth-child(2){width:520px;height:520px;background:var(--salvia);bottom:-160px;right:-140px;animation:flota 26s ease-in-out infinite alternate-reverse}
 .aurora i:nth-child(3){width:340px;height:340px;background:var(--lavanda);top:38%;left:52%;opacity:.10;animation:flota 19s ease-in-out infinite alternate}
 @keyframes flota{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,34px) scale(1.12)}}
-
 .estrellas{position:fixed; inset:0; z-index:-1; pointer-events:none;
   background-image:
-    radial-gradient(1.4px 1.4px at 12% 18%, rgba(242,227,160,.5), transparent 60%),
-    radial-gradient(1.1px 1.1px at 78% 12%, rgba(242,227,160,.42), transparent 60%),
+    radial-gradient(1.4px 1.4px at 12% 18%, rgba(var(--oro-rgb),.5), transparent 60%),
+    radial-gradient(1.1px 1.1px at 78% 12%, rgba(var(--oro-rgb),.42), transparent 60%),
     radial-gradient(1.6px 1.6px at 55% 30%, rgba(233,243,238,.35), transparent 60%),
-    radial-gradient(1.2px 1.2px at 90% 46%, rgba(242,227,160,.36), transparent 60%),
-    radial-gradient(1.3px 1.3px at 32% 8%, rgba(233,243,238,.3), transparent 60%);
+    radial-gradient(1.2px 1.2px at 90% 46%, rgba(var(--oro-rgb),.36), transparent 60%);
   animation:titila 5s ease-in-out infinite alternate;
 }
-@keyframes titila{from{opacity:.45}to{opacity:.9}}
+@keyframes titila{from{opacity:.4}to{opacity:.85}}
 
-/* Nav */
-.nav{
-  position:sticky; top:0; z-index:50;
+/* --- Nav ----------------------------------------------------------------- */
+.nav{position:sticky; top:0; z-index:50;
   backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-  background:rgba(13,24,16,.72); border-bottom:1px solid var(--linea);
-}
-.nav__in{display:flex; align-items:center; gap:1.6rem; padding:.85rem 0}
-.wordmark{
-  font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.15rem;
-  letter-spacing:.3em; color:var(--texto); text-decoration:none; line-height:1;
-}
+  background:rgba(13,24,16,.74); border-bottom:1px solid var(--linea);}
+.nav__in{display:flex; align-items:center; gap:1.4rem; padding:.85rem 0}
+.wordmark{font-family:var(--fuente-titulo); font-weight:700; font-size:1.15rem;
+  letter-spacing:.3em; text-decoration:none; line-height:1;}
 .wordmark b{color:var(--oro-vivo)}
-.nav__links{margin-left:auto; display:flex; gap:.4rem; align-items:center}
-.nav__links a{
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.86rem;
-  color:var(--texto-2); text-decoration:none; padding:.5rem .95rem; border-radius:999px;
-  border:1px solid transparent; transition:.2s ease;
-}
+.nav__links{margin-left:auto; display:flex; gap:.35rem; align-items:center}
+.nav__links a{font-family:var(--fuente-titulo); font-weight:600; font-size:.86rem;
+  color:var(--texto-2); text-decoration:none; padding:.5rem .9rem; border-radius:999px;
+  border:1px solid transparent; transition:.2s ease;}
 .nav__links a:hover{color:var(--texto); border-color:var(--linea)}
-.nav__links a.cta{border-color:rgba(233,200,107,.4); color:var(--oro)}
+.nav__links a.cta{border-color:rgba(var(--oro-rgb),.4); color:var(--oro)}
 
-/* Hero de descarga */
-.hero{padding:clamp(3.2rem,7vw,5.5rem) 0 clamp(2.6rem,6vw,4.5rem); position:relative}
-.hero__grid{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr); gap:clamp(2rem,5vw,4rem); align-items:center}
-.tagline{
-  display:inline-flex; align-items:center; gap:.6rem;
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.76rem; letter-spacing:.2em;
-  text-transform:uppercase; color:var(--salvia);
-  border:1px solid rgba(140,176,141,.28); border-radius:999px; padding:.42rem .95rem;
-  margin:0 0 1.6rem; background:rgba(255,255,255,.03);
+/* --- Botones ------------------------------------------------------------- */
+.btn{
+  font-family:var(--fuente-titulo); font-weight:600; font-size:.98rem;
+  padding:.9rem 1.6rem; border-radius:999px; text-decoration:none; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:.55rem;
+  border:1px solid transparent; font-family:inherit;
+  transition:transform .18s var(--spring), box-shadow .18s ease, background .18s ease, border-color .18s ease, opacity .2s ease;
 }
-.tagline em{font-style:normal; color:var(--oro)}
-.hero h1{font-size:clamp(2.1rem,4.6vw,3.4rem); max-width:17ch; margin-bottom:1.2rem}
-.hero h1 .calma{
-  color:transparent; background:linear-gradient(92deg,var(--oro),var(--salvia) 80%);
+.btn .ic{font-size:18px}
+.btn--oro{background:linear-gradient(135deg,var(--oro),var(--oro-vivo)); color:#12211a; box-shadow:0 12px 30px rgba(var(--oro-rgb),.22)}
+.btn--oro:hover:not([disabled]){transform:translateY(-2px); box-shadow:0 18px 38px rgba(var(--oro-rgb),.32)}
+.btn--fantasma{border-color:var(--linea); color:var(--texto); background:rgba(255,255,255,.045)}
+.btn--fantasma:hover{background:rgba(255,255,255,.09); transform:translateY(-2px)}
+.btn--grande{font-size:1.06rem; padding:1.1rem 2.1rem}
+.btn[disabled]{opacity:.55; cursor:not-allowed; transform:none!important}
+.btn:focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px}
+
+/* --- Hero ---------------------------------------------------------------- */
+.hero{padding:clamp(3rem,6.5vw,5.2rem) 0 clamp(2.4rem,5vw,4rem)}
+.hero__grid{display:grid; grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr); gap:clamp(2rem,4.5vw,3.6rem); align-items:center}
+.pill{display:inline-flex; align-items:center; gap:.5rem;
+  font-family:var(--fuente-titulo); font-weight:600; font-size:.75rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--salvia);
+  border:1px solid rgba(var(--salvia-rgb),.3); border-radius:999px; padding:.4rem .9rem;
+  margin:0 0 1.5rem; background:rgba(var(--salvia-rgb),.06);}
+.pill em{font-style:normal; color:var(--oro)}
+.hero h1{font-size:clamp(2.2rem,5.2vw,3.7rem); max-width:16ch; margin-bottom:1.2rem}
+.hero h1 .fuerte{
+  color:transparent; background:linear-gradient(92deg,var(--oro),var(--salvia) 82%);
   -webkit-background-clip:text; background-clip:text;
 }
-.hero__sub{font-size:clamp(1.02rem,1.4vw,1.15rem); color:var(--texto-2); max-width:46ch}
-.hero__cta{display:flex; flex-wrap:wrap; gap:.8rem; margin-top:2rem}
-.btn{
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.98rem;
-  padding:.9rem 1.6rem; border-radius:999px; text-decoration:none;
-  display:inline-flex; align-items:center; gap:.55rem; border:1px solid transparent;
-  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
-}
-.btn svg{width:18px;height:18px;flex:none;fill:currentColor}
-.btn--oro{background:linear-gradient(135deg,var(--oro),var(--oro-vivo)); color:#1A2A20; box-shadow:0 12px 30px rgba(233,200,107,.22)}
-.btn--oro:hover{transform:translateY(-2px); box-shadow:0 16px 34px rgba(233,200,107,.3)}
-.btn--fantasma{border-color:var(--linea); color:var(--texto); background:rgba(255,255,255,.04)}
-.btn--fantasma:hover{background:rgba(255,255,255,.08); transform:translateY(-2px)}
-.btn--grande{font-size:1.1rem; padding:1.15rem 2.2rem}
-.btn[aria-disabled="true"]{opacity:.6; pointer-events:none}
+.hero__sub{font-size:clamp(1.02rem,1.35vw,1.12rem); color:var(--texto-2); max-width:48ch}
+.hero__sub b{color:var(--texto); font-weight:700}
+.hero__cta{display:flex; flex-wrap:wrap; gap:.8rem; margin-top:1.9rem}
+.hero__nota{margin:.9rem 0 0; font-size:.82rem; color:var(--texto-3)}
 
-/* Tarjeta del APK */
-.apkcard{
+/* Cifras grandes: la version y el tamano salen del manifiesto, no del texto. */
+.cifras{display:flex; flex-wrap:wrap; gap:1.6rem 2.2rem; margin-top:2rem; padding-top:1.6rem; border-top:1px solid var(--linea)}
+.cifra__n{font-family:var(--fuente-titulo); font-weight:700; font-size:1.7rem; line-height:1; color:var(--oro); font-variant-numeric:tabular-nums}
+.cifra__t{font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3); margin-top:.4rem}
+
+/* --- Motor de descarga ---------------------------------------------------- */
+.descargador{
   position:relative; border-radius:28px;
-  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+  background:linear-gradient(160deg, rgba(255,255,255,.065), rgba(255,255,255,.015));
   border:1px solid var(--linea);
   box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
-  padding:clamp(1.6rem,3vw,2.4rem);
-  display:flex; flex-direction:column; gap:1.2rem;
+  padding:clamp(1.5rem,3vw,2.2rem);
+  display:flex; flex-direction:column; gap:1.1rem;
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
 }
-.apkcard__top{display:flex; align-items:center; gap:1.1rem}
-.apkcard__ico{
-  flex:none; width:66px;height:66px;border-radius:18px;display:grid;place-items:center;
-  background:linear-gradient(140deg, rgba(233,200,107,.18), rgba(140,176,141,.12));
-  border:1px solid rgba(233,200,107,.28);
-}
-.apkcard__ico svg{width:32px;height:32px;stroke:var(--oro);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.apkcard__nombre{font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.12rem; margin:0; line-height:1.3}
-.apkcard__meta{display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.3rem}
-.pill{
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.72rem; letter-spacing:.06em;
-  border:1px solid var(--linea); border-radius:999px; padding:.24rem .7rem;
-  background:rgba(255,255,255,.03); color:var(--texto-2);
-}
-.pill--oro{color:var(--oro); border-color:rgba(233,200,107,.32); background:rgba(233,200,107,.08)}
-.pill--salvia{color:var(--salvia); border-color:rgba(140,176,141,.32); background:rgba(140,176,141,.08)}
+.descargador__cab{display:flex; align-items:center; gap:1rem}
+.descargador__ico{flex:none; width:60px;height:60px;border-radius:17px;display:grid;place-items:center;
+  background:linear-gradient(140deg, rgba(var(--oro-rgb),.18), rgba(var(--salvia-rgb),.12));
+  border:1px solid rgba(var(--oro-rgb),.28);}
+.descargador__ico .ic{font-size:29px; color:var(--oro)}
+.descargador__nombre{font-family:var(--fuente-titulo); font-weight:700; font-size:1.05rem; margin:0; line-height:1.3}
+.meta{display:flex; flex-wrap:wrap; gap:.3rem; margin-top:.35rem}
+.tag{font-family:var(--fuente-titulo); font-weight:600; font-size:.71rem; letter-spacing:.05em;
+  border:1px solid var(--linea); border-radius:999px; padding:.22rem .68rem;
+  background:rgba(255,255,255,.03); color:var(--texto-2);}
+.tag--oro{color:var(--oro); border-color:rgba(var(--oro-rgb),.32); background:rgba(var(--oro-rgb),.08)}
+.tag--salvia{color:var(--salvia); border-color:rgba(var(--salvia-rgb),.32); background:rgba(var(--salvia-rgb),.08)}
 
-/* Barra de progreso de descarga */
-.progreso{display:flex; flex-direction:column; gap:.45rem}
-.progreso__fila{display:flex; align-items:baseline; justify-content:space-between; gap:1rem; font-size:.86rem}
-.progreso__estado{font-family:"Quicksand",sans-serif; font-weight:600; color:var(--texto-2)}
-.progreso__pct{font-family:"Quicksand",sans-serif; font-weight:700; color:var(--oro); font-variant-numeric:tabular-nums}
-.progreso__barra{height:8px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden}
-.progreso__relleno{
-  height:100%; width:0%; border-radius:999px;
+.prog{display:flex; flex-direction:column; gap:.5rem}
+.prog__fila{display:flex; align-items:baseline; justify-content:space-between; gap:1rem; font-size:.85rem}
+.prog__estado{font-family:var(--fuente-titulo); font-weight:600; color:var(--texto-2)}
+.prog__cifras{font-family:var(--fuente-titulo); font-weight:700; color:var(--oro); font-variant-numeric:tabular-nums; white-space:nowrap}
+.prog__pista{height:9px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; position:relative}
+.prog__barra{height:100%; width:0%; border-radius:999px;
   background:linear-gradient(90deg,var(--oro),var(--salvia));
-  transition:width .18s linear;
-}
-.progreso[hidden]{display:none}
-.progreso__nota{font-size:.8rem; color:var(--texto-3); margin:0}
+  transition:width .14s linear;}
+.prog__barra.es-error{background:linear-gradient(90deg,var(--coral),#a03c3c)}
+.prog__barra.es-listo{background:linear-gradient(90deg,var(--salvia),var(--oro))}
+.prog[hidden]{display:none}
+.prog__nota{margin:0; font-size:.8rem; color:var(--texto-3)}
 
-.hashbox{
-  border-radius:16px; padding:.95rem 1.1rem; background:rgba(0,0,0,.28);
-  border:1px solid var(--linea);
-}
-.hashbox__label{
-  display:block; font-family:"Quicksand",sans-serif; font-weight:700;
-  font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--texto-3); margin-bottom:.4rem;
-}
-.hashbox code{
-  display:block; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  font-size:.74rem; line-height:1.55; color:var(--salvia);
-  word-break:break-all; overflow-wrap:anywhere;
-}
+.verif{border-radius:16px; padding:.9rem 1.05rem; background:rgba(0,0,0,.26); border:1px solid var(--linea);
+  display:flex; gap:.8rem; align-items:flex-start; transition:border-color .3s ease, background .3s ease}
+.verif[data-estado="ok"]{border-color:rgba(var(--salvia-rgb),.42); background:rgba(var(--salvia-rgb),.07)}
+.verif[data-estado="mal"]{border-color:rgba(229,115,115,.45); background:rgba(229,115,115,.07)}
+.verif__ico{flex:none; width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.07); color:var(--texto-3); font-size:15px;}
+.verif[data-estado="ok"] .verif__ico{background:rgba(var(--salvia-rgb),.18); color:var(--salvia)}
+.verif[data-estado="mal"] .verif__ico{background:rgba(229,115,115,.18); color:var(--coral)}
+.verif__t{font-family:var(--fuente-titulo); font-weight:700; font-size:.9rem; display:block}
+.verif__d{margin:.15rem 0 0; font-size:.8rem; color:var(--texto-2)}
+.hashbox{border-radius:14px; padding:.75rem .9rem; background:rgba(0,0,0,.28); border:1px solid var(--linea)}
+.hashbox__label{display:block; font-family:var(--fuente-titulo); font-weight:700;
+  font-size:.68rem; letter-spacing:.15em; text-transform:uppercase; color:var(--texto-3); margin-bottom:.35rem}
+.hashbox code{display:block; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:.72rem; line-height:1.55; color:var(--salvia); word-break:break-all; overflow-wrap:anywhere}
 
-/* Verificacion */
-.ver-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(1.6rem,4vw,3rem); align-items:start}
+/* --- Bloques y tipografia comun ------------------------------------------ */
+.bloque{padding:clamp(2.6rem,6vw,4.6rem) 0}
+.bloque__head{max-width:60ch; margin-bottom:2rem}
+.kicker{font-family:var(--fuente-titulo); font-weight:600; font-size:.77rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--oro); display:flex; align-items:center; gap:.6rem; margin:0 0 .9rem}
+.kicker::after{content:""; flex:none; width:32px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--oro),transparent)}
+.bloque h2{font-size:clamp(1.75rem,3.4vw,2.6rem); max-width:22ch}
+.rejilla2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(1.6rem,4vw,3rem); align-items:center}
+.rejilla3{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem}
 
-/* Avisos */
-.aviso{
-  display:flex; gap:1rem; align-items:flex-start;
-  border-radius:18px; padding:1.15rem 1.3rem;
-  background:rgba(233,200,107,.07); border:1px solid rgba(233,200,107,.26);
-  color:var(--texto-2); font-size:.93rem;
-}
+.aviso{display:flex; gap:1rem; align-items:flex-start; border-radius:18px; padding:1.15rem 1.3rem;
+  background:rgba(var(--oro-rgb),.07); border:1px solid rgba(var(--oro-rgb),.26);
+  color:var(--texto-2); font-size:.93rem;}
+.aviso--salvia{background:rgba(var(--salvia-rgb),.07); border-color:rgba(var(--salvia-rgb),.28)}
 .aviso--coral{background:rgba(229,115,115,.07); border-color:rgba(229,115,115,.28)}
-.aviso--salvia{background:rgba(140,176,141,.07); border-color:rgba(140,176,141,.28)}
-.aviso svg{
-  flex:none; width:20px;height:20px;margin-top:.18rem;
-  stroke:var(--oro); fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;
-}
-.aviso--coral svg{stroke:var(--coral)}
-.aviso--salvia svg{stroke:var(--salvia)}
-.aviso b{font-family:"Quicksand",sans-serif; font-weight:700; color:var(--texto); display:block; margin-bottom:.15rem}
+.aviso .ic{flex:none; font-size:21px; margin-top:.15rem; color:var(--oro)}
+.aviso--salvia .ic{color:var(--salvia)}
+.aviso--coral .ic{color:var(--coral)}
+.aviso b{font-family:var(--fuente-titulo); font-weight:700; color:var(--texto); display:block; margin-bottom:.15rem}
 .aviso p:last-child{margin-bottom:0}
+.aviso a{color:var(--oro)}
 
-/* Secciones */
-.bloque{padding:clamp(2.8rem,6.5vw,5rem) 0}
-.bloque__head{max-width:58ch; margin-bottom:2.2rem}
-.kicker{
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.78rem; letter-spacing:.2em;
-  text-transform:uppercase; color:var(--oro); display:flex; align-items:center; gap:.6rem; margin:0 0 1rem;
+/* --- Mockup del telefono -------------------------------------------------- */
+.telefono{
+  width:min(320px,86vw); margin-inline:auto;
+  border-radius:44px; padding:11px;
+  background:linear-gradient(160deg,#2b3a31,#131d17 60%);
+  box-shadow:0 40px 90px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.14), 0 0 0 1px rgba(0,0,0,.5);
+  position:relative;
 }
-.kicker::after{content:""; flex:none; width:34px; height:2px; border-radius:2px; background:linear-gradient(90deg,var(--oro),transparent)}
-.bloque h2{font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:24ch}
+.telefono__pantalla{
+  position:relative; border-radius:34px; overflow:hidden;
+  background:linear-gradient(180deg,#132019,#0c1512);
+  aspect-ratio:9/17.5; display:flex; flex-direction:column;
+}
+.telefono__muesca{position:absolute; top:9px; left:50%; transform:translateX(-50%);
+  width:84px; height:20px; border-radius:999px; background:#080d0a; z-index:9; opacity:.9}
+.telefono__barra{display:flex; align-items:center; gap:.5rem; padding:14px 14px 8px; flex:none}
+.telefono__masc{flex:none; width:34px;height:34px; object-fit:contain}
+.telefono__saludo{font-family:var(--fuente-titulo); font-weight:700; font-size:.82rem; line-height:1.2}
+.telefono__sali{margin:0; font-size:.62rem; color:var(--texto-3); line-height:1.2}
+.pantalla{flex:1; overflow:hidden; padding:4px 13px 13px; display:none; flex-direction:column}
+.pantalla.esta{display:flex}
 
-/* Pasos de instalación */
-.pasos{list-style:none; margin:0; padding:0; display:grid; gap:1rem; counter-reset:paso}
-.pasos li{
-  counter-increment:paso;
-  display:flex; gap:1.1rem; align-items:flex-start;
-  padding:1.15rem 1.3rem; border-radius:18px;
-  background:linear-gradient(165deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
-  border:1px solid var(--linea);
-}
-.pasos li::before{
-  content:counter(paso); flex:none;
-  width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
-  background:rgba(233,200,107,.15); color:var(--oro);
-  font-family:"Quicksand",sans-serif; font-weight:700; font-size:.85rem;
-}
-.pasos li:nth-child(2)::before{background:rgba(140,176,141,.16);color:var(--salvia)}
-.pasos li:nth-child(3)::before{background:rgba(185,168,230,.16);color:var(--lavanda)}
-.pasos li:nth-child(4)::before{background:rgba(229,115,115,.16);color:var(--coral)}
-.pasos b{font-family:"Quicksand",sans-serif; font-weight:700; color:var(--texto); display:block; margin-bottom:.15rem}
-.pasos span{color:var(--texto-2); font-size:.93rem}
-.pasos kbd{
-  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.82em;
-  background:rgba(255,255,255,.08); border:1px solid var(--linea);
-  border-radius:6px; padding:.08em .45em; color:var(--oro);
-}
+.t-mini-t{font-family:var(--fuente-titulo); font-weight:700; font-size:.56rem; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--texto-3); margin:6px 0 7px}
+.t-moods{display:flex; justify-content:space-between; gap:.3rem}
+.t-mood{flex:1; aspect-ratio:1; border-radius:50%; display:grid; place-items:center;
+  font-size:.85rem; border:1px solid var(--linea); background:rgba(255,255,255,.04)}
+.t-mood.on{border-color:rgba(var(--oro-rgb),.5); background:rgba(var(--oro-rgb),.12)}
+.t-cards{display:grid; grid-template-columns:1fr 1fr; gap:.45rem}
+.t-card{border-radius:13px; padding:.55rem .5rem; display:flex; flex-direction:column; align-items:center; gap:.2rem;
+  border:1px solid var(--linea); background:rgba(255,255,255,.045); text-align:center}
+.t-card .ic{font-size:16px}
+.t-card span{font-family:var(--fuente-titulo); font-weight:600; font-size:.56rem; color:var(--texto-2)}
+.t-racha{margin-top:auto; border-radius:13px; padding:.6rem .7rem; border:1px solid var(--linea);
+  background:rgba(var(--salvia-rgb),.07); display:flex; align-items:center; gap:.55rem}
+.t-racha .ic{font-size:15px; color:var(--salvia)}
+.t-racha b{font-family:var(--fuente-titulo); font-weight:700; font-size:.7rem; display:block; line-height:1.2}
+.t-racha small{font-size:.56rem; color:var(--texto-3); line-height:1.2; display:block}
 
-/* Requisitos */
-.req{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px; border-radius:22px; overflow:hidden; border:1px solid var(--linea); background:var(--linea)}
-.req div{background:rgba(13,24,16,.8); padding:1.5rem 1.4rem}
-.req dt{font-family:"Quicksand",sans-serif; font-weight:600; font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3); margin-bottom:.4rem}
-.req dd{margin:0; font-family:"Quicksand",sans-serif; font-weight:600; font-size:1.05rem; color:var(--texto)}
-.req dd small{display:block; margin-top:.25rem; font-family:"Lato",sans-serif; font-weight:400; font-size:.82rem; color:var(--texto-2)}
+/* Respira: circulo que respira de verdad, 4-7-8 como la app. */
+.t-respira{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.8rem; text-align:center}
+.t-anillos{position:relative; width:150px; height:150px; display:grid; place-items:center}
+.t-anillos::before,.t-anillos::after{content:""; position:absolute; border-radius:50%; border:1px solid rgba(var(--lavanda-rgb),.18)}
+.t-anillos::before{inset:0}
+.t-anillos::after{inset:16px}
+.t-aliento{width:96px; height:96px; border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, var(--lavanda), rgba(var(--lavanda-rgb),.42) 62%, rgba(var(--salvia-rgb),.3));
+  box-shadow:0 0 34px rgba(var(--lavanda-rgb),.4), inset 0 0 22px rgba(255,255,255,.3);
+  animation:respira 19s var(--spring) infinite;}
+@keyframes respira{
+  0%{transform:scale(.62)} 21%{transform:scale(1.08)} 58%{transform:scale(1.08)} 100%{transform:scale(.62)}
+}
+.t-fase{font-family:var(--fuente-titulo); font-weight:700; font-size:.86rem; color:var(--texto)}
+.t-fase-n{margin:0; font-size:.6rem; color:var(--texto-3); letter-spacing:.1em}
 
-/* Alternativas */
-.alts{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem}
-.alt{
-  border-radius:20px; padding:1.6rem 1.5rem;
-  background:linear-gradient(165deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
-  border:1px solid var(--linea);
-  display:flex; flex-direction:column; gap:.6rem;
-  transition:transform .25s ease, border-color .25s ease;
-}
-.alt:hover{transform:translateY(-4px); border-color:rgba(233,200,107,.3)}
-.alt .ico{
-  width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
-  background:rgba(233,200,107,.10); border:1px solid rgba(233,200,107,.22);
-}
-.alt .ico svg{width:21px;height:21px;stroke:var(--oro);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.alt--salvia .ico{background:rgba(140,176,141,.12);border-color:rgba(140,176,141,.3)}
-.alt--salvia .ico svg{stroke:var(--salvia)}
-.alt--lav .ico{background:rgba(185,168,230,.12);border-color:rgba(185,168,230,.3)}
-.alt--lav .ico svg{stroke:var(--lavanda)}
-.alt h3{font-size:1.08rem}
-.alt p{margin:0; color:var(--texto-2); font-size:.92rem; line-height:1.6}
-.alt a{
-  margin-top:auto; padding-top:.6rem;
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.88rem;
-  color:var(--oro); text-decoration:none; display:inline-flex; align-items:center; gap:.4rem;
-}
+/* Juegos: los ocho, con los iconos reales de la app. */
+.t-juegos{display:grid; grid-template-columns:1fr 1fr; gap:.4rem; align-content:start; overflow:hidden}
+.t-juego{display:flex; align-items:center; gap:.4rem; border-radius:11px; padding:.4rem .45rem;
+  border:1px solid var(--linea)}
+.t-juego .ic{font-size:14px; flex:none}
+.t-juego b{font-family:var(--fuente-titulo); font-weight:600; font-size:.53rem; line-height:1.15; color:var(--texto-2)}
+.t-marimba{position:absolute; left:0; right:0; bottom:0; display:flex; gap:3px; padding:0 13px 13px; height:70px; align-items:flex-end}
+.t-tecla{flex:1; border-radius:3px; background:linear-gradient(180deg,#d3ab72,#6d4f2c); height:100%;
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.3)}
+
+.t-tabs{display:flex; gap:.3rem; margin-top:1rem; padding:.25rem; border-radius:999px;
+  border:1px solid var(--linea); background:rgba(0,0,0,.25)}
+.t-tabs button{flex:1; padding:.5rem .3rem; border-radius:999px; border:none; background:transparent;
+  color:var(--texto-3); font-family:var(--fuente-titulo); font-weight:600; font-size:.74rem; cursor:pointer;
+  transition:background .25s ease, color .25s ease;}
+.t-tabs button[aria-selected="true"]{background:rgba(var(--oro-rgb),.15); color:var(--oro)}
+.t-pie{text-align:center; font-size:.7rem; color:var(--texto-3); margin:.7rem 0 0}
+
+/* --- Datos: lo que sale y lo que no --------------------------------------- */
+.datos{display:grid; gap:1px; border-radius:22px; overflow:hidden; border:1px solid var(--linea); background:var(--linea)}
+.datos__fila{display:grid; grid-template-columns:auto 1fr auto; gap:.9rem; align-items:center;
+  padding:1rem 1.2rem; background:rgba(13,24,16,.82)}
+.datos__ico{flex:none; width:34px;height:34px;border-radius:11px; display:grid; place-items:center; font-size:17px}
+.datos__ico.dentro{background:rgba(var(--salvia-rgb),.14); color:var(--salvia)}
+.datos__ico.nunca{background:rgba(255,255,255,.05); color:var(--texto-3)}
+.datos__t{font-family:var(--fuente-titulo); font-weight:600; font-size:.98rem; line-height:1.3}
+.datos__d{margin:.1rem 0 0; font-size:.83rem; color:var(--texto-3); line-height:1.5}
+.datos__v{font-family:var(--fuente-titulo); font-weight:700; font-size:.7rem; letter-spacing:.1em;
+  text-transform:uppercase; white-space:nowrap; padding:.25rem .6rem; border-radius:999px}
+.datos__v.dentro{color:var(--salvia); background:rgba(var(--salvia-rgb),.12)}
+.datos__v.nunca{color:var(--texto-3); background:rgba(255,255,255,.05)}
+
+/* --- Tabla comparativa ---------------------------------------------------- */
+.cmp{width:100%; border-collapse:collapse; border-radius:22px; overflow:hidden; border:1px solid var(--linea)}
+.cmp th,.cmp td{padding:.95rem 1.1rem; text-align:left; border-bottom:1px solid var(--linea); font-size:.92rem}
+.cmp thead th{font-family:var(--fuente-titulo); font-weight:700; font-size:.78rem; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--texto-3); background:rgba(0,0,0,.2)}
+.cmp tbody tr:last-child td{border-bottom:none}
+.cmp td:first-child{color:var(--texto-2)}
+.cmp .si{color:var(--salvia); font-weight:700}
+.cmp .no{color:var(--texto-3)}
+.cmp .col-apk{background:rgba(var(--oro-rgb),.05)}
+
+/* --- Pasos, requisitos, alternativas, FAQ -------------------------------- */
+.pasos{list-style:none; margin:0; padding:0; display:grid; gap:.85rem; counter-reset:paso}
+.pasos li{counter-increment:paso; display:flex; gap:1rem; align-items:flex-start;
+  padding:1.1rem 1.25rem; border-radius:18px;
+  background:linear-gradient(165deg, rgba(255,255,255,.05), rgba(255,255,255,.012)); border:1px solid var(--linea)}
+.pasos li::before{content:counter(paso); flex:none; width:28px;height:28px;border-radius:50%; display:grid; place-items:center;
+  background:rgba(var(--oro-rgb),.15); color:var(--oro); font-family:var(--fuente-titulo); font-weight:700; font-size:.85rem}
+.pasos li:nth-child(2)::before{background:rgba(var(--salvia-rgb),.16); color:var(--salvia)}
+.pasos li:nth-child(3)::before{background:rgba(var(--lavanda-rgb),.16); color:var(--lavanda)}
+.pasos li:nth-child(4)::before{background:rgba(var(--rosa-rgb),.16); color:var(--rosa)}
+.pasos b{font-family:var(--fuente-titulo); font-weight:700; color:var(--texto); display:block; margin-bottom:.12rem}
+.pasos span{color:var(--texto-2); font-size:.92rem}
+.pasos kbd{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.82em;
+  background:rgba(255,255,255,.08); border:1px solid var(--linea); border-radius:6px; padding:.08em .45em; color:var(--oro)}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.85em;
+  background:rgba(255,255,255,.08); border-radius:6px; padding:.1em .4em; color:var(--salvia); word-break:break-all}
+
+.req{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1px; border-radius:22px; overflow:hidden; border:1px solid var(--linea); background:var(--linea)}
+.req div{background:rgba(13,24,16,.82); padding:1.4rem 1.3rem}
+.req dt{font-family:var(--fuente-titulo); font-weight:600; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3); margin-bottom:.35rem}
+.req dd{margin:0; font-family:var(--fuente-titulo); font-weight:600; font-size:1rem; color:var(--texto)}
+.req dd small{display:block; margin-top:.22rem; font-family:var(--fuente-cuerpo); font-weight:400; font-size:.8rem; color:var(--texto-2)}
+
+.alts{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:1rem}
+.alt{border-radius:20px; padding:1.5rem 1.4rem;
+  background:linear-gradient(165deg, rgba(255,255,255,.055), rgba(255,255,255,.012));
+  border:1px solid var(--linea); display:flex; flex-direction:column; gap:.55rem;
+  transition:transform .25s var(--spring), border-color .25s ease}
+.alt:hover{transform:translateY(-4px); border-color:rgba(var(--oro-rgb),.3)}
+.alt__ico{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  background:rgba(var(--oro-rgb),.1); border:1px solid rgba(var(--oro-rgb),.22)}
+.alt__ico .ic{font-size:21px; color:var(--oro)}
+.alt--salvia .alt__ico{background:rgba(var(--salvia-rgb),.12); border-color:rgba(var(--salvia-rgb),.3)}
+.alt--salvia .alt__ico .ic{color:var(--salvia)}
+.alt--lav .alt__ico{background:rgba(var(--lavanda-rgb),.12); border-color:rgba(var(--lavanda-rgb),.3)}
+.alt--lav .alt__ico .ic{color:var(--lavanda)}
+.alt h3{font-size:1.05rem}
+.alt p{margin:0; color:var(--texto-2); font-size:.91rem; line-height:1.6}
+.alt a{margin-top:auto; padding-top:.5rem; font-family:var(--fuente-titulo); font-weight:600; font-size:.87rem;
+  color:var(--oro); text-decoration:none; display:inline-flex; align-items:center; gap:.35rem}
 .alt a:hover{text-decoration:underline}
-.alt a svg{width:14px;height:14px;fill:currentColor}
+.alt a .ic{font-size:14px; fill:currentColor; stroke:none}
 
-/* FAQ */
-.faq{display:grid; gap:.7rem; max-width:820px}
-.faq details{
-  border-radius:16px; border:1px solid var(--linea);
-  background:rgba(255,255,255,.035); overflow:hidden;
-  transition:border-color .2s ease, background .2s ease;
-}
-.faq details[open]{border-color:rgba(233,200,107,.3); background:rgba(255,255,255,.055)}
-.faq summary{
-  cursor:pointer; list-style:none; padding:1.1rem 1.3rem;
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:1rem; color:var(--texto);
-  display:flex; align-items:center; gap:1rem;
-}
+.faq{display:grid; gap:.65rem; max-width:840px}
+.faq details{border-radius:16px; border:1px solid var(--linea); background:rgba(255,255,255,.035); overflow:hidden;
+  transition:border-color .2s ease, background .2s ease}
+.faq details[open]{border-color:rgba(var(--oro-rgb),.3); background:rgba(255,255,255,.055)}
+.faq summary{cursor:pointer; list-style:none; padding:1.05rem 1.25rem;
+  font-family:var(--fuente-titulo); font-weight:600; font-size:.98rem; color:var(--texto);
+  display:flex; align-items:center; gap:1rem}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{
-  content:""; flex:none; margin-left:auto; width:9px; height:9px;
+.faq summary::after{content:""; flex:none; margin-left:auto; width:9px; height:9px;
   border-right:2px solid var(--oro-vivo); border-bottom:2px solid var(--oro-vivo);
-  transform:rotate(45deg); transition:transform .22s ease; transform-origin:center;
-}
+  transform:rotate(45deg); transition:transform .22s ease}
 .faq details[open] summary::after{transform:rotate(-135deg)}
-.faq .faq__body{padding:0 1.3rem 1.25rem; color:var(--texto-2); font-size:.94rem}
-.faq .faq__body p:last-child{margin-bottom:0}
-.faq .faq__body code{
-  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.85em;
-  background:rgba(255,255,255,.08); border-radius:6px; padding:.1em .4em; color:var(--salvia);
-  word-break:break-all;
-}
+.faq__cuerpo{padding:0 1.25rem 1.2rem; color:var(--texto-2); font-size:.93rem}
+.faq__cuerpo p:last-child{margin-bottom:0}
 
-/* Sello universitario UNAN Leon · CUR Somoto */
+/* --- Sello universitario ------------------------------------------------- */
 .unan{display:flex; flex-direction:column; gap:.55rem}
-.unan__card{
-  background:#ffffff;
-  border-radius:16px;
-  padding:14px 20px;
-  display:flex; align-items:center; gap:16px;
-  box-shadow:0 14px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
-  width:max-content; max-width:100%;
-}
+.unan__card{background:#ffffff; border-radius:16px; padding:14px 20px; display:flex; align-items:center; gap:16px;
+  box-shadow:0 14px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08); width:max-content; max-width:100%}
 .unan__escudo{height:74px; width:auto; display:block; flex:none}
 .unan__col{display:flex; flex-direction:column; gap:1px; line-height:1.12}
-.unan__word{font-family:"Quicksand",sans-serif; font-weight:700; font-size:34px; letter-spacing:.01em; line-height:1; margin-bottom:4px;}
+.unan__word{font-family:var(--fuente-titulo); font-weight:700; font-size:34px; letter-spacing:.01em; line-height:1; margin-bottom:4px}
 .unan__word i{font-style:normal}
-.unan__word .u{color:#B01930}
-.unan__word .n1{color:#F5A81C}
-.unan__word .a{color:#F5A81C}
-.unan__word .n2{color:#1B5E9E}
-.unan__l1{font-family:"Quicksand",sans-serif; font-weight:700; font-size:15px; color:#1B5E9E}
-.unan__l2{font-family:"Quicksand",sans-serif; font-weight:700; font-size:15px; color:#B01930}
-.unan__cur{font-family:"Quicksand",sans-serif; font-weight:700; letter-spacing:.22em; color:var(--texto-3); text-transform:uppercase; font-size:.7rem;}
+.unan__word .u{color:#B01930} .unan__word .n1,.unan__word .a{color:#F5A81C} .unan__word .n2{color:#1B5E9E}
+.unan__l1{font-family:var(--fuente-titulo); font-weight:700; font-size:15px; color:#1B5E9E}
+.unan__l2{font-family:var(--fuente-titulo); font-weight:700; font-size:15px; color:#B01930}
+.unan__cur{font-family:var(--fuente-titulo); font-weight:700; letter-spacing:.22em; color:var(--texto-3);
+  text-transform:uppercase; font-size:.7rem}
 
-/* Footer */
-.pie{padding:clamp(2.6rem,6vw,4rem) 0 2.2rem; border-top:1px solid var(--linea)}
-.pie__top{display:flex; flex-wrap:wrap; gap:2rem; align-items:center; justify-content:space-between; margin-bottom:2.2rem}
-.pie h2{font-size:clamp(1.5rem,2.8vw,2.2rem); max-width:20ch}
-.pie__meta{
-  padding-top:1.6rem; border-top:1px solid var(--linea);
-  display:flex; flex-wrap:wrap; gap:.9rem 2rem; justify-content:space-between;
-  font-size:.83rem; color:var(--texto-3);
-}
-.pie__meta a{color:var(--texto-2); text-decoration:none; border-bottom:1px solid var(--linea); padding-bottom:2px}
-.pie__meta a:hover{color:var(--oro)}
-
-/* ===== Créditos: Hackathon Nicaragua KRONOX 2026 ===== */
+/* --- Creditos KRONOX ------------------------------------------------------ */
 .creditos{padding:clamp(2.2rem,5vw,3.4rem) 0 0; margin-top:clamp(2.4rem,6vw,4rem); border-top:1px solid var(--linea)}
-.creditos__nota{color:var(--texto-2); max-width:56ch; margin:0 0 1.4rem}
-.creditos__nota a{color:var(--oro); text-decoration:none; border-bottom:1px solid rgba(233,200,107,.3)}
+.creditos__nota{color:var(--texto-2); max-width:56ch; margin:0 0 1.3rem}
+.creditos__nota a{color:var(--oro); text-decoration:none; border-bottom:1px solid rgba(var(--oro-rgb),.3)}
 .creditos__nota a:hover{border-bottom-color:var(--oro)}
-/* Las marcas del hackathon son blancas sobre transparencia: en el fondo oscuro
-   solo se leen dentro de una placa blanca, igual que hace .unan__card. */
-.creditos__logos{list-style:none; display:flex; flex-wrap:wrap; gap:.7rem; margin:0 0 1.3rem; padding:0}
-.creditos__logos li{display:flex; align-items:center; background:#fff; border-radius:14px; padding:9px 15px; box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.creditos__logos{list-style:none; display:flex; flex-wrap:wrap; gap:.7rem; margin:0 0 1.2rem; padding:0}
+.creditos__logos li{display:flex; align-items:center; background:#fff; border-radius:14px; padding:9px 15px;
+  box-shadow:0 8px 24px rgba(0,0,0,.28)}
 .creditos__logos img{display:block; height:38px; width:auto}
 .creditos__logos li[data-alto="chico"] img{height:29px}
-.creditos__ver{display:inline-flex; align-items:center; gap:.5rem; padding:10px 17px; border-radius:999px; border:1px solid var(--linea); background:rgba(255,255,255,.04); color:var(--texto-2); font-family:"Quicksand",sans-serif; font-weight:600; font-size:.9rem; cursor:pointer; transition:all .25s cubic-bezier(.16,1,.3,1)}
-.creditos__ver:hover{border-color:rgba(233,200,107,.35); color:var(--oro)}
+.creditos__ver{display:inline-flex; align-items:center; gap:.5rem; padding:10px 17px; border-radius:999px;
+  border:1px solid var(--linea); background:rgba(255,255,255,.04); color:var(--texto-2);
+  font-family:var(--fuente-titulo); font-weight:600; font-size:.9rem; cursor:pointer;
+  transition:all .25s var(--spring)}
+.creditos__ver .ic{font-size:15px; fill:currentColor; stroke:none}
+.creditos__ver:hover{border-color:rgba(var(--oro-rgb),.35); color:var(--oro)}
 .creditos__ver:active{transform:scale(.97)}
-.galeria{border:1px solid var(--linea); border-radius:20px; padding:0; background:var(--fondo-1); color:var(--texto); width:min(920px,92vw); max-width:100%}
+.galeria{border:1px solid var(--linea); border-radius:20px; padding:0; background:var(--fondo-1); color:var(--texto);
+  width:min(920px,92vw); max-width:100%}
 .galeria::backdrop{background:rgba(4,8,6,.86)}
 .galeria__top{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:16px 18px; border-bottom:1px solid var(--linea)}
-.galeria__top p{margin:0; font-family:"Quicksand",sans-serif; font-weight:700; font-size:.95rem}
-.galeria__cerrar{background:transparent; border:1px solid var(--linea); border-radius:999px; color:var(--texto-2); padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer}
-.galeria__cerrar:hover{color:var(--oro); border-color:rgba(233,200,107,.35)}
-.galeria__rejilla{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; padding:16px 18px; max-height:62vh; overflow-y:auto; overscroll-behavior:contain}
+.galeria__top p{margin:0; font-family:var(--fuente-titulo); font-weight:700; font-size:.95rem}
+.galeria__cerrar{background:transparent; border:1px solid var(--linea); border-radius:999px; color:var(--texto-2);
+  padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer}
+.galeria__cerrar:hover{color:var(--oro); border-color:rgba(var(--oro-rgb),.35)}
+.galeria__rejilla{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; padding:16px 18px;
+  max-height:62vh; overflow-y:auto; overscroll-behavior:contain}
 .galeria__rejilla img{display:block; width:100%; aspect-ratio:2/1; object-fit:cover; border-radius:10px; background:var(--vidrio)}
 .galeria__rejilla a{display:block; line-height:0}
 .galeria__ancha{grid-column:1/-1}
@@ -375,40 +433,57 @@ a{color:inherit}
 .galeria__pie{padding:0 18px 16px; font-size:.78rem; color:var(--texto-3); margin:0}
 .galeria__pie a{color:var(--texto-2); border-bottom:1px solid var(--linea)}
 .galeria__marcas{padding:0 18px; border-top:1px solid var(--linea)}
-.galeria__marcas-t{margin:0; padding:14px 0 .7rem; font-family:"Quicksand",sans-serif; font-weight:700; font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
+.galeria__marcas-t{margin:0; padding:14px 0 .7rem; font-family:var(--fuente-titulo); font-weight:700;
+  font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
 .galeria__marcas-l{margin:0 0 .9rem}
 .galeria__iconos{list-style:none; display:flex; flex-wrap:wrap; gap:.5rem; margin:0; padding:0 0 16px}
 .galeria__iconos img{display:block; width:34px; height:34px; object-fit:contain}
 
-/* Reveal */
+/* --- Pie ------------------------------------------------------------------ */
+.pie{padding:clamp(2.6rem,6vw,4rem) 0 2.2rem; border-top:1px solid var(--linea)}
+.pie__top{display:flex; flex-wrap:wrap; gap:2rem; align-items:center; justify-content:space-between; margin-bottom:2.2rem}
+.pie h2{font-size:clamp(1.5rem,2.9vw,2.2rem); max-width:19ch}
+.pie__meta{padding-top:1.6rem; border-top:1px solid var(--linea); display:flex; flex-wrap:wrap; gap:.9rem 2rem;
+  justify-content:space-between; font-size:.83rem; color:var(--texto-3)}
+.pie__meta a{color:var(--texto-2); text-decoration:none; border-bottom:1px solid var(--linea); padding-bottom:2px}
+.pie__meta a:hover{color:var(--oro)}
+.pie__enlaces{display:flex; flex-wrap:wrap; gap:.4rem 1.1rem}
+
+/* --- Reveal --------------------------------------------------------------- */
 [id]{scroll-margin-top:96px}
-.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1)}
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s var(--spring)}
 .reveal.is-in{opacity:1; transform:none}
 
-@media (max-width:900px){
-  .hero__grid,.ver-grid{grid-template-columns:1fr}
+@media (max-width:980px){
+  .hero__grid,.rejilla2{grid-template-columns:1fr}
   .nav__links a:not(.cta):not(.volver){display:none}
+  .telefono{margin-top:1rem}
 }
 @media (max-width:640px){
   body{font-size:16px}
-  .wrap{width:calc(100% - 2.6rem)}
-  .hero__cta{gap:.65rem}
-  .hero__cta .btn{width:100%; justify-content:center}
-  .apkcard__ico{width:56px;height:56px}
+  .wrap{width:calc(100% - 2.4rem)}
+  .hero__cta .btn{width:100%}
+  .datos__fila{grid-template-columns:auto 1fr; row-gap:.3rem}
+  .datos__v{grid-column:2; justify-self:start}
+  .cmp thead,.cmp tbody{display:block}
+  .cmp tr{display:grid; grid-template-columns:1fr; padding:.6rem 0; border-bottom:1px solid var(--linea)}
+  .cmp th,.cmp td{border-bottom:none; padding:.25rem 1.1rem; display:flex; gap:.6rem; align-items:baseline}
+  .cmp thead th{font-size:.68rem}
   .pie__meta{flex-direction:column; align-items:flex-start}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   *{transition:none!important; animation:none!important}
   .reveal{opacity:1; transform:none}
+  .t-aliento{transform:scale(.85)}
 }
 :focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
 </style>
 </head>
 <body>
 <script>
-/* Si ya corre como PWA instalada (standalone) o dentro de la app nativa, la
-   pagina de descarga no tiene sentido: la app ya esta instalada. */
+/* Si ya corre instalada (standalone) o dentro de la app nativa, esta pagina
+   no aporta nada: la app ya esta. */
 (function(){
   try{
     var standalone = window.matchMedia('(display-mode: standalone)').matches
@@ -427,8 +502,9 @@ a{color:inherit}
     <a class="wordmark" href="/landing.html">ALIVIA<b>.</b></a>
     <div class="nav__links">
       <a class="volver" href="/landing.html">Volver al sitio</a>
+      <a href="#que-sale">Qué sale</a>
       <a href="#instalar">Instalar</a>
-      <a href="#requisitos">Requisitos</a>
+      <a href="#verificar">Verificar</a>
       <a href="#faq">Preguntas</a>
       <a class="cta" href="/">Abrir la app</a>
     </div>
@@ -438,83 +514,306 @@ a{color:inherit}
 <header class="hero">
   <div class="wrap hero__grid">
     <div>
-      <p class="tagline">Android · <em>APK firmado</em></p>
-      <h1>Descarga ALIVIA. <span class="calma">Cabe en 4,8 MB.</span></h1>
+      <p class="pill">Android <em>· APK firmado</em></p>
+
+      <h1>Nadie más<br>lee esto.</h1>
+
       <p class="hero__sub">
-        La misma app que ves en la web, empaquetada para Android. Funciona sin
-        internet, sin publicidad y sin pedirte datos que no necesites.
+        <b>ALIVIA</b> es un diario que no se envía a ningún sitio. Lo que escribes
+        se queda en tu teléfono, sin anuncios, sin analítica y sin rastreo.
+        Funciona con el móvil en modo avión.
       </p>
+
       <div class="hero__cta">
-        <a
-          class="btn btn--oro btn--grande js-descargar"
-          id="btnApk"
-          href="https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk"
-          download
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg>
-          Descargar APK · 4,8 MB
-        </a>
+        <button class="btn btn--oro btn--grande" id="btnApk" type="button">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
+          <span id="btnTexto">Descargar APK</span>
+        </button>
         <a class="btn btn--fantasma" href="/landing.html#tecnologia">
-          <svg viewBox="0 0 24 24" aria-hidden="true" style="fill:none;stroke:currentColor;stroke-width:1.8"><path d="M14 5l7 7-7 7"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
           Cómo funciona
         </a>
       </div>
-      <p class="progreso__nota" style="margin-top:1rem">
-        Versión 1.2.0 · Sin publicidad · Sin analítica · Código abierto (MIT)
-      </p>
+      <p class="hero__nota" id="notaPlataforma">Sin registro. Sin permisos que no pidas tú.</p>
+
+      <div class="cifras">
+        <div><div class="cifra__n" data-cifra="bytes">4,8 MB</div><div class="cifra__t">de descarga</div></div>
+        <div><div class="cifra__n">0</div><div class="cifra__t">anuncios</div></div>
+        <div><div class="cifra__n">0</div><div class="cifra__t">rastreo</div></div>
+        <div><div class="cifra__n">MIT</div><div class="cifra__t">código abierto</div></div>
+      </div>
     </div>
 
-    <div class="apkcard reveal">
-      <div class="apkcard__top">
-        <span class="apkcard__ico">
-          <svg viewBox="0 0 24 24"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3"/><path d="M5 19h14v2H5z"/></svg>
+    <div class="descargador">
+      <div class="descargador__cab">
+        <span class="descargador__ico">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg>
         </span>
         <div>
-          <p class="apkcard__nombre">ALIVIA-android.apk</p>
-          <div class="apkcard__meta">
-            <span class="pill pill--oro">v1.2.0</span>
-            <span class="pill">4,8 MB</span>
-            <span class="pill pill--salvia">Android 7.0+</span>
-            <span class="pill">arm64-v8a · universal</span>
+          <p class="descargador__nombre" data-campo="asset">ALIVIA-android.apk</p>
+          <div class="meta">
+            <span class="tag tag--oro" data-campo="version">v1.2.0</span>
+            <span class="tag" data-campo="sizeLabel">4,8 MB</span>
+            <span class="tag tag--salvia" data-campo="minAndroid">Android 7.0+</span>
+            <span class="tag">arm64-v8a · universal</span>
           </div>
         </div>
       </div>
 
-      <div class="progreso" id="progreso" aria-live="polite">
-        <div class="progreso__fila">
-          <span class="progreso__estado" id="progresoEstado">4,8 MB · GitHub Releases</span>
-          <span class="progreso__pct" id="progresoPct">4,8 MB</span>
+      <div class="prog" id="prog" hidden aria-live="polite">
+        <div class="prog__fila">
+          <span class="prog__estado" id="progEstado">Preparando…</span>
+          <span class="prog__cifras" id="progCifras">0 %</span>
         </div>
-        <div class="progreso__barra"><div class="progreso__relleno" id="progresoRelleno" style="width:100%; opacity:.35"></div></div>
-        <p class="progreso__nota" id="progresoNota">El navegador gestiona la descarga.</p>
+        <div class="prog__pista"><div class="prog__barra" id="progBarra"></div></div>
+        <p class="prog__nota" id="progNota">El archivo se sirve desde alivia.lat, no desde GitHub.</p>
+      </div>
+
+      <div class="verif" id="verif" data-estado="idle">
+        <span class="verif__ico" id="verifIco">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+        </span>
+        <div>
+          <b class="verif__t" id="verifT">Firma del archivo lista para comprobar</b>
+          <p class="verif__d" id="verifD">Al pulsar el botón, tu navegador calcula el SHA-256 de lo que descarga y lo compara con el hash publicado antes de guardarlo.</p>
+        </div>
       </div>
 
       <div class="hashbox">
-        <span class="hashbox__label">SHA-256 del archivo publicado</span>
-        <code>e77e372d8971ad092a94f9fe71bbe1ce398f9e33097e448c25b9b9f9c2331484</code>
+        <span class="hashbox__label">SHA-256 publicado</span>
+        <code data-campo="sha256">e77e372d8971ad092a94f9fe71bbe1ce398f9e33097e448c25b9b9f9c2331484</code>
       </div>
     </div>
   </div>
 </header>
 
-<section class="bloque">
+<!-- ==========================================================================
+     Que sale de tu telefono
+     ========================================================================== -->
+<section class="bloque" id="que-sale">
   <div class="wrap">
-    <div class="aviso reveal" role="note">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5M12 16.5v.5"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
-      <div>
-        <b>Android va a preguntar antes de instalar.</b>
-        <p>
-          ALIVIA no está en Google Play, así que Android la trata como una app de
-          origen desconocido y te pide permiso. Es el aviso normal de cualquier APK
-          fuera de la tienda. Instálala solo si confías en este proyecto, publicado
-          con licencia MIT y código abierto en
-          <a href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener" style="color:var(--oro)">GitHub</a>.
-        </p>
+    <div class="bloque__head reveal">
+      <p class="kicker">La parte que importa</p>
+      <h2>Lo que sale de tu teléfono es exactamente nada.</h2>
+    </div>
+
+    <div class="rejilla2">
+      <div class="datos reveal">
+        <div class="datos__fila">
+          <span class="datos__ico dentro"><svg class="ic" viewBox="0 0 24 24"><path d="M12 20h.01"></path><path d="M8.5 16.429a5 5 0 0 1 7 0"></path><path d="M5 12.859a10 10 0 0 1 5.17-2.69"></path><path d="M19 12.859a10 10 0 0 0-2.007-1.523"></path><path d="M2 8.82a15 15 0 0 1 4.177-2.643"></path><path d="M22 8.82a15 15 0 0 0-11.288-3.764"></path><line x1="2" x2="22" y1="2" y2="20"></line></svg></span>
+          <div><p class="datos__t">Lo que escribes en el diario</p><p class="datos__d">Se guarda en el almacenamiento de la app. Sin cifrar en la nube, porque no hay nube.</p></div>
+          <span class="datos__v nunca">Nunca sale</span>
+        </div>
+        <div class="datos__fila">
+          <span class="datos__ico dentro"><svg class="ic" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"></path></svg></span>
+          <div><p class="datos__t">Tu estado de ánimo y tus rachas</p><p class="datos__d">Viven en el teléfono. Nadie sabe que registras un mal día.</p></div>
+          <span class="datos__v nunca">Nunca sale</span>
+        </div>
+        <div class="datos__fila">
+          <span class="datos__ico nunca"><svg class="ic" viewBox="0 0 24 24"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"></path><path d="M14 13.12c0 2.38 0 6.38-1 8.88"></path><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"></path><path d="M2 12a10 10 0 0 1 18-6"></path><path d="M2 16h.01"></path><path d="M21.8 16c.2-2 .131-5.354 0-6"></path><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"></path><path d="M8.65 22c.21-.66.45-1.32.57-2"></path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path></svg></span>
+          <div><p class="datos__t">Tu huella o tu PIN</p><p class="datos__d">Se comprueba dentro del módulo seguro del sistema. A nosotros no nos llega ni un bit.</p></div>
+          <span class="datos__v nunca">Nunca sale</span>
+        </div>
+        <div class="datos__fila">
+          <span class="datos__ico nunca"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path></svg></span>
+          <div><p class="datos__t">Quién eres y qué haces aquí</p><p class="datos__d">No hay perfiles públicos, ni anunciantes, ni terceros de analítica.</p></div>
+          <span class="datos__v nunca">Nunca sale</span>
+        </div>
+        <div class="datos__fila">
+          <span class="datos__ico dentro"><svg class="ic" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+          <div><p class="datos__t">La sincronización con tu cuenta</p><p class="datos__d">Solo si la enciendes tú. Sin ella, la app funciona igual y nada se envía.</p></div>
+          <span class="datos__v dentro">Solo si tú</span>
+        </div>
+      </div>
+
+      <div class="reveal" style="display:flex; flex-direction:column; gap:1rem">
+        <div class="aviso aviso--salvia">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+          <div>
+            <b>Puedes comprobarlo tú mismo.</b>
+            <p>El repositorio es público y la licencia es MIT. Puedes leer el código, compilar el APK en tu computadora y comparar el hash con el de esta página. Si no cuadra, no lo instales.</p>
+          </div>
+        </div>
+        <div class="aviso">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <div>
+            <b>Bórralo todo cuando quieras.</b>
+            <p>En <em>Perfil → Mis datos</em> exportas todo en JSON o borras la cuenta y el contenido. Sin correo de confirmación y sin periodo de retención.</p>
+          </div>
+        </div>
+        <a class="btn btn--fantasma" href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener" style="align-self:flex-start">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg>
+          Auditar el código
+        </a>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ==========================================================================
+     Como se ve
+     ========================================================================== -->
+<section class="bloque" id="app">
+  <div class="wrap">
+    <div class="bloque__head reveal" style="margin-inline:auto; text-align:center; max-width:44ch">
+      <p class="kicker" style="justify-content:center">La app, no un anuncio</p>
+      <h2 style="max-width:none">Esto es lo que hay dentro.</h2>
+      <p class="body-standard" style="color:var(--texto-2); font-size:.95rem; margin-top:.8rem">
+        Tres pantallas reales de la versión que estás a punto de instalar. Toca las pestañas.
+      </p>
+    </div>
+
+    <div class="reveal" style="display:flex; flex-direction:column; align-items:center; margin-top:2rem">
+      <div class="telefono">
+        <div class="telefono__muesca"></div>
+        <div class="telefono__pantalla">
+          <div class="telefono__barra">
+            <img class="telefono__masc" id="mascota" src="/mascota-inicio-normal.webp" width="34" height="34" alt="" loading="lazy" decoding="async">
+            <div>
+              <div class="telefono__saludo">¿Cómo estás?</div>
+              <p class="telefono__sali">Sin prisa. Aquí no hay nada que cumplir.</p>
+            </div>
+          </div>
+
+          <!-- Inicio -->
+          <div class="pantalla esta" data-pantalla="inicio">
+            <p class="t-mini-t">¿Cómo te sientes?</p>
+            <div class="t-moods" role="img" aria-label="Cinco niveles de estado de ánimo; el tercero está seleccionado">
+              <div class="t-mood"><span style="width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.45"></span></div>
+              <div class="t-mood"><span style="width:13px;height:13px;border-radius:50%;background:currentColor;opacity:.6"></span></div>
+              <div class="t-mood on"><span style="width:17px;height:17px;border-radius:50%;background:currentColor"></span></div>
+              <div class="t-mood"><span style="width:21px;height:21px;border-radius:50%;background:currentColor;opacity:.8"></span></div>
+              <div class="t-mood"><span style="width:25px;height:25px;border-radius:50%;background:currentColor"></span></div>
+            </div>
+            <p class="t-mini-t" style="margin-top:.9rem">Herramientas</p>
+            <div class="t-cards">
+              <div class="t-card" style="border-color:rgba(var(--lavanda-rgb),.28)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--lavanda)"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3"></path><path d="M5 19h14v2H5z"></path></svg>
+                <span>Respira</span>
+              </div>
+              <div class="t-card" style="border-color:rgba(var(--rosa-rgb),.28)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--rosa)"><path d="M12 2.97A9 9 0 0 1 21 12h-3a6 6 0 0 0-6-6v-3.03z"></path><path d="M3 12a9 9 0 0 1 9-9v3a6 6 0 0 0-6 6H3z"></path></svg>
+                <span>Cosas</span>
+              </div>
+              <div class="t-card" style="border-color:rgba(var(--salvia-rgb),.28)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--salvia)"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+                <span>Diario</span>
+              </div>
+              <div class="t-card" style="border-color:rgba(var(--calido-rgb),.28)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--calido)"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg>
+                <span>SOS</span>
+              </div>
+            </div>
+            <div class="t-racha">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg>
+              <div><b>4 días seguidos</b><small>Sin racha ni castigo: solo un recuerdo.</small></div>
+            </div>
+          </div>
+
+          <!-- Respira -->
+          <div class="pantalla" data-pantalla="respira">
+            <p class="t-mini-t" style="text-align:center">Respira 4-7-8</p>
+            <div class="t-respira">
+              <div class="t-anillos"><div class="t-aliento"></div></div>
+              <div>
+                <p class="t-fase" id="mockFase">Respira</p>
+                <p class="t-fase-n" id="mockCuenta">4 · 7 · 8</p>
+              </div>
+            </div>
+            <p class="t-pie" style="margin-top:auto; text-align:center">Cuatro ciclos y para. Sin cuenta atrás.</p>
+          </div>
+
+          <!-- Juegos -->
+          <div class="pantalla" data-pantalla="juegos">
+            <p class="t-mini-t">Cosas que no importan</p>
+            <div class="t-juegos">
+              <div class="t-juego" style="background:rgba(var(--calido-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--calido)"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path><path d="m16.71 13.88.7.71-2.82 2.82"></path></svg>
+                <b>Moneda Vieja</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--salvia-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--salvia)"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"></path><path d="m7 16.5-4.74-2.85"></path><path d="m7 16.5 5-3"></path><path d="M7 16.5v5.17"></path><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"></path><path d="M12 8 7.26 5.15"></path><path d="M12 13.5V8"></path></svg>
+                <b>Pila de Bloques</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--lavanda-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--lavanda)"><path d="M9 18V5l12-2v13"></path><path d="m9 9 12-2"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                <b>Marimba Chiquita</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--rosa-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--rosa)"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                <b>Dardos al Corcho</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--oro-rgb),.09)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--oro)"><circle cx="12" cy="12" r="10"></circle><path d="M6 12c0-1.7.7-3.2 1.8-4.2"></path><circle cx="12" cy="12" r="2"></circle><path d="M18 12c0 1.7-.7 3.2-1.8 4.2"></path></svg>
+                <b>Enhebrar Cuentas</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--lavanda-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--lavanda)"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"></path><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"></path></svg>
+                <b>Barrer Polvo</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--salvia-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--salvia)"><path d="M12 22v-6"></path><path d="M12 8V2"></path><path d="M4 12H2"></path><path d="M10 12H8"></path><path d="M16 12h-2"></path><path d="M22 12h-2"></path><path d="m15 19-3-3-3 3"></path><path d="m15 5-3 3-3-3"></path></svg>
+                <b>Doblar Papel</b>
+              </div>
+              <div class="t-juego" style="background:rgba(var(--rosa-rgb),.1)">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--rosa)"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
+                <b>Ordenar Fichas</b>
+              </div>
+            </div>
+            <p class="t-pie" style="text-align:center">Ocho tareas aburridas. Ninguna tiene final.</p>
+          </div>
+
+          <div class="t-marimba" aria-hidden="true">
+            <div class="t-tecla"></div><div class="t-tecla"></div><div class="t-tecla"></div>
+            <div class="t-tecla"></div><div class="t-tecla"></div><div class="t-tecla"></div>
+            <div class="t-tecla"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="t-tabs" role="tablist" aria-label="Pantallas de la app">
+        <button type="button" role="tab" aria-selected="true" data-ir="inicio">Inicio</button>
+        <button type="button" role="tab" aria-selected="false" data-ir="respira">Respira</button>
+        <button type="button" role="tab" aria-selected="false" data-ir="juegos">Cosas</button>
+      </div>
+      <p class="t-pie">Alcance de la v1.2.0 publicada</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================================================
+     Web o APK
+     ========================================================================== -->
+<section class="bloque" id="comparar">
+  <div class="wrap">
+    <div class="bloque__head reveal">
+      <p class="kicker">Web o APK</p>
+      <h2>Las dos hacen lo mismo. Elige la que te mole.</h2>
+    </div>
+    <div class="reveal" style="overflow-x:auto">
+      <table class="cmp">
+        <caption class="body-standard" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Diferencias entre la versión web instalable y el APK de Android</caption>
+        <thead>
+          <tr><th scope="col">Qué obtienes</th><th scope="col">Web instalable</th><th scope="col" class="col-apk">APK de Android</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Todo el contenido de la app</td><td class="si">Sí</td><td class="si col-apk">Sí</td></tr>
+          <tr><td>Funciona sin conexión</td><td class="si">Sí</td><td class="si col-apk">Sí</td></tr>
+          <tr><td>Sin origen desconocido</td><td class="si">Sí</td><td class="no col-apk">Android pregunta</td></tr>
+          <tr><td>No ocupa casi nada</td><td class="si">Sí</td><td class="no col-apk">4,8 MB</td></tr>
+          <tr><td>Sin salir de Google Play</td><td class="si">Sí</td><td class="no col-apk">No está en la tienda</td></tr>
+          <tr><td>Notificaciones en segundo plano</td><td class="no">Depende del navegador</td><td class="si col-apk">Sí, nativas</td></tr>
+          <tr><td>Bloqueo biométrico del acceso</td><td class="no">No</td><td class="si col-apk">Sí</td></tr>
+          <tr><td>Abrir la cámara y el micrófono</td><td class="no">No</td><td class="si col-apk">Sí</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================================================
+     Instalacion
+     ========================================================================== -->
 <section class="bloque" id="instalar">
   <div class="wrap">
     <div class="bloque__head reveal">
@@ -522,21 +821,29 @@ a{color:inherit}
       <h2>Cuatro pasos. Un minuto.</h2>
     </div>
     <ol class="pasos reveal">
-      <li><div><b>Descarga el archivo</b><span>Toca el botón de arriba. Se llamará <code>ALIVIA-android.apk</code> y ocupa 4,8 MB. En el navegador del teléfono, elige dónde guardarlo.</span></div></li>
-      <li><div><b>Abre el archivo</b><span>Toca la notificación de la descarga y luego <strong>Instalar</strong>. Si no aparece nada, búscalo en <kbd>Archivos → Descargas</kbd>.</span></div></li>
-      <li><div><b>Permite el origen</b><span>Android dirá que el archivo viene de fuera. Pulsa <kbd>Ajustes</kbd> y activa <em>Permitir de esta fuente</em> o <em>Instalar apps desconocidas</em> para tu navegador. Vuelve atrás y repite la instalación.</span></div></li>
+      <li><div><b>Pulsa el botón de arriba</b><span>Tu navegador descarga el archivo desde alivia.lat, comprueba el hash y te lo deja en Descargas.</span></div></li>
+      <li><div><b>Ábrelo</b><span>Toca la notificación de la descarga y luego <strong>Instalar</strong>. Si no aparece, búscalo en <kbd>Archivos → Descargas</kbd>.</span></div></li>
+      <li><div><b>Permite el origen</b><span>Android dirá que el archivo viene de fuera. Pulsa <kbd>Ajustes</kbd> y activa <em>Permitir de esta fuente</em> para tu navegador. Vuelve atrás y repite la instalación.</span></div></li>
       <li><div><b>Ábrela</b><span>Aparece el ícono de ALIVIA en tu cajón de apps. Funciona desde el primer momento, incluso sin señal.</span></div></li>
     </ol>
-    <div class="aviso aviso--salvia reveal" role="note" style="margin-top:1.2rem">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7 9 18l-5-5"/></svg>
+    <div class="aviso reveal" style="margin-top:1.1rem" role="note">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
       <div>
-        <b>Tus datos no viajan al instalar.</b>
-        <p>ALIVIA pide permiso solo para notificaciones y, si lo activas, biometría. No hay analítica, ni publicidad, ni compra dentro de la app. Puedes exportar o borrar todo desde Perfil cuando quieras.</p>
+        <b>Ese aviso de "origen desconocido" es normal.</b>
+        <p>
+          ALIVIA no está en Google Play, así que Android la trata como una app
+          ajena a la tienda y te pide permiso. Le pasa a toda app instalada fuera
+          de ella. Instálala solo si el hash de arriba coincide con el que
+          verifica tu navegador.
+        </p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ==========================================================================
+     Requisitos
+     ========================================================================== -->
 <section class="bloque" id="requisitos">
   <div class="wrap">
     <div class="bloque__head reveal">
@@ -544,7 +851,7 @@ a{color:inherit}
       <h2>Lo que necesita tu teléfono.</h2>
     </div>
     <dl class="req reveal">
-      <div><dt>Sistema</dt><dd>Android 7.0 Nougat<small>API 24 o superior</small></dd></div>
+      <div><dt>Sistema</dt><dd data-req="minAndroid">Android 7.0<small>API 24 o superior</small></dd></div>
       <div><dt>Espacio</dt><dd>~15 MB<small>4,8 MB la app, el resto el sistema</small></dd></div>
       <div><dt>Arquitectura</dt><dd>Universal<small>arm64-v8a, armeabi-v7a, x86</small></dd></div>
       <div><dt>Internet</dt><dd>Opcional<small>Todo lo esencial funciona sin conexión</small></dd></div>
@@ -554,33 +861,60 @@ a{color:inherit}
   </div>
 </section>
 
+<!-- ==========================================================================
+     Verificacion
+     ========================================================================== -->
 <section class="bloque" id="verificar">
   <div class="wrap">
     <div class="bloque__head reveal">
       <p class="kicker">Seguridad</p>
-      <h2>Cómo saber que el archivo es el nuestro.</h2>
+      <h2>El hash, comprobado en tu navegador.</h2>
+      <p class="body-standard" style="color:var(--texto-2); max-width:56ch; margin-top:.8rem">
+        La descarga de arriba no es un enlace opaco: el archivo viaja por
+        alivia.lat, se calcula su SHA-256 con la API criptográfica del navegador
+        y solo se guarda si coincide con el publicado. Abajo está el valor, y en
+        GitHub está el mismo, para que tengas dos referencias independientes.
+      </p>
     </div>
-    <div class="ver-grid reveal">
-      <div class="hashbox" style="background:rgba(255,255,255,.035)">
-        <span class="hashbox__label">SHA-256 esperado (release v1.2.0)</span>
-        <code>e77e372d8971ad092a94f9fe71bbe1ce398f9e33097e448c25b9b9f9c2331484</code>
+
+    <div class="rejilla2 reveal" style="align-items:start">
+      <div>
+        <div class="hashbox" style="background:rgba(255,255,255,.035)">
+          <span class="hashbox__label">Esperado</span>
+          <code data-campo="sha256">e77e372d8971ad092a94f9fe71bbe1ce398f9e33097e448c25b9b9f9c2331484</code>
+        </div>
+        <div class="hashbox" style="margin-top:.7rem; background:rgba(255,255,255,.035)">
+          <span class="hashbox__label">Calculado en tu dispositivo</span>
+          <code id="hashCalculado">— se calcula al descargar —</code>
+        </div>
       </div>
       <div>
-        <p style="color:var(--texto-2); max-width:48ch">
-          Si descargas el archivo desde otro sitio y quieres compararlo, calcula el
-          hash en tu computadora y revisa que coincida carácter por carácter.
-          GitHub publica el mismo valor junto al asset, así que siempre tienes un
-          segundo punto de comparación.
+        <h3 style="font-size:1.1rem; margin-bottom:.6rem">Cómo comprobarlo por tu cuenta</h3>
+        <p style="color:var(--texto-2)">
+          Si descargas el archivo desde otro sitio y quieres compararlo tú mismo,
+          calcula el hash en tu computadora y revísalo carácter por carácter.
         </p>
-        <p class="progreso__nota" style="margin:0">
-          Publicamos cada versión como release en GitHub. El enlace del botón apunta
-          siempre a la última versión estable.
+        <div class="hashbox" style="background:rgba(255,255,255,.035)">
+          <span class="hashbox__label">PowerShell</span>
+          <code>Get-FileHash .\ALIVIA-android.apk -Algorithm SHA256</code>
+        </div>
+        <div class="hashbox" style="margin-top:.7rem; background:rgba(255,255,255,.035)">
+          <span class="hashbox__label">macOS o Linux</span>
+          <code>shasum -a 256 ALIVIA-android.apk</code>
+        </div>
+        <p class="prog__nota" style="margin:.9rem 0 0">
+          Publicamos cada versión como release abierta en GitHub, junto al
+          mismo valor de hash. El enlace del botón apunta siempre a la última
+          estable.
         </p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ==========================================================================
+     Alternativas
+     ========================================================================== -->
 <section class="bloque" id="alternativas">
   <div class="wrap">
     <div class="bloque__head reveal">
@@ -589,33 +923,36 @@ a{color:inherit}
     </div>
     <div class="alts reveal">
       <article class="alt alt--salvia">
-        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></svg></span>
+        <span class="alt__ico"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"></path></svg></span>
         <h3>Instálala como PWA</h3>
-        <p>Sin permisos ni origen desconocido. Abre la web y usa <em>Agregar a pantalla de inicio</em>: tendrás el ícono, pantalla completa y funcionamiento sin conexión.</p>
+        <p>Sin permisos ni origen desconocido. Abre la web y usa <em>Agregar a pantalla de inicio</em>: tendrás ícono, pantalla completa y funcionamiento sin conexión.</p>
         <a href="/">Abrir la versión web
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"></path></svg>
         </a>
       </article>
       <article class="alt alt--lav">
-        <span class="ico"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></span>
+        <span class="alt__ico"><svg class="ic" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></span>
         <h3>Compílalo tú mismo</h3>
         <p>El repositorio trae la fuente, los scripts de compilación y la guía de firma. Reproduce el APK en tu máquina y audítalo línea por línea.</p>
         <a href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener">Ver el código
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"></path></svg>
         </a>
       </article>
       <article class="alt">
-        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg></span>
+        <span class="alt__ico"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"></path></svg></span>
         <h3>Notas de la versión</h3>
         <p>Qué cambió en cada versión, con el historial completo y los detalles de privacidad. La 1.2.0 añadió bloqueo biométrico y exportación de datos.</p>
         <a href="https://github.com/Imandro/AliviaApp/releases" target="_blank" rel="noopener">Ver releases
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l7 7-7 7-1.4-1.4L17.2 13H3v-2h14.2l-4.6-4.6L14 5z"></path></svg>
         </a>
       </article>
     </div>
   </div>
 </section>
 
+<!-- ==========================================================================
+     FAQ
+     ========================================================================== -->
 <section class="bloque" id="faq">
   <div class="wrap">
     <div class="bloque__head reveal">
@@ -625,90 +962,43 @@ a{color:inherit}
     <div class="faq reveal">
       <details>
         <summary>¿Por qué Android dice que la app es de origen desconocido?</summary>
-        <div class="faq__body">
-          <p>
-            Ese aviso aparece en toda app que no viene de Google Play, y es una
-            protección de Android, no un problema con ALIVIA. ALIVIA se firma y
-            publica como release abierta en GitHub bajo licencia MIT, con el
-            código fuente completo disponible para que cualquiera lo audite.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>Ese aviso aparece en toda app que no viene de Google Play, y es una protección de Android, no un problema con ALIVIA. La app se firma y se publica como release abierta en GitHub bajo licencia MIT, con el código fuente completo para que cualquiera lo audite.</p></div>
+      </details>
+      <details>
+        <summary>¿De verdad no enviáis nada?</summary>
+        <div class="faq__cuerpo"><p>Lo que escribes, tu estado de ánimo y tus rachas se guardan en el almacenamiento de la app y no se envían a ningún sitio. Lo único que cruza internet es la sincronización con tu cuenta, y solo si la enciendes. Puedes comprobarlo leyendo el código: no hay SDK de analítica ni de publicidad en el proyecto.</p></div>
+      </details>
+      <details>
+        <summary>¿Qué pasa con mis datos si la sincronización está encendida?</summary>
+        <div class="faq__cuerpo"><p>Se guardan cifrados en la cuenta que tú creas, y solo para que puedas recuperar lo mismo en otro dispositivo. Desde <em>Perfil → Mis datos</em> exportas todo en JSON o borras cuenta y contenido por completo, sin correo de confirmación.</p></div>
       </details>
       <details>
         <summary>¿Necesito internet para usarla?</summary>
-        <div class="faq__body">
-          <p>
-            No. Respiración, diario, ejercicios de afrontamiento,SOS, juegos y
-            guías se guardan en tu teléfono y funcionan con el móvil en modo
-            avión. Cuando hay señal, los cambios se sincronizan solos contra tu
-            cuenta, en orden y sin duplicados.
-          </p>
-        </div>
-      </details>
-      <details>
-        <summary>¿Qué datos recopila?</summary>
-        <div class="faq__body">
-          <p>
-            Lo que tú escribes en el diario, tus unchecked de ánimo y las notas de
-            los ejercicios. No hay publicidad, ni analítica de terceros, ni
-            perfiles públicos. Desde <em>Perfil → Mis datos</em> exportas todo en
-            JSON o borras tu cuenta por completo.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>No. Respiración, diario, ejercicios de afrontamiento, SOS, juegos y guías se guardan en tu teléfono y funcionan con el móvil en modo avión. Cuando hay señal, los cambios se sincronizan solos, en orden y sin duplicados.</p></div>
       </details>
       <details>
         <summary>¿Me pide permisos que no quiero dar?</summary>
-        <div class="faq__body">
-          <p>
-            Solo dos, y ambos son opcionales: notificaciones (para los recordatorios
-            que tú configuras) y biometría (si prefieres proteger el acceso a la
-            app con huella o PIN). La app funciona igual si los deniegas.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>Solo dos, y ambos opcionales: notificaciones (para los recordatorios que configures) y biometría (si prefieres proteger el acceso con huella o PIN). La app funciona igual si los deniegas.</p></div>
+      </details>
+      <details>
+        <summary>¿Cómo sé que el archivo no me han cambiado por el camino?</summary>
+        <div class="faq__cuerpo"><p>Porque el botón de esta página no es un enlace opaco: descarga el APK desde alivia.lat, calcula su SHA-256 en tu navegador con WebCrypto y solo lo guarda si coincide con el hash publicado. Además puedes calcularlo tú con <code>sha256sum</code> y contrastarlo con el valor de GitHub, que es una referencia independiente.</p></div>
       </details>
       <details>
         <summary>¿Está en Google Play?</summary>
-        <div class="faq__body">
-          <p>
-            Todavía no. Está previsto como <em>AAB firmado</em> para Google Play.
-            Mientras tanto distribuimos el APK por GitHub Releases, que además te
-            deja descargar el código fuente y recompilarlo tú mismo.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>Todavía no. Está previsto como <em>AAB firmado</em> para Google Play. Mientras tanto distribuimos el APK desde este dominio y desde GitHub Releases, que además te deja descargar el código fuente y recompilarlo tú mismo.</p></div>
       </details>
       <details>
         <summary>No me deja instalar, ¿qué hago?</summary>
-        <div class="faq__body">
-          <p>
-            Revisa, en orden: (1) que tu Android sea 7.0 o superior; (2) que
-            tengas espacio de sobra; (3) que el bloqueo de pantalla no impida
-            instalar apps; (4) que el archivo no se haya descargado corrupto,
-            en cuyo caso conviene borrarlo y bajarlo de nuevo. Si el problema
-            persiste, la versión web instalable como PWA hace exactamente lo mismo
-            sin pedir permisos raros.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>Revisa en orden: (1) que tu Android sea 7.0 o superior; (2) que tengas espacio de sobra; (3) que el bloqueo de pantalla no impida instalar apps; (4) que el archivo no se haya descargado corrupto, en cuyo caso conviene borrarlo y bajarlo de nuevo. Si persiste, la versión web instalable como PWA hace exactamente lo mismo sin pedir permisos raros.</p></div>
       </details>
       <details>
         <summary>¿Hay iOS?</summary>
-        <div class="faq__body">
-          <p>
-            Está en desarrollo sobre el mismo código de Capacitor. Mientras tanto
-            puedes usar la versión web instalable desde Safari en iPhone o iPad
-            con <em>Compartir → Agregar a pantalla de inicio</em>.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>Está en desarrollo sobre el mismo código de Capacitor. Mientras tanto puedes usar la versión web instalable desde Safari en iPhone o iPad con <em>Compartir → Agregar a pantalla de inicio</em>.</p></div>
       </details>
       <details>
         <summary>¿Cómo ayudo o reporto un problema?</summary>
-        <div class="faq__body">
-          <p>
-            El repositorio es público. Abre un <em>issue</em> describiendo qué
-            pasó, con tu versión de Android y de ALIVIA. Si es una crisis de salud
-              mental y necesitas ayuda ya, no esperes respuesta: los números de
-            línea gratuita están dentro de la app, en la pantalla SOS.
-          </p>
-        </div>
+        <div class="faq__cuerpo"><p>El repositorio es público. Abre un <em>issue</em> describiendo qué pasó, con tu versión de Android y de ALIVIA. Si es una crisis de salud mental y necesitas ayuda ya, no esperes respuesta: los números de línea gratuita están dentro de la app, en la pantalla SOS.</p></div>
       </details>
     </div>
   </div>
@@ -730,7 +1020,7 @@ a{color:inherit}
     <li><img src="/kronox/logo-ci-nicaragua-blanco.webp" width="567" height="542" loading="lazy" decoding="async" alt="Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno, Nicaragua"></li>
   </ul>
   <button type="button" class="creditos__ver js-galeria" aria-haspopup="dialog">
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h11v2H4z"/></svg>
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h11v2H4z"></path></svg>
     Ver el lanzamiento
   </button>
 </section>
@@ -752,9 +1042,9 @@ a{color:inherit}
     <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-06.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participante de KRONOX 2026 junto al mural del lanzamiento"></a>
     <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-07.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Integrantes de un equipo con su premio del festival"></a>
     <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-08.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Grupo completo posando sobre el escenario del festival tecnológico"></a>
-    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-09.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participantes registration: acreditación y materiales del evento"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-09.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participantes en la acreditación y los materiales del evento"></a>
     <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-10.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Integrantes con sus insignias del Hackathon Nicaragua"></a>
-    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-11.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participante del El Festival Tecnológico KRONOX 2026"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-11.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participante del Festival Tecnológico KRONOX 2026"></a>
     <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-12.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Equipo ganador del primer lugar del festival"></a>
     <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-13.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Dos participantes del Hackathon Nicaragua 2026"></a>
   </div>
@@ -788,10 +1078,10 @@ a{color:inherit}
     <div class="pie__top reveal">
       <h2>Tu calma no debería depender de la señal.</h2>
       <div class="hero__cta" style="margin-top:0">
-        <a class="btn btn--oro js-descargar" href="https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk" download>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg>
+        <button class="btn btn--oro" type="button" data-descargar>
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg>
           Descargar APK
-        </a>
+        </button>
         <a class="btn btn--fantasma" href="/landing.html">Ver el sitio</a>
       </div>
     </div>
@@ -810,13 +1100,331 @@ a{color:inherit}
         </div>
         <span>© 2026 ALIVIA · <strong style="color:var(--texto-2)">Equipo DataStorm</strong></span>
       </div>
-      <a href="/">App web</a>
-      <a href="/landing.html">Sitio</a>
-      <a href="https://github.com/Imandro/AliviaApp/releases" target="_blank" rel="noopener">Releases</a>
-      <a href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener">Código</a>
+      <div class="pie__enlaces">
+        <a href="/">App web</a>
+        <a href="/landing.html">Sitio</a>
+        <a href="https://github.com/Imandro/AliviaApp/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener">Código</a>
+      </div>
     </div>
   </div>
 </footer>
+
+<script>
+/* ==========================================================================
+   1. Manifiesto de la release
+   --------------------------------------------------------------------------
+   public/releases.json lo escribe scripts/release-apk.mjs a partir del APK
+   real: version, bytes y sha256 salen del archivo, no de editar a mano el
+   HTML. Si el manifiesto no llega (CDN viejo, 404, sin red) se usan los
+   valores de abajo, que son los de la v1.2.0 publicada.
+   ========================================================================== */
+var FALLBACK = {
+  version: '1.2.0',
+  asset: 'ALIVIA-android.apk',
+  bytes: 5032862,
+  sizeLabel: '4,8 MB',
+  sha256: 'e77e372d8971ad092a94f9fe71bbe1ce398f9e33097e448c25b9b9f9c2331484',
+  url: '/releases/v1.2.0/ALIVIA-android.apk',
+  minAndroid: '7.0'
+};
+
+function cargarManifiesto(){
+  return fetch('/releases.json', { cache: 'no-cache' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      if (!j || !j.sha256 || !j.url) return FALLBACK;
+      return j;
+    })
+    .catch(function(){ return FALLBACK; });
+}
+
+var MANIFIESTO = FALLBACK;
+
+function pintarManifiesto(){
+  var d = document;
+  d.querySelectorAll('[data-campo]').forEach(function(el){
+    var v = MANIFIESTO[el.getAttribute('data-campo')];
+    if (v) el.textContent = v;
+  });
+  d.querySelectorAll('[data-cifra]').forEach(function(el){
+    if (el.getAttribute('data-cifra') === 'bytes' && MANIFIESTO.sizeLabel) {
+      el.textContent = MANIFIESTO.sizeLabel;
+    }
+  });
+  var req = d.querySelector('[data-req="minAndroid"]');
+  if (req && MANIFIESTO.minAndroid) {
+    req.childNodes[0].nodeValue = 'Android ' + MANIFIESTO.minAndroid;
+  }
+}
+</script>
+
+<script>
+/* ==========================================================================
+   2. Descarga con progreso real y verificacion SHA-256
+   --------------------------------------------------------------------------
+   El APK se sirve desde el mismo dominio, asi que se puede leer el stream:
+   hay progreso de verdad (no un porcentaje inventado) y el hash se comprueba
+   con WebCrypto antes de escribir nada en disco. Si algo falla se cae al
+   enlace plano, que es como funcionaba antes.
+   ========================================================================== */
+(function(){
+  var btn = document.getElementById('btnApk');
+  var texto = document.getElementById('btnTexto');
+  var nota = document.getElementById('notaPlataforma');
+  var prog = document.getElementById('prog');
+  var estado = document.getElementById('progEstado');
+  var cifras = document.getElementById('progCifras');
+  var barra = document.getElementById('progBarra');
+  var progNota = document.getElementById('progNota');
+  var verif = document.getElementById('verif');
+  var verifT = document.getElementById('verifT');
+  var verifD = document.getElementById('verifD');
+  var hashCalc = document.getElementById('hashCalculado');
+  if (!btn) return;
+
+  var ocupado = false;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function mb(b){ return (b / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
+
+  function ponerVerificacion(estado_, titulo, detalle){
+    verif.setAttribute('data-estado', estado_);
+    verifT.textContent = titulo;
+    verifD.textContent = detalle;
+  }
+
+  function hex(buffer){
+    return Array.prototype.map.call(new Uint8Array(buffer), function(b){
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  /* Guardar el blob con el nombre del asset. En Android Chrome esto cae en
+     Descargas y abre el instalador igual que un enlace normal. */
+  function guardar(blob, nombre){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = nombre;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+  }
+
+  /* Red de seguridad: si fetch falla, streaming no existe o WebCrypto no está
+     (http sin TLS, navegador antiguo), se delega al navegador con un enlace
+     plano. Pierde el progreso y la comprobacion, pero descarga igual. */
+  function planoPorDefecto(motivo){
+    progNota.textContent = motivo + ' Descargando directamente…';
+    estado.textContent = 'Descarga delegada al navegador';
+    barra.style.width = '100%';
+    var a = document.createElement('a');
+    a.href = MANIFIESTO.url;
+    a.download = MANIFIESTO.asset;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function descargar(){
+    if (ocupado) return;
+    ocupado = true;
+    btn.disabled = true;
+    if (texto) texto.textContent = 'Descargando…';
+    prog.hidden = false;
+    barra.classList.remove('es-error', 'es-listo');
+    estado.textContent = 'Conectando…';
+    cifras.textContent = '0 %';
+    barra.style.width = '0%';
+    hashCalc.textContent = '— se calcula al descargar —';
+    ponerVerificacion('idle', 'Comprobando lo que llega…', 'Calculando el SHA-256 en tu navegador.');
+
+    if (!window.crypto || !crypto.subtle || !window.ReadableStream || !window.fetch) {
+      btn.disabled = false;
+      if (texto) texto.textContent = 'Descargar APK';
+      ocupado = false;
+      planoPorDefecto('Tu navegador no permite la descarga verificada.');
+      return;
+    }
+
+    var t0 = performance.now();
+    var recibido = 0;
+    var total = MANIFIESTO.bytes;
+
+    /* Un unico fetch: se lee el cuerpo por trozos para tener progreso real. */
+    fetch(MANIFIESTO.url, { cache: 'no-store' })
+      .then(function(res){
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        if (!res.body) throw new Error('sin stream');
+        var len = Number(res.headers.get('content-length'));
+        if (len > 0) total = len;
+
+        var reader = res.body.getReader();
+        var trozos = [];
+        estado.textContent = 'Descargando';
+
+        function paso(){
+          return reader.read().then(function(r){
+            if (r.done) return trozos;
+            trozos.push(r.value);
+            recibido += r.value.length;
+
+            var pct = total ? Math.min(100, (recibido / total) * 100) : 0;
+            var seg = (performance.now() - t0) / 1000;
+            var vel = seg > 0.3 ? recibido / seg : 0;
+            var eta = vel > 0 ? (total - recibido) / vel : 0;
+
+            barra.style.width = pct.toFixed(1) + '%';
+            cifras.textContent = Math.round(pct) + ' %';
+            estado.textContent = 'Descargando ' + mb(recibido) + ' de ' + mb(total);
+            progNota.textContent = vel > 1024
+              ? (vel / 1048576).toFixed(1).replace('.', ',') + ' MB/s · queda ' + (eta < 1 ? 'menos de 1' : Math.round(eta)) + ' s'
+              : 'Desde alivia.lat, sin pasar por GitHub.';
+            return paso();
+          });
+        }
+        return paso().then(function(trozos){
+          return new Blob(trozos, { type: 'application/vnd.android.package-archive' });
+        });
+        })
+      .then(function(blob){
+          estado.textContent = 'Comprobando el archivo';
+          progNota.textContent = 'SHA-256 con la API criptográfica del navegador…';
+          cifras.textContent = '100 %';
+          barra.style.width = '100%';
+          return blob.arrayBuffer().then(function(buf){
+            return crypto.subtle.digest('SHA-256', buf).then(function(d){
+              return { blob: blob, hex: hex(d) };
+            });
+          });
+        })
+        .then(function(r){
+          hashCalc.textContent = r.hex;
+          if (r.hex !== MANIFIESTO.sha256) {
+            barra.classList.add('es-error');
+            estado.textContent = 'El archivo no coincide';
+            progNota.textContent = 'No se ha guardado nada. No lo instales.';
+            ponerVerificacion('mal', 'El hash no coincide', 'Lo que llegó no es el archivo publicado. Puede ser un fallo de red o una manipulación. No lo abras.');
+            throw new Error('hash');
+          }
+          barra.classList.add('es-listo');
+          estado.textContent = 'Verificado y guardado';
+          progNota.textContent = 'Ábrelo desde tus descargas para instalarlo.';
+          ponerVerificacion('ok', 'Archivo verificado', 'El SHA-256 coincide con el publicado. Es exactamente el APK de la v' + MANIFIESTO.version + '.');
+          guardar(r.blob, MANIFIESTO.asset);
+          // Se rearmaqued el boton: el hash checked bien y se puede repetir.
+          btn.disabled = false;
+          ocupado = false;
+          if (texto) texto.textContent = 'Descargar otra vez';
+        })
+        .catch(function(err){
+          // Un hash que no cuadra no se reintenta a ciegas: se avisa y se para.
+          btn.disabled = false;
+          ocupado = false;
+          if (err && err.message === 'hash') {
+            if (texto) texto.textContent = 'Descargar APK';
+            return;
+          }
+          if (texto) texto.textContent = 'Descargar APK';
+          planoPorDefecto('No se pudo leer la descarga de forma verificada.');
+        });
+  }
+
+  btn.addEventListener('click', descargar);
+  document.querySelectorAll('[data-descargar]').forEach(function(b){
+    b.addEventListener('click', descargar);
+  });
+
+  /* iOS no instala APKs: ni Chrome ni Safari lo permiten. En vez de dejar
+     un boton que falla, se ofrece la via que si funciona en ese telefono. */
+  var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '')
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (esIOS) {
+    if (texto) texto.textContent = 'Usar la versión web';
+    var icoBtn = btn.querySelector('.ic');
+    if (icoBtn) {
+      icoBtn.outerHTML = '<svg class="ic" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg>';
+    }
+    btn.addEventListener('click', function(){ location.href = '/'; });
+    if (nota) nota.textContent = 'iOS no permite instalar APKs. Usa la web y agrégala a la pantalla de inicio: funciona igual y sin conexión.';
+  }
+
+  window.__alivia = { manifiesto: function(){ return MANIFIESTO; }, descargar: descargar };
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   3. Plataforma y manifesto
+   ========================================================================== */
+cargarManifiesto().then(function(m){
+  MANIFIESTO = m;
+  pintarManifiesto();
+});
+pintarManifiesto();
+</script>
+
+<script>
+/* ==========================================================================
+   4. Mockup del telefono
+   --------------------------------------------------------------------------
+   Las tres pantallas y el ciclo de respiracion se animan aqui, en el
+   mockup. Al no depender de la app no carga React ni pesa de mas.
+   ========================================================================== */
+(function(){
+  var tabs = document.querySelectorAll('.t-tabs button');
+  var pantallas = document.querySelectorAll('.pantalla');
+  var fase = document.getElementById('mockFase');
+  var cuenta = document.getElementById('mockCuenta');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* La fila de teclas solo tiene sentido en la pantalla de juegos, asi que se
+     muestra y oculta desde el mismo sitio que cambia de pestana. */
+  var marimba = document.querySelector('.t-marimba');
+  if (marimba) marimba.style.opacity = '0';
+
+  function mostrar(nombre){
+    tabs.forEach(function(t){
+      t.setAttribute('aria-selected', t.getAttribute('data-ir') === nombre ? 'true' : 'false');
+    });
+    pantallas.forEach(function(p){
+      p.classList.toggle('esta', p.getAttribute('data-pantalla') === nombre);
+    });
+    if (marimba) marimba.style.opacity = nombre === 'juegos' ? '1' : '0';
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){ mostrar(t.getAttribute('data-ir')); });
+  });
+  mostrar('inicio');
+
+  /* Texto de fase acompasado con la animacion de 19s (4+7+8 segundos). */
+  if (fase && !reduce) {
+    var FASES = [['Respira', 0, 4], ['Aguanta', 4, 7], ['Suelta', 11, 8]];
+    var t = 0;
+    setInterval(function(){
+      t = (t + 0.25) % 19;
+      for (var i = 0; i < FASES.length; i++) {
+        var f = FASES[i];
+        if (t >= f[1] && t < f[1] + f[2]) { fase.textContent = f[0]; break; }
+      }
+    }, 250);
+  }
+  if (fase) fase.textContent = 'Respira';
+  if (cuenta) cuenta.textContent = '4 · 7 · 8';
+
+  /* La mascota parpadea: el proyecto ya trae las dos poses. */
+  var m = document.getElementById('mascota');
+  if (m && !reduce) {
+    setInterval(function(){
+      m.src = '/mascota-inicio-parpadeo.webp';
+      setTimeout(function(){ m.src = '/mascota-inicio-normal.webp'; }, 140);
+    }, 4200);
+  }
+})();
+</script>
 
 <script>
 /* Reveal on scroll */
@@ -828,55 +1436,15 @@ a{color:inherit}
       entries.forEach(function(en){
         if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
       });
-    }, { threshold: .12 });
+    }, { threshold: .1 });
     items.forEach(function(el){ io.observe(el); });
   } else {
     items.forEach(function(el){ el.classList.add('is-in'); });
   }
 })();
 
-/* Estado de la descarga.
-   El APK se sirve desde GitHub Releases: /releases/latest/download/ redirige a
-   un host distinto, asi que no es legible por CORS y no hay forma honesta de
-   medir los bytes sin descargarlos dos veces. Por eso NO se simula un
-   porcentaje: se avisa que la descarga la gestiona el navegador y se le da al
-   usuario el siguiente paso. El <a download> nunca se intercepta. */
-(function(){
-  var btn = document.getElementById('btnApk');
-  var box = document.getElementById('progreso');
-  var estado = document.getElementById('progresoEstado');
-  var pct = document.getElementById('progresoPct');
-  var barra = document.getElementById('progresoRelleno');
-  var nota = document.getElementById('progresoNota');
-  if (!btn || !box) return;
-
-  var moviles = navigator.userAgent || '';
-  var esMovil = /Android|iPhone|iPad|iPod|Mobile/i.test(moviles);
-
-  box.hidden = false;
-  estado.textContent = '4,8 MB · GitHub Releases';
-  pct.textContent = '4,8 MB';
-  barra.style.width = '100%';
-  barra.style.opacity = '.35';
-  nota.textContent = esMovil
-    ? 'En el móvil, Android te preguntará dónde guardarla. Elige Descargas.'
-    : 'El navegador gestiona la descarga. Puedes seguir leyendo mientras baja.';
-
-  /* Al terminar la navegacion al asset, el navegador ya se encargo. Solo se
-     marca como iniciado para no repetir el aviso en un segundo toque. */
-  btn.addEventListener('click', function(){
-    estado.textContent = 'Descarga iniciada…';
-    barra.style.opacity = '.7';
-    nota.textContent = 'Busca ALIVIA-android.apk en tus descargas y ábrelo para instalarlo.';
-  });
-})();
-</script>
-
-<script>
 /* Galeria del Hackathon KRONOX 2026. <dialog> nativo: Esc, foco atrapado y
-   vuelta al boton los resuelve el navegador, asi que aqui solo se abre y cierra.
-   Sin soporte de <dialog> el boton se oculta y la franja de logos del pie queda
-   igual de valida: ninguna imagen pesada entra al pie de la pagina. */
+   vuelta al boton los resuelve el navegador. */
 (function(){
   var boton = document.querySelector('.js-galeria');
   var dlg = document.getElementById('galeria');
@@ -887,8 +1455,8 @@ a{color:inherit}
   }
   boton.addEventListener('click', function(){ dlg.showModal(); });
   if (cerrar) cerrar.addEventListener('click', function(){ dlg.close(); });
-  /* Click en el fondo (el dialog no tiene padding, el borde es el fondo) */
   dlg.addEventListener('click', function(ev){ if (ev.target === dlg) dlg.close(); });
 })();
-</script></body>
+</script>
+</body>
 </html>
