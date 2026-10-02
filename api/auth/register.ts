@@ -8,7 +8,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'MÃƒÂ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -28,19 +28,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(400).json({ error: 'El usuario debe tener al menos 3 caracteres' });
     }
     if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
-      return res.status(400).json({ error: 'El usuario solo puede contener letras, nÃƒÂºmeros, puntos, guiones y guiones bajos' });
+      return res.status(400).json({ error: 'El usuario solo puede contener letras, números, puntos, guiones y guiones bajos' });
     }
     if (!EMAIL_RE.test(cleanEmail)) {
-      return res.status(400).json({ error: 'Ingresa un correo vÃƒÂ¡lido' });
+      return res.status(400).json({ error: 'Ingresa un correo válido' });
     }
     if (cleanPhone && !PHONE_RE.test(cleanPhone)) {
-      return res.status(400).json({ error: 'Ingresa un telÃƒÂ©fono vÃƒÂ¡lido' });
+      return res.status(400).json({ error: 'Ingresa un teléfono válido' });
     }
     if (!cleanName) {
       return res.status(400).json({ error: 'Ingresa tu nombre' });
     }
     if (cleanPassword.length < 6) {
-      return res.status(400).json({ error: 'La contraseÃƒÂ±a debe tener al menos 6 caracteres' });
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
     const { rows } = await pool.query(
@@ -55,9 +55,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   } catch (err: any) {
     const msg = String(err?.message || '');
     const known = [
-      'El usuario ya estÃƒÂ¡ en uso',
-      'El correo ya estÃƒÂ¡ registrado',
-      'El telÃƒÂ©fono ya estÃƒÂ¡ registrado',
+      'El usuario ya está en uso',
+      'El correo ya está registrado',
+      'El teléfono ya está registrado',
     ];
     if (known.some((k) => msg.includes(k))) {
       return res.status(409).json({ error: msg });

@@ -39,9 +39,20 @@ export default defineConfig(({ mode }) => ({
           // Los videos antiguos ya no participan en las pantallas de carga.
           'videos/alivia-reveal.webm',
           'videos/alivia-pop.webm',
+          // Marcas del Hackathon KRONOX 2026: los iconos magenta/cian y el favicon
+          // del hackathon solo aparecen dentro de la galeria del pie, que se abre
+          // bajo demanda. Precachearlos engorda la primera visita sin aporte.
+          // Los dos logos de la franja (~21 KB) si se precachean para que la
+          // atribucion siga visible sin conexion.
+          'kronox/01-*.png',
+          'kronox/camping*.png',
+          'kronox/favicon-hackathon.ico',
         ],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/landing/],
+        // Las paginas estaticas de marketing van sueltas: sin esto el service
+        // worker responderia /descarga.html con el index.html de la SPA y el
+        // visitante veria la app en vez de la pagina de descarga.
+        navigateFallbackDenylist: [/^\/api\//, /^\/landing/, /^\/descarga/],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

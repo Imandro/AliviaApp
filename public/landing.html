@@ -8,6 +8,25 @@
 <link rel="icon" type="image/png" href="/icon-128.png">
 <meta name="theme-color" content="#0D1810">
 
+<!-- Verificacion de Google Search Console -->
+<meta name="google-site-verification" content="X7CJ_RKRPrpAP2DtYNzhUA3fNdIbILOIgXFiwHscnAI">
+<link rel="canonical" href="https://alivia.lat/landing.html">
+
+<!-- Open Graph: sin esto, al compartir el enlace no sale imagen ni descripcion -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ALIVIA">
+<meta property="og:locale" content="es">
+<meta property="og:title" content="ALIVIA — Calma guiada, incluso a las 2 a.m.">
+<meta property="og:description" content="Respiración guiada, diario que se disuelve, SOS en crisis y comunidad segura. Offline-first, web y Android.">
+<meta property="og:url" content="https://alivia.lat/landing.html">
+<meta property="og:image" content="https://alivia.lat/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ALIVIA — Calma guiada, incluso a las 2 a.m.">
+<meta name="twitter:description" content="Respiración guiada, diario que se disuelve, SOS en crisis y comunidad segura.">
+<meta name="twitter:image" content="https://alivia.lat/icon-512.png">
+
 <!-- Fuentes propias de ALIVIA (auto-hospedadas) -->
 <style>
 @font-face{font-family:'Lato';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/lato-300.woff2') format('woff2')}
@@ -402,6 +421,39 @@ a{color:inherit}
 .pie__meta a{color:var(--texto-2); text-decoration:none; border-bottom:1px solid var(--linea); padding-bottom:2px}
 .pie__meta a:hover{color:var(--oro)}
 
+/* ===== Créditos: Hackathon Nicaragua KRONOX 2026 ===== */
+.creditos{padding:clamp(2.2rem,5vw,3.4rem) 0 0; margin-top:clamp(2.4rem,6vw,4rem); border-top:1px solid var(--linea)}
+.creditos__nota{color:var(--texto-2); max-width:56ch; margin:0 0 1.4rem}
+.creditos__nota a{color:var(--oro); text-decoration:none; border-bottom:1px solid rgba(233,200,107,.3)}
+.creditos__nota a:hover{border-bottom-color:var(--oro)}
+/* Las marcas del hackathon son blancas sobre transparencia: en el fondo oscuro
+   solo se leen dentro de una placa blanca, igual que hace .unan__card. */
+.creditos__logos{list-style:none; display:flex; flex-wrap:wrap; gap:.7rem; margin:0 0 1.3rem; padding:0}
+.creditos__logos li{display:flex; align-items:center; background:#fff; border-radius:14px; padding:9px 15px; box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.creditos__logos img{display:block; height:38px; width:auto}
+.creditos__logos li[data-alto="chico"] img{height:29px}
+.creditos__ver{display:inline-flex; align-items:center; gap:.5rem; padding:10px 17px; border-radius:999px; border:1px solid var(--linea); background:rgba(255,255,255,.04); color:var(--texto-2); font-family:"Quicksand",sans-serif; font-weight:600; font-size:.9rem; cursor:pointer; transition:all .25s cubic-bezier(.16,1,.3,1)}
+.creditos__ver:hover{border-color:rgba(233,200,107,.35); color:var(--oro)}
+.creditos__ver:active{transform:scale(.97)}
+.galeria{border:1px solid var(--linea); border-radius:20px; padding:0; background:var(--fondo-1); color:var(--texto); width:min(920px,92vw); max-width:100%}
+.galeria::backdrop{background:rgba(4,8,6,.86)}
+.galeria__top{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:16px 18px; border-bottom:1px solid var(--linea)}
+.galeria__top p{margin:0; font-family:"Quicksand",sans-serif; font-weight:700; font-size:.95rem}
+.galeria__cerrar{background:transparent; border:1px solid var(--linea); border-radius:999px; color:var(--texto-2); padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer}
+.galeria__cerrar:hover{color:var(--oro); border-color:rgba(233,200,107,.35)}
+.galeria__rejilla{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; padding:16px 18px; max-height:62vh; overflow-y:auto; overscroll-behavior:contain}
+.galeria__rejilla img{display:block; width:100%; aspect-ratio:2/1; object-fit:cover; border-radius:10px; background:var(--vidrio)}
+.galeria__rejilla a{display:block; line-height:0}
+.galeria__ancha{grid-column:1/-1}
+.galeria__ancha img{aspect-ratio:16/9}
+.galeria__pie{padding:0 18px 16px; font-size:.78rem; color:var(--texto-3); margin:0}
+.galeria__pie a{color:var(--texto-2); border-bottom:1px solid var(--linea)}
+.galeria__marcas{padding:0 18px; border-top:1px solid var(--linea)}
+.galeria__marcas-t{margin:0; padding:14px 0 .7rem; font-family:"Quicksand",sans-serif; font-weight:700; font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--texto-3)}
+.galeria__marcas-l{margin:0 0 .9rem}
+.galeria__iconos{list-style:none; display:flex; flex-wrap:wrap; gap:.5rem; margin:0; padding:0 0 16px}
+.galeria__iconos img{display:block; width:34px; height:34px; object-fit:contain}
+
 /* Reveal */
 [id]{scroll-margin-top:96px}
 .reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1)}
@@ -430,18 +482,57 @@ a{color:inherit}
 </style>
 </head>
 <body>
-<body>
 <script>
-/* Si ya corre como PWA instalada (standalone iOS/Android) o dentro de la app nativa,
-   la landing no existe: redirige directo a la app. */
-(function(){
-  try{
-    var standalone = window.matchMedia('(display-mode: standalone)').matches
-      || (window.navigator && window.navigator.standalone === true)
-      || /capacitor|electron/i.test(window.navigator.userAgent || '');
-    var enApp = location.pathname === '/' || location.pathname === '/index.html';
-    if (standalone && !enApp) { location.replace('/'); }
-  }catch(e){}
+/* Puerta de primera visita.
+ *
+ * La landing se muestra UNA sola vez, la primera vez que alguien abre ALIVIA,
+ * tanto en web como en la PWA instalada o dentro de la app nativa (Capacitor /
+ * iOS). Despues de entrar, la persona queda en la app y no puede volver atras:
+ * el enlace usa location.replace, que no deja entrada en el historial, y este
+ * script rebota a la app si nota que yaHabiaEntrado.
+ *
+ * Antes esta pagina hacia lo contrario: si estaba en standalone (PWA o nativa)
+ * se saltaba a la app. Ahora la landing aparece tambien ahi, que es lo que
+ * pide el primer ingreso.
+ *
+ * El flag vive en localStorage: se resuelve sin red, funciona sin conexion y
+ * no espera a ningun request. El servidor lo guarda ademas en el perfil, para
+ * que en otro dispositivo tampoco reaparezca.
+ */
+(function () {
+  'use strict';
+  var CLAVE = 'alivia:landing-v1';
+
+  var yaEntro;
+  try { yaEntro = localStorage.getItem(CLAVE) === '1'; } catch (e) { yaEntro = false; }
+
+  // Volvio atras con el boton del navegador, o abrio el enlace a mano: fuera.
+  if (yaEntro) { location.replace('/'); return; }
+
+  // Los buscadores no deben aterrizar en la landing y quedarse ahi. Sin esto
+  // Google indexaria la pagina de presentacion en vez del sitio.
+  var agente = navigator.userAgent || '';
+  if (/bot|crawler|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegrambot/i.test(agente)) {
+    yaEntro = true;
+    try { localStorage.setItem(CLAVE, '1'); } catch (e) {}
+    location.replace('/');
+    return;
+  }
+
+  // Cualquier "Abrir la app" marca la visita como cerrada y entra sin historial.
+  var entrar = function () {
+    try { localStorage.setItem(CLAVE, '1'); } catch (e) {}
+  };
+  document.addEventListener('click', function (ev) {
+    var nodo = ev.target;
+    while (nodo && nodo.tagName !== 'A') nodo = nodo.parentNode;
+    if (!nodo) return;
+    var destino = nodo.getAttribute('href') || '';
+    if (destino !== '/' && destino.indexOf('/#') !== 0) return;
+    ev.preventDefault();
+    entrar();
+    location.replace('/');
+  }, true);
 })();
 </script>
 
@@ -456,6 +547,7 @@ a{color:inherit}
       <a href="#pitch">Pitch</a>
       <a href="#funciones">Funciones</a>
       <a href="#tecnologia">Tecnología</a>
+      <a href="/descarga.html">Descargar</a>
       <a class="cta" href="/">Abrir la app</a>
     </div>
   </div>
@@ -472,7 +564,7 @@ a{color:inherit}
         En la web o instalada como app Android.</p>
       <div class="hero__cta">
         <a class="btn btn--oro" href="/">Abrir la app</a>
-        <a class="btn btn--fantasma" href="https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk">
+        <a class="btn btn--fantasma" href="/descarga.html">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg>
           Descargar Android
         </a>
@@ -691,7 +783,7 @@ a{color:inherit}
     </div>
 
     <div class="techcard reveal">
-      <div class="techbar"><i></i><i></i><i></i><span>Imandro / ALIVIA — v1.0</span></div>
+      <div class="techbar"><i></i><i></i><i></i><span>Imandro / ALIVIA — v1.2.0</span></div>
       <div class="techbody">
         <p>Salud mental joven: una sola base de codigo, web y Android.</p>
         <div class="meter" role="img" aria-label="Composición del código">
@@ -709,12 +801,81 @@ a{color:inherit}
         <div class="techstats">
           <div><b>20+</b><span>Pantallas</span></div>
           <div><b>100%</b><span>Paridad web-app</span></div>
-          <div><b>3.6 MB</b><span>APK firmado</span></div>
+          <div><b>4,8 MB</b><span>APK firmado</span></div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<section class="creditos reveal" aria-labelledby="credTitulo">
+  <p class="kicker">Hackathon Nicaragua · KRONOX 2026</p>
+  <h2 id="credTitulo" style="font-size:clamp(1.15rem,2.2vw,1.6rem); max-width:24ch">ALIVIA nació en el Hackathon Nicaragua KRONOX 2026.</h2>
+  <p class="creditos__nota">
+    Diez años de una red que sigue creyendo en las ideas jóvenes, con el soporte del
+    <a href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener">Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno</a>
+    y del Gobierno de Reconciliación y Unidad Nacional, fueron el suelo para que una idea
+    hecha en Somoto llegara a miles de teléfonos.
+  </p>
+  <ul class="creditos__logos">
+    <li><img src="/kronox/logo-hackathon-nicaragua.png" width="250" height="91" loading="lazy" decoding="async" alt="Hackathon Nicaragua"></li>
+    <li data-alto="chico"><img src="/kronox/isotipo-10-aniversario.png" width="303" height="166" loading="lazy" decoding="async" alt="Décimo aniversario: ¡Siempre más allá!"></li>
+    <li><img src="/kronox/logo-institucional-blanco.webp" width="567" height="542" loading="lazy" decoding="async" alt="Gobierno de Reconciliación y Unidad Nacional de Nicaragua"></li>
+    <li><img src="/kronox/logo-ci-nicaragua-blanco.webp" width="567" height="542" loading="lazy" decoding="async" alt="Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno, Nicaragua"></li>
+  </ul>
+  <button type="button" class="creditos__ver js-galeria" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h11v2H4z"/></svg>
+    Ver el lanzamiento
+  </button>
+</section>
+
+<dialog class="galeria" id="galeria" aria-labelledby="galTitulo">
+  <div class="galeria__top">
+    <p id="galTitulo">KRONOX 2026 · cartel y lanzamiento</p>
+    <button type="button" class="galeria__cerrar js-cerrar">Cerrar</button>
+  </div>
+  <div class="galeria__rejilla">
+    <a class="galeria__ancha" href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener"><img src="/kronox/banner-kronox-2026.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="Banner oficial del Hackathon Nicaragua KRONOX 2026"></a>
+    <a class="galeria__ancha" href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener"><img src="/kronox/fondo-convocatoria.jpg" width="1600" height="900" loading="lazy" decoding="async" alt="Fondo oficial de la convocatoria: los participantes de KRONOX 2026 con el cartel del décimo aniversario"></a>
+    <a class="galeria__ancha" href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener"><img src="/kronox/ruta-hackathon-2026.webp" width="1205" height="533" loading="lazy" decoding="async" alt="Ruta de la competencia KRONOX 2026: etapas y calendario"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-01.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participantes en el photocall del lanzamiento de KRONOX 2026"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-02.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Equipo en el lanzamiento de KRONOX 2026"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-03.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Ganadores del festival fotografiados junto al mural KRONOX"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-04.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participantes premiadas en el lanzamiento"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-05.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participante en el unset del escenario KRONOX"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-06.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participante de KRONOX 2026 junto al mural del lanzamiento"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-07.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Integrantes de un equipo con su premio del festival"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-08.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Grupo completo posando sobre el escenario del festival tecnológico"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-09.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participantes registration: acreditación y materiales del evento"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-10.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Integrantes con sus insignias del Hackathon Nicaragua"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-11.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Participante del El Festival Tecnológico KRONOX 2026"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-12.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Equipo ganador del primer lugar del festival"></a>
+    <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener"><img src="/kronox/lanzamiento-13.jpg" width="800" height="400" loading="lazy" decoding="async" alt="Dos participantes del Hackathon Nicaragua 2026"></a>
+  </div>
+  <div class="galeria__marcas">
+    <p class="galeria__marcas-t">Marcas y recursos oficiales</p>
+    <ul class="creditos__logos galeria__marcas-l">
+      <li data-alto="chico"><img src="/kronox/logo-hackathon-blanco.webp" width="190" height="182" loading="lazy" decoding="async" alt="Isotipo Hackathon Nicaragua"></li>
+      <li data-alto="chico"><img src="/kronox/logo-red-x.webp" width="600" height="600" loading="lazy" decoding="async" alt="Red X, marca institucional del Hackathon Nicaragua"></li>
+      <li data-alto="chico"><img src="/kronox/favicon-hackathon.ico" width="32" height="32" loading="lazy" decoding="async" alt="Favicon oficial del Hackathon Nicaragua"></li>
+    </ul>
+    <ul class="galeria__iconos">
+      <li><img src="/kronox/01-02_P0DFSsj.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono cerebro"></li>
+      <li><img src="/kronox/01-03_lvq4nIX.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono engranaje"></li>
+      <li><img src="/kronox/01-05.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono cerebro con semicírculo"></li>
+      <li><img src="/kronox/01-06.png" width="200" height="201" loading="lazy" decoding="async" alt="Icono engranaje con círculo"></li>
+      <li><img src="/kronox/01-08_uJuSo34.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono teléfono móvil"></li>
+      <li><img src="/kronox/01-09.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono teléfono móvil con pantalla"></li>
+      <li><img src="/kronox/camping.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono carpa, versión celeste"></li>
+      <li><img src="/kronox/camping2.png" width="201" height="201" loading="lazy" decoding="async" alt="Icono carpa, versión magenta"></li>
+    </ul>
+  </div>
+  <p class="galeria__pie">
+    Material del <a href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener">Hackathon Nicaragua</a>
+    y de la <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener">convocatoria de lanzamiento</a>.
+    Las fotos enlazan a su fuente original.
+  </p>
+</dialog>
 
 <footer class="pie">
   <div class="wrap">
@@ -722,7 +883,7 @@ a{color:inherit}
       <h2>El primer paso puede ser solo respirar.</h2>
       <div class="hero__cta" style="margin-top:0">
         <a class="btn btn--oro" href="/">Abrir la app</a>
-        <a class="btn btn--fantasma" href="https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk">Descargar Android</a>
+        <a class="btn btn--fantasma" href="/descarga.html">Descargar Android</a>
       </div>
     </div>
     <div class="pie__meta">
@@ -741,7 +902,8 @@ a{color:inherit}
         <span>© 2026 ALIVIA · <strong style="color:var(--texto-2)">Equipo DataStorm</strong></span>
       </div>
       <a href="/">App web</a>
-      <a href="https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk">Android</a>
+      <a href="/descarga.html">Android</a>
+      <a href="https://github.com/Imandro/AliviaApp/releases" target="_blank" rel="noopener">Releases</a>
       <a href="https://github.com/Imandro/AliviaApp" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:.45rem"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>Imandro</a>
     </div>
   </div>
@@ -804,5 +966,24 @@ a{color:inherit}
   }
 })();
 </script>
-</body>
+
+<script>
+/* Galeria del Hackathon KRONOX 2026. <dialog> nativo: Esc, foco atrapado y
+   vuelta al boton los resuelve el navegador, asi que aqui solo se abre y cierra.
+   Sin soporte de <dialog> el boton se oculta y la franja de logos del pie queda
+   igual de valida: ninguna imagen pesada entra al pie de la pagina. */
+(function(){
+  var boton = document.querySelector('.js-galeria');
+  var dlg = document.getElementById('galeria');
+  var cerrar = dlg && dlg.querySelector('.js-cerrar');
+  if (!boton || !dlg || typeof dlg.showModal !== 'function') {
+    if (boton) boton.hidden = true;
+    return;
+  }
+  boton.addEventListener('click', function(){ dlg.showModal(); });
+  if (cerrar) cerrar.addEventListener('click', function(){ dlg.close(); });
+  /* Click en el fondo (el dialog no tiene padding, el borde es el fondo) */
+  dlg.addEventListener('click', function(ev){ if (ev.target === dlg) dlg.close(); });
+})();
+</script></body>
 </html>

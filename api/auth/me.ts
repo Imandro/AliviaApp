@@ -8,7 +8,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ error: 'MÃƒÂ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -17,7 +17,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     const sessionUser = await getUserFromRequest(req);
     if (!sessionUser) {
-      return res.status(401).json({ error: 'SesiÃƒÂ³n no vÃƒÂ¡lida' });
+      return res.status(401).json({ error: 'Sesión no válida' });
     }
 
     const pool = getPool();

@@ -21,9 +21,9 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-RDS-336791?style=flat-square&logo=postgresql&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-Lambda%20%2B%20S3%20%2B%20CloudFront%20%2B%20RDS-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)
 
-**[Abrir la web](https://alivia.lat)** ·
-**[Descargar Android](https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-android.apk)** ·
-**[Landing del proyecto](https://alivia.lat/landing)** ·
+**[Abrir la web](https://d3gm2ziao5tkw0.cloudfront.net)** ·
+**[Descargar Android](https://alivia.lat/descarga.html)** ·
+**[Landing del proyecto](https://alivia.lat/landing.html)** ·
 **[Reportar un problema](https://github.com/Imandro/AliviaApp/issues)**
 
 </div>
@@ -176,13 +176,9 @@ Además, el service worker precachea **todo** el shell (JS, CSS, fuentes, imáge
 
 | Métrica | Valor |
 |---|---|
-| Tests | 141 tests en 9 archivos (Vitest): clasificador de crisis, failover, rate limit, SSE, motor offline y arranque |
-| CI | Typecheck + build + tests en cada push/PR (Node 22) |
-| JS inicial (gzip) | 102 KB (321 KB crudo) · CSS 7.4 KB (31 KB) |
-| JS total | 716 KB crudo / 239 KB gzip repartidos en 55 chunks (code-splitting por pantalla) |
-| Precache PWA | 83 entradas · 1.6 MB: la app instalada arranca offline desde el primer uso |
-| APK Android | ~4.8 MB (`ALIVIA-android.apk`, release v1.2.0) |
-| Paridad web ↔ app | 100 % (mismo build de Vite) |
+| Bundle web (gzip) | ~180 KB JS + 4.4 KB CSS |
+| APK firmado | ~4,8 MB |
+| Paridad web ↔ app | 100 % (mismo build) |
 | Fuentes | Auto-hospedadas, 0 peticiones a CDNs |
 | Dependencias runtime | React, React Router, Lucide, pg, web-push, ws, Capacitor + plugins nativos |
 
@@ -304,8 +300,8 @@ petición manipulada no pueda degradar las respuestas de crisis.
 ├── ios/                  # Shell nativo Swift (WKWebView) + project.yml (XcodeGen)
 ├── public/
 │   ├── fonts/            # Tipografía propia (Quicksand variable + Lato)
-│   ├── avatars/ · mascota-*.png   # Mascota de VIA
-│   └── landing.html      # Landing del proyecto (redirige a la app en modo PWA)
+│   ├── landing.html      # Landing del proyecto (redirige a la app en modo PWA)
+│   └── descarga.html     # Página de descarga del APK (requisitos, instalación, FAQ)
 ├── scripts/
 │   ├── build-lambda.mjs  # Bundles de las tres Lambdas
 │   ├── ios-sync.js       # Copia el build web a ios/Web
@@ -358,10 +354,7 @@ aws cloudformation deploy --template-file infra/web.yaml --stack-name alivia-web
 En `main` el workflow **Deploy to AWS** (`.github/workflows/deploy-aws.yml`) repite el build
 de Lambdas y el deploy vía OIDC (`AWS_ROLE_ARN`), sin claves de AWS en el repositorio.
 
-La web y la API se publican en el mismo dominio, así que no hay CORS ni URLs distintas.
-El dominio propio **alivia.lat** se configura en `infra/web.yaml` (ACM + Route53, con el
-flag `DomainDelegated` a `true` cuando los nameservers ya delegan); el alias de CloudFront
-queda como referencia. La landing vive en [`/landing`](https://alivia.lat/landing).
+La web y la API se publican en el mismo dominio de CloudFront, así que no hay CORS ni URLs distintas. La landing vive en [`/landing.html`](https://alivia.lat/landing.html) y la página de descarga del APK en [`/descarga.html`](https://alivia.lat/descarga.html); ambas llevan extensión a propósito, porque el fallback SPA de CloudFront solo reescribe a `index.html` las URI sin extensión.
 
 Los **recordatorios push** necesitan las claves VAPID y el `CRON_SECRET` en el secret
 `alivia/notification-secret` (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`).

@@ -24,11 +24,56 @@ export interface SafeUser {
   changes: string[];
   goals_text: string | null;
   onboarding_done: boolean;
+  landing_seen: boolean;
   created_at: string;
 }
 
 const TOKEN_KEY = 'alivia_token';
 const USER_CACHE_KEY = 'alivia_user_cache';
+
+/* La landing se muestra una sola vez. El flag local es el que decide (se
+ * comprueba en index.html antes de montar React, sin red y sin esperar a la
+ * sesion); esta columna de la cuenta es la copia en el servidor, para que al
+ * entrar desde otro dispositivo la landing tampoco reaparezca.
+ *
+ * Si la cuenta ya la vio, se marca aqui en localStorage y este dispositivo
+ * entra directo a la app. */
+const LANDING_KEY = 'alivia:landing-v1';
+
+const syncLandingFlag = (user: SafeUser | null): void => {
+  if (!user || !user.landing_seen) return;
+  try {
+    localStorage.setItem(LANDING_KEY, '1');
+  } catch {
+    /* localStorage bloqueado: se mostrara la landing, que es lo que peor
+     * puede pasar. No se rompe el arranque. */
+  }
+};
+
+/* Tras el primer ingreso se copia el flag a la cuenta. Se hace una sola vez por
+ * dispositivo (si la cuenta ya venia con landing_seen en true, el UPDATE de la
+ * API no escribe nada por el IS DISTINCT FROM). Si falla la red, no pasa nada:
+ * el flag local ya cumple y en el proximo arranque se reintenta. */
+let landingSyncStarted = false;
+
+const markLandingSeenOnAccount = (): void => {
+  if (landingSyncStarted) return;
+  try {
+    if (localStorage.getItem(LANDING_KEY) !== '1') return;
+  } catch {
+    return;
+  }
+  landingSyncStarted = true;
+  const token = getToken();
+  if (!token) return;
+  fetch(`${API_BASE}/api/auth/profile`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ landing_seen: true }),
+  }).catch(() => {
+    landingSyncStarted = false;
+  });
+};
 
 export const getToken = (): string | null => localStorage.getItem(TOKEN_KEY);
 
@@ -46,6 +91,7 @@ const cacheUser = (user: SafeUser): void => {
   } catch {
     /* noop */
   }
+  syncLandingFlag(user);
 };
 
 const getCachedUser = (): SafeUser | null => {
@@ -117,6 +163,7 @@ export const login = (identifier: string, password: string): Promise<AuthRespons
 export const getMe = (): Promise<SafeUser> =>
   request<SafeUser>('/me').then((u) => {
     cacheUser(u);
+    markLandingSeenOnAccount();
     return u;
   }).catch((e) => {
     // Sin conexión: continuar con el último usuario conocido en vez de deslogear
