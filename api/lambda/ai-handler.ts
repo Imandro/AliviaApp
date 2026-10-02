@@ -14,7 +14,7 @@
 
 import type { LambdaEvent, LambdaResponse } from './adapter.js';
 import { applyCors } from '../_cors.js';
-import aiHandler, { chatUpstream } from '../ai.js';
+import aiHandler, { chatFallbacks, GEMINI_BASE } from '../ai.js';
 
 // writableStream que AWS inyecta como segundo argumento del handler registrado
 // con streamifyResponse.
@@ -82,6 +82,29 @@ type StreamingHandler = (
   responseStream: ResponseStream
 ) => Promise<unknown>;
 
+// Gemini 3 razona antes de responder, y los tokens de razonamiento se descuentan
+// del mismo presupuesto que el texto. Con 320 la respuesta llegaba cortada a
+// media frase ("...pero confía en lo que"), con finish_reason "length". Medido
+// con esta cuenta: 320 y 640 cortan, 1024 ya completa. El maximo queda en 2048
+// para que una respuesta larga no se trunque.
+const DEFAULT_MAX_TOKENS = 4096;
+const MAX_MAX_TOKENS = 8192;
+
+/** Nombre corto del proveedor, para logs legibles. */
+const nombreProveedor = (base: string): string =>
+  base === GEMINI_BASE ? 'gemini' : base.includes('openai.com') ? 'openai' : 'groq';
+
+/**
+ * Extrae el motivo de un error de la API sin volcar el cuerpo entero: estos
+ * errores pueden traer la peticion completa reflected, y el log se lee peor.
+ */
+const motivoDe = (cuerpo: string): string => {
+  const m = cuerpo.match(/"message"\s*:\s*"([^"]{0,110})/);
+  if (m) return m[1];
+  const p = cuerpo.replace(/\s+/g, ' ').trim();
+  return p.slice(0, 100) || '(sin detalle)';
+};
+
 const streamifyRuntime = (globalThis as unknown as {
   awslambda?: { streamifyResponse?: (handler: StreamingHandler) => unknown };
 }).awslambda?.streamifyResponse;
@@ -101,23 +124,29 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
 
   responseStream.setContentType?.('text/event-stream');
 
-  const upstream = chatUpstream();
+  const upstreams = chatFallbacks();
 
-  const { body, params, models } = (() => {
+  const { body, params, modelosPorProveedor } = (() => {
     const parsed = jsonBody(event);
     const messages = sanitizeMessages(parsed.messages);
     const src = (parsed.params ?? {}) as Record<string, unknown>;
+    const modeloPedido = typeof parsed.model === 'string' ? parsed.model : null;
     return {
       body: messages,
       params: {
         temperature: clamp(src.temperature, 0, 1, 0.8),
         top_p: clamp(src.top_p, 0, 1, 0.9),
-        max_tokens: Math.round(clamp(src.max_tokens, 32, 1024, 320)),
+        max_tokens: Math.round(clamp(src.max_tokens, 32, MAX_MAX_TOKENS, DEFAULT_MAX_TOKENS)),
       },
-      models:
-        typeof parsed.model === 'string' && upstream.models.includes(parsed.model)
-          ? [parsed.model]
-          : upstream.models,
+      // El cliente solo puede pedir un modelo de la lista del proveedor
+      // principal. En los de respaldo se usa siempre su lista completa, que es
+      // la unica valida para ellos.
+      modelosPorProveedor: upstreams.map((u) => ({
+        upstream: u,
+        models: u === upstreams[0] && modeloPedido && u.models.includes(modeloPedido)
+          ? [modeloPedido]
+          : u.models,
+      })),
     };
   })();
 
@@ -127,7 +156,7 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
     return;
   }
 
-  if (!upstream.key) {
+  if (!upstreams.some((u) => u.key)) {
     write(sseEvent({ type: 'error', reason: 'IA no configurada' }));
     responseStream.end();
     return;
@@ -135,16 +164,45 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
 
   write(sseEvent({ type: 'open' }));
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+  // El tiempo se reparte entre los intentos en vez de darle un unico
+  // AbortController para toda la cadena.
+  //
+  // Antes un solo controller con 22 s para todo: si el proveedor principal se
+  // quedaba sin cuota y tardaba en responder sus 429, el abort global se
+  // disparaba mientras todavia estaba recorriendo sus modelos y los proveedores
+  // de respaldo nunca llegaban a probarse. Con la cuota de Gemini agotada, la
+  // Lambda devolvia "IA no disponible" aunque Groq estuviera disponible y
+  // respondsiendo bien. Verificado: Groq contestaba "di ok" en el mismo minuto
+  // en que la app fallaba.
+  //
+  // Ahora cada intento tiene su propio presupuesto y solo se corta cuando se
+  // agota el tiempo total de la Lambda.
+  const deadline = Date.now() + UPSTREAM_TIMEOUT_MS;
+  const restante = (): number => Math.max(1000, deadline - Date.now());
 
   (async () => {
     let delivered = false;
-    for (const model of models) {
-      if (controller.signal.aborted) break;
-      try {
-        // OpenAI y Groq comparten formato de streaming: `data:` con
-        // choices[0].delta.content y cierre en `data: [DONE]`.
+
+    // Se recorre proveedor por proveedor y, dentro de cada uno, sus modelos.
+    //
+    // Esto importa porque la cuota de Gemini es.intermitente: medido con esta
+    // cuenta, 5 de 6 llamadas seguidas devolvieron 429 "exceeded your current
+    // quota". Antes solo se probaban los modelos de un mismo proveedor, asi que
+    // cuando los tres fallaban VIA se quedaba muda sin intentar Groq.
+    for (const { upstream, models } of modelosPorProveedor) {
+      if (Date.now() >= deadline) break;
+      if (!upstream.key) continue;
+      console.warn(`[chat] probando ${nombreProveedor(upstream.base)} (${models.length} modelo/s)`);
+
+      for (const model of models) {
+        if (Date.now() >= deadline) break;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), restante());
+        try {
+        // Gemini, OpenAI y Groq comparten formato de streaming: `data:` con
+        // choices[0].delta.content y cierre en `data: [DONE]`. Y los tres
+        // aceptan la clave en Authorization: Bearer, incluido el endpoint
+        // compatible de Google.
         const upstreamRes = await fetch(`${upstream.base}/chat/completions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${upstream.key}` },
@@ -152,11 +210,29 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
           signal: controller.signal,
         });
 
-        if (upstreamRes.status === 429) {
-          write(sseEvent({ type: 'error', reason: 'IA saturada' }));
-          break;
+        // Ni 429 ni 503 cortan el stream: quedan otros modelos y otros proveedores por
+        // probar. Cortar aqui era lo que dejaba a VIA muda cuando se agotaba la
+        // cuota.
+        if (!upstreamRes.ok || !upstreamRes.body) {
+          // Pero hay dos 429 que quieren cosas distintas, y confundirlos cuesta
+          // 22 segundos de espera:
+          //
+          //  - "You exceeded your current quota" es de la cuenta. Le pasa igual
+          //    a los demas modelos del mismo proveedor, asi que seguir probando
+          //    es perder tiempo: conviene saltar al proveedor siguiente ya.
+          //  - "This model is currently experiencing high demand" es de ese
+          //    modelo. El siguiente puede funcionar, asi que se sigue.
+          if (upstreamRes.status === 429 || upstreamRes.status === 503) {
+            const detalle = await upstreamRes.text().catch(() => '');
+            console.warn(`[chat] ${nombreProveedor(upstream.base)}/${model} ${upstreamRes.status}: ${motivoDe(detalle)}`);
+            if (/exceeded your current quota|quota|billing/i.test(detalle)) {
+              break; // cuota de la cuenta: el siguiente modelo tampoco entra
+            }
+          } else {
+            console.warn(`[chat] ${nombreProveedor(upstream.base)}/${model} ${upstreamRes.status} sin cuerpo`);
+          }
+          continue;
         }
-        if (!upstreamRes.ok || !upstreamRes.body) continue;
 
         const reader = upstreamRes.body.getReader();
         const decoder = new TextDecoder();
@@ -199,17 +275,23 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
           return;
         }
         reader.releaseLock();
-      } catch {
-        if (controller.signal.aborted) break;
+        } catch {
+          if (Date.now() >= deadline) break;
+        } finally {
+          clearTimeout(timer);
+        }
       }
     }
+    // Se agoto la cadena completa: todos los proveedores y todos sus modelos.
     write(sseEvent({ type: 'error', reason: 'IA no disponible' }));
   })()
-    .catch(() => {
-      /* el stream ya se cerro con un evento de error */
+    .catch((err) => {
+      // Antes esto se tragaba el error en silencio: el cliente recibia solo el
+      // evento "open" y nada mas, sin forma de saber que habia pasado.
+      console.error('[chat] fallo el stream:', err);
+      write(sseEvent({ type: 'error', reason: 'IA no disponible' }));
     })
     .finally(() => {
-      clearTimeout(timer);
       responseStream.end();
     });
 

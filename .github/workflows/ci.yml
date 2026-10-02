@@ -28,5 +28,13 @@ jobs:
       - name: Typecheck + build
         run: npm run build
 
+      - name: Build Lambdas
+        # api/bundles.test.ts carga los tres bundles para detectar referencias
+        # sin importar, que compilan bien y solo fallan cuando la Lambda
+        # arranca. Los directorios dist* estan en .gitignore, asi que este build
+        # es obligatorio antes de los tests: sin el, ese test no encuentra los
+        # archivos.
+        run: npm run build:lambda
+
       - name: Tests
         run: npm test
