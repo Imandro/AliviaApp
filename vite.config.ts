@@ -36,6 +36,12 @@ export default defineConfig(({ mode }) => ({
           'workbox-*.js',
           '**/ALIVIA-*.apk',
           '**/mascota-*.png',
+          // El manifiesto de la release (version, bytes, sha256) cambia en cada
+          // publicacion del APK. Precacacheado, el service worker seguiria
+          // sirviendo el hash y la URL de la version anterior a quien ya
+          // visito la pagina, y la verificacion en navegador fallaria.
+          // Case igual que la API: siempre a la red.
+          'releases.json',
           // Los videos antiguos ya no participan en las pantallas de carga.
           'videos/alivia-reveal.webm',
           'videos/alivia-pop.webm',

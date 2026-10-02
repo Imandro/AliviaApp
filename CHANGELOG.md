@@ -5,8 +5,42 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ## [No publicado]
 
+### Cambiado
+
+- **La página de descarga se rehace desde cero** (`public/descarga.html`). El
+  argumento pasa de "te baja revoluciones" a privacidad y autonomía, con la
+  tabla "lo que sale de tu teléfono es exactamente nada" como sección central:
+  qué se queda en el dispositivo, qué no sale nunca y qué solo cruza internet si
+  tú lo enciendes. Encima van las cifras (4,8 MB · 0 anuncios · 0 rastreo · MIT).
+- **Mockup interactivo del teléfono** con las pantallas reales —Inicio, Respira y
+  Cosas—, con los iconos lucide que usa la app y la mascota del proyecto. La
+  versión anterior no mostraba el producto: cero capturas, cero demostración.
+- **Barra de progreso real y verificación SHA-256 en el navegador.** El APK ya no
+  se descarga desde GitHub, sino desde `alivia.lat`; al ser *same-origin* se puede
+  leer el `ReadableStream` (progreso, velocidad y tiempo restantetrue) y calcular
+  el hash con WebCrypto. Si el hash no cuadra no se guarda nada. Antes el código
+  admitía en un comentario que no se podía hacer nada de eso.
+- **Detección de plataforma**: en iOS, donde no se puede instalar un APK, el
+  botón pasa a ofrecer la versión web en vez de fallar al pulsar.
+- **Tabla comparativa** web instalable frente a APK, y sección de verificación
+  con los comandos `Get-FileHash` y `shasum -a 256` para comprobarlo a mano.
+- `index.html`: el JSON-LD ya no anuncia "Juegos de calma" sino "Cosas que no
+  importan (juegos sin meta)".
+
 ### Añadido
 
+- **El APK se sirve desde el propio dominio**, en `/releases/` del bucket de la
+  web, sin tocar la plantilla de CloudFormation: la CloudFront Function
+  `alivia-spa-fallback` ya deja pasar cualquier URI con un punto. Con
+  `Content-Type: application/vnd.android.package-archive`, `Content-Disposition`
+  y `Cache-Control` por ruta.
+- **`scripts/release-apk.mjs`** (`npm run release:apk`): sube el APK, calcula su
+  SHA-256 y **escribe `public/releases.json`**, que pasa a ser la única fuente de
+  verdad de versión, tamaño y hash. La página y el landing los leen de ahí en vez
+  de llevar el dato escrito a mano. Rechaza archivos que no empiecen por la firma
+  `PK` de un ZIP, para no publicar por error una descarga a medias.
+- **Rutas `/releases/` y `/releases.json` en `robots.txt`**: son un binario y un
+  JSON, no páginas, y no merece la pena que un crawler baje 4,8 MB.
 - **Siete generadores de sonido suave** en `src/utils/sounds.ts`, incluido un
   helper de ruido filtrado (base de `marimbaNote`, `woodSound`, `polishSound`,
   `creaseSound`, `sweepSound`, `beadSound`, `dartSound`, `placeSound`). Ninguno
@@ -23,7 +57,7 @@ versionado con [SemVer](https://semver.org/lang/es/).
   descarga, datos reales del binario publicado (v1.2.0 · 4,8 MB · Android 7.0+ ·
   universal), SHA-256, requisitos, los cuatro pasos de instalación, aviso sobre el
   "origen desconocido" de Android, alternativas (PWA, compilar desde el código,
-  notas de la versión) y un FAQ de 8 preguntas. Tiene canonical, Open Graph y
+  notas de la versión) y un FAQ de 10 preguntas. Tiene canonical, Open Graph y
   entrada propia en el sitemap.
 - **El landing enlaza a esa página** desde el nav, el hero y el footer. Los botones
   "Descargar Android" ya no apuntan directo al asset de GitHub: apuntan a la página,
