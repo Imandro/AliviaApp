@@ -17,13 +17,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <!-- Verificacion de Google Search Console. Va en el <head> de la raiz: es
+    <!-- Verificacion de Google Search Console. Va en el head de la raiz: es
          lo que Google descarga para confirmar que alivia.lat es tuyo. -->
     <meta name="google-site-verification" content="X7CJ_RKRPrpAP2DtYNzhUA3fNdIbILOIgXFiwHscnAI" />
 
     <!-- Canonical. Sin esto, / y /landing.html y la URL de CloudFront compiten
          como tres paginas distintas del mismo sitio. -->
     <link rel="canonical" href="https://alivia.lat/" />
+
+<!-- La SPA exige login para casi todo: sin esto Google podria indexar paginas
+         privadas que solo muestran la pantalla de acceso. -->
+    <meta name="robots" content="index, follow, max-image-preview:large" />
 
     <!-- Open Graph: sin esto, al compartir el enlace en WhatsApp, Instagram o X
          sale solo el enlace, sin titulo ni imagen. -->
