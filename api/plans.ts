@@ -9,7 +9,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   const method = req.method ?? 'GET';
   if (!methods.includes(method)) {
     res.setHeader('Allow', methods.join(', '));
-    return res.status(405).json({ error: 'MÃ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -43,7 +43,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (!Number.isFinite(planId)) {
-      return res.status(400).json({ error: 'planId invÃ¡lido' });
+      return res.status(400).json({ error: 'planId inválido' });
     }
 
     if (method === 'PUT') {
@@ -77,7 +77,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         );
         return res.status(200).json(rows[0] ?? null);
       }
-      return res.status(400).json({ error: 'AcciÃ³n no reconocida' });
+      return res.status(400).json({ error: 'Acción no reconocida' });
     }
 
     await pool.query(`SELECT fn_delete_plan($1)`, [planId]);

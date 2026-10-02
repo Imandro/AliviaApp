@@ -15,11 +15,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (isLike) {
       if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
-        return res.status(405).json({ error: 'MÃ©todo no permitido' });
+        return res.status(405).json({ error: 'Método no permitido' });
       }
       const postId = Number(req.query.postId ?? NaN);
       if (!Number.isFinite(postId)) {
-        return res.status(400).json({ error: 'postId invÃ¡lido' });
+        return res.status(400).json({ error: 'postId inválido' });
       }
       const { rows } = await pool.query(`SELECT * FROM fn_like_post($1)`, [postId]);
       if (rows.length === 0) {
@@ -31,7 +31,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const methods = ['GET', 'POST'];
     if (!methods.includes(req.method!)) {
       res.setHeader('Allow', methods.join(', '));
-      return res.status(405).json({ error: 'MÃ©todo no permitido' });
+      return res.status(405).json({ error: 'Método no permitido' });
     }
 
     if (req.method === 'GET') {
@@ -46,11 +46,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const { author, content, topic } = req.body ?? {};
     const cleanContent = String(content ?? '').trim();
     if (!cleanContent || cleanContent.length > 500) {
-      return res.status(400).json({ error: 'El mensaje es requerido (mÃ¡x. 500 caracteres)' });
+      return res.status(400).json({ error: 'El mensaje es requerido (máx. 500 caracteres)' });
     }
     const { rows } = await pool.query(
       `SELECT * FROM fn_create_post($1, $2, $3)`,
-      [String(author ?? 'AnÃ³nimo').slice(0, 30), cleanContent, String(topic ?? 'general').slice(0, 30)]
+      [String(author ?? 'Anónimo').slice(0, 30), cleanContent, String(topic ?? 'general').slice(0, 30)]
     );
     return res.status(201).json(rows[0]);
   } catch (err) {
