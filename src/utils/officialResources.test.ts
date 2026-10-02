@@ -1,5 +1,4 @@
-// @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetStorage } from '../test/setup';
 
 import {
@@ -28,6 +27,11 @@ describe('officialResources — recursos oficiales verificados', () => {
   beforeEach(() => {
     resetStorage();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('OFFICIAL_RESOURCES — conjunto verificado', () => {
@@ -164,8 +168,25 @@ describe('officialResources — recursos oficiales verificados', () => {
 
   describe('detectUserCountry', () => {
     it('devuelve un país válido (nunca INTL)', async () => {
+      // Sin geolocalizacion y con locale en espanol: resuelve por idioma,
+      // sin tocar la red (el fallback por IP se stubea para que no salga).
+      vi.stubGlobal('navigator', { language: 'es-NI' });
+      vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
       const country = await detectUserCountry();
       expect(['NI', 'SV', 'GT', 'HN', 'CR', 'PA']).toContain(country);
+      expect(country).not.toBe('INTL');
+    });
+
+    it('cae a NI cuando no hay geolocalizacion, idioma ni red', async () => {
+      vi.stubGlobal('navigator', {
+        geolocation: {
+          getCurrentPosition: (_s: any, err: (e: any) => void) => err(new Error('denied')),
+        },
+        language: 'en-US',
+      });
+      vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
+      const country = await detectUserCountry();
+      expect(country).toBe('NI');
     });
 
     it('usa geolocalización si está disponible y tiene geocerca', async () => {
