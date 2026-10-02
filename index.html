@@ -16,6 +16,60 @@
     <meta name="theme-color" content="#2C533D" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Verificacion de Google Search Console. Va en el <head> de la raiz: es
+         lo que Google descarga para confirmar que alivia.lat es tuyo. -->
+    <meta name="google-site-verification" content="X7CJ_RKRPrpAP2DtYNzhUA3fNdIbILOIgXFiwHscnAI" />
+
+    <!-- Canonical. Sin esto, / y /landing.html y la URL de CloudFront compiten
+         como tres paginas distintas del mismo sitio. -->
+    <link rel="canonical" href="https://alivia.lat/" />
+
+    <!-- Open Graph: sin esto, al compartir el enlace en WhatsApp, Instagram o X
+         sale solo el enlace, sin titulo ni imagen. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ALIVIA" />
+    <meta property="og:locale" content="es" />
+    <meta property="og:title" content="ALIVIA - Tu Espacio de Calma" />
+    <meta property="og:description" content="Respiración guiada, diario que se disuelve y apoyo inmediato en crisis. Un refugio para adolescentes y jóvenes." />
+    <meta property="og:url" content="https://alivia.lat/" />
+    <meta property="og:image" content="https://alivia.lat/icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="ALIVIA, tu espacio de calma" />
+
+    <!-- Twitter/X usa sus propias etiquetas cuando existen, y og:* como respaldo -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ALIVIA - Tu Espacio de Calma" />
+    <meta name="twitter:description" content="Respiración guiada, diario que se disuelve y apoyo inmediato en crisis." />
+    <meta name="twitter:image" content="https://alivia.lat/icon-512.png" />
+
+    <!-- Datos estructurados: permite que Google la muestre como aplicacion
+         web y con acciones como "instalar". -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ALIVIA",
+      "alternateName": "ALIVIA - Tu Espacio de Calma",
+      "url": "https://alivia.lat/",
+      "description": "Espacio seguro de bienestar mental para adolescentes y jóvenes: respiración guiada, diario terapéutico, actividades de afrontamiento y apoyo inmediato en crisis.",
+      "inLanguage": "es",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "any",
+      "browserRequirements": "Requiere JavaScript",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Respiración guiada",
+        "Diario que se disuelve",
+        "Apoyo inmediato en crisis (SOS)",
+        "Juegos de calma",
+        "Actividades de afrontamiento"
+      ],
+      "image": "https://alivia.lat/icon-512.png",
+      "sameAs": ["https://www.alivia.lat/"]
+    }
+    </script>
     
     <!-- Fuentes auto-hospedadas (Lato + Quicksand) vía src/fonts.css: paridad offline en web y app nativa -->
 
