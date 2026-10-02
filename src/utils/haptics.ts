@@ -52,3 +52,18 @@ export const hapticSuccess = (): void => {
 export const hapticSos = (): void => {
   haptic(ImpactStyle.Heavy);
 };
+
+/**
+ * Tick imperceptible para tareas repetitivas (frotar, barrer, apilar).
+ * Con throttle: los juegos generan decenas de toques por segundo y el motor
+ * nativo no debe recibir una ráfaga de vibraciones.
+ */
+const TICK_GAP_MS = 110;
+let lastTick = 0;
+
+export const hapticTick = (): void => {
+  const now = Date.now();
+  if (now - lastTick < TICK_GAP_MS) return;
+  lastTick = now;
+  haptic(ImpactStyle.Light);
+};

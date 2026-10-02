@@ -91,8 +91,8 @@ const FEATURES: FeatureCard[] = [
   },
   {
     id: 'games',
-    title: 'Juegos Mente-Activos',
-    desc: 'Mini-juegos para momentos difíciles: burbujas, memoria, grounding y secuencias para calmar la mente.',
+    title: 'Cosas Que No Importan',
+    desc: 'Ocho tareas aburridas a propósito —una moneda, una pila, una marimba— para distraerte sin nada que ganar.',
     icon: Gamepad2,
     path: '/games',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-rose-rgb), 0.10) 0%, rgba(var(--accent-lavender-rgb), 0.05) 100%)',

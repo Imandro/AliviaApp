@@ -833,6 +833,42 @@ html[data-theme="mono"] body {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* --- juegos sensoriales ------------------------------------------- */
+
+/* Resplandor de la barra de marimba al golpearla. */
+@keyframes barGlow {
+  0% { opacity: 0.85; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(4px); }
+}
+
+/* Vaina de la cuenta al entrar en el hilo. */
+@keyframes beadIn {
+  0% { opacity: 0; transform: scale(0.4) translateY(-8px); }
+  60% { opacity: 1; transform: scale(1.1) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Dardo entrando en el corcho. */
+@keyframes dartHit {
+  0% { opacity: 0; transform: var(--dart-transform) scale(0.6); }
+  55% { opacity: 1; transform: var(--dart-transform) scale(1.12); }
+  100% { opacity: 1; transform: var(--dart-transform) scale(1); }
+}
+
+/* Tembleque corto tras clavarse. */
+@keyframes dartWobble {
+  0% { transform: var(--dart-transform) rotate(0deg); }
+  30% { transform: var(--dart-transform) rotate(2.4deg); }
+  60% { transform: var(--dart-transform) rotate(-1.4deg); }
+  100% { transform: var(--dart-transform) rotate(0deg); }
+}
+
+/* Ficha entrando en la bandeja. */
+@keyframes trayIn {
+  0% { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .stagger-1 { animation-delay: 0.05s; }
 .stagger-2 { animation-delay: 0.1s; }
 .stagger-3 { animation-delay: 0.15s; }

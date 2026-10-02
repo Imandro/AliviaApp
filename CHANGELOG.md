@@ -7,6 +7,18 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Siete generadores de sonido suave** en `src/utils/sounds.ts`, incluido un
+  helper de ruido filtrado (base de `marimbaNote`, `woodSound`, `polishSound`,
+  `creaseSound`, `sweepSound`, `beadSound`, `dartSound`, `placeSound`). Ninguno
+  premia ni castiga: no hay arpegio de acierto ni tono de error.
+- **`hapticTick()`** en `src/utils/haptics.ts`: vibración imperceptible con
+  *throttle* de 110 ms, porque estas tareas generan decenas de toques por
+  segundo y el motor nativo no debe recibir una ráfaga.
+- **`SensoryStage`**, cascarón compartido por los ocho juegos: panel, área
+  jugable y pista. Elimina la duplicación de estructura que tenían los juegos
+  anteriores.
+- **`toStagePoint`, `fitCanvas` y `TINTS`** en `SensoryStage.tsx`, para el
+  manejo de coordenadas y el buffer del canvas en píxeles lógicos.
 - **Página de descarga del APK** (`/descarga.html`), con su propio diseño: botón de
   descarga, datos reales del binario publicado (v1.2.0 · 4,8 MB · Android 7.0+ ·
   universal), SHA-256, requisitos, los cuatro pasos de instalación, aviso sobre el
@@ -17,6 +29,32 @@ versionado con [SemVer](https://semver.org/lang/es/).
   "Descargar Android" ya no apuntan directo al asset de GitHub: apuntan a la página,
   que a su vez enlaza al asset. Así el visitante que llega desde un buscador recibe
   instrucciones de instalación en lugar de un `.apk` sin contexto.
+
+### Cambiado
+
+- **Los juegos ya no son juegos.** Los ocho minijuegos anteriores (burbujas,
+  memoria, Secuencia VIA, Ancla 5-4-3-2-1, Marea Respira, Cuadrícula de
+  Anclaje, Piloto de Pensamientos y Semilla que Crece) se sustituyen por ocho
+  tareas deliberadamente aburridas: **Moneda Vieja** (frotar una moneda oxidada
+  hasta que reluce), **Pila de Bloques** (apilar tablitas que enderezan solas),
+  **Marimba Chiquita** (ocho barras en pentatónica de Re), **Dardos al Corcho**,
+  **Enhebrar Cuentas** (el hilo se afloja con el peso), **Barrer Polvo**,
+  **Doblar Papel** (los pliegues se quedan marcados) y **Ordenar Fichas**.
+- **Sin meta.** Se elimina todo el aparato de recompensas: no hay puntuación,
+  estrellas, niveles, turnos, fallos, reloj ni tarjeta de "terminaste". El único
+  indicador es una frase de estado en palabras. Ningún juego tiene final; solo
+  se sale.
+- **Los iconos dejan de ser emoji.** El campo `GameMeta.emoji` (que mezclaba
+  símbolos tipográficos como `✵` con emoji de color como `🌊`) se sustituye por
+  `GameMeta.icon`, un nombre que se resuelve a iconos de `lucide-react` en el
+  nuevo `src/utils/gameIcons.tsx`. El catálogo sigue siendo un módulo puro sin
+  React, así que se puede testear en node.
+- **Copy y descubrimiento**: la sección pasa a llamarse "Cosas Que No
+  Importan" en la lista, el dashboard y `explore`; el recordatorio de las 17:30
+  se reescribió; y el catálogo de la IA ahora las llama "juegos sensoriales,
+  aburridos y sin meta".
+- **Documentación**: `README.md` y `public/landing.html` ya no prometen "cuatro
+  minijuegos de regulación"; describen las ocho tareas nuevas.
 
 ### Corregido
 

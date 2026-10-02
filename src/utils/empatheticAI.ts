@@ -285,7 +285,7 @@ const FEATURE_INTENTS: Array<{ path: string; label: string; keywords: string[] }
   { path: '/plans', label: 'plan de progreso', keywords: ['plan', 'planes', 'metas', 'progreso', 'seguimiento'] },
   { path: '/connect', label: 'conexión con alguien', keywords: ['conectar', 'conectarme', 'hablar con alguien', 'alguien de confianza', 'escuchar'] },
   { path: '/community', label: 'comunidad', keywords: ['comunidad', 'foro', 'gente como yo', 'mensaje anonimo'] },
-  { path: '/games', label: 'juegos de relajación', keywords: ['juego', 'juegos', 'jugar', 'mini juego'] },
+    { path: '/games', label: 'los juegos aburridos', keywords: ['juego', 'juegos', 'jugar', 'mini juego', 'distraer', 'aburrir'] },
   { path: '/sos', label: 'líneas de ayuda', keywords: ['sos', 'linea de ayuda', 'lineas de ayuda', 'ayuda urgente', 'emergencia'] },
 ];
 

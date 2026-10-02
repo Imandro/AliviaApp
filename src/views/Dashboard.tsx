@@ -19,6 +19,7 @@ import {
   LayoutGrid,
   Lock,
   Eye,
+  Play,
 } from 'lucide-react';
 import {
   saveTodayMood,
@@ -30,6 +31,7 @@ import {
 import { LUCHAS, getLucha, problemsToLucha, dayOfYear } from '../utils/luchas';
 import { getChallengeLog, isDoneOn, getChallengeStreak, type ChallengeRecord } from '../utils/retosDb';
 import { GAMES } from '../utils/gamesCatalog';
+import { GameIcon } from '../utils/gameIcons';
 import { getMyAssessments, assessmentDueState, type AssessmentRecord } from '../utils/assessment';
 import type { SafeUser } from '../utils/auth';
 
@@ -582,8 +584,8 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           <div style={{ ...styles.actionIcon, background: 'rgba(var(--accent-rose-rgb), 0.12)' }}>
             <Gamepad2 size={30} color="var(--accent-rose)" />
           </div>
-          <h5 style={styles.actionTitle}>Juegos</h5>
-          <small style={styles.actionSub}>Calman tu mente</small>
+          <h5 style={styles.actionTitle}>Cosas</h5>
+          <small style={styles.actionSub}>Que no importan</small>
         </div>
       </div>
 
@@ -595,7 +597,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </span>
           <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
             <h4 style={styles.moreTitle}>Más herramientas</h4>
-            <p style={styles.moreSub}>Juegos, consejos y recursos para tu bienestar</p>
+            <p style={styles.moreSub}>Cosas que no importan, consejos y recursos para tu bienestar</p>
           </span>
           <ChevronDown size={18} color="var(--text-muted)" style={{ flexShrink: 0, transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease' }} />
         </button>
@@ -603,9 +605,9 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         {moreOpen && (
           <div className="flex flex-col" style={{ gap: '12px', padding: '0 16px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h4 className="title-small" style={{ fontSize: '12px', color: 'var(--text-primary)', margin: 0 }}>
-                ✦ JUEGOS MENTE-ACTIVOS
-              </h4>
+                <h4 className="title-small" style={{ fontSize: '12px', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={13} color="var(--accent-lavender)" /> COSAS QUE NO IMPORTAN
+                </h4>
               <span
                 style={{ fontSize: '12px', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 700 }}
                 onClick={() => navigate('/games')}
@@ -622,14 +624,14 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
                   onClick={() => navigate(`/games/${game.id}`)}
                   role="button"
                 >
-                  <div className="cm-float" style={{ ...styles.gameEmojiBox, background: game.gradient }}>
-                    {game.emoji}
+                  <div className="cm-float" style={{ ...styles.gameIconBox, background: game.gradient }}>
+                    <GameIcon name={game.icon} size={22} color={game.accent} strokeWidth={1.5} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h5 style={styles.gameTitle}>{game.title}</h5>
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{game.minutes}</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{game.pace}</span>
                   </div>
-                  <span style={styles.gamePlay}>▶</span>
+                  <span style={styles.gamePlay}><Play size={13} fill="currentColor" /></span>
                 </div>
               ))}
             </div>
@@ -1536,14 +1538,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     minWidth: 0,
   },
-  gameEmojiBox: {
+  gameIconBox: {
     width: '46px',
     height: '46px',
     borderRadius: '14px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '24px',
     flexShrink: 0,
   },
   gameTitle: {
