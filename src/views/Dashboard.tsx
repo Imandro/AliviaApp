@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { HomeCompanionStreak } from '../components/HomeCompanionContext';
+import { getHomeMoodStreak } from '../utils/homeCompanion';
 import { useNavigate } from 'react-router-dom';
 import {
   Sparkles,
@@ -59,6 +61,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
+  const reportStreak = useContext(HomeCompanionStreak);
   const [weekHistory, setWeekHistory] = useState<{ date: string; dayName: string; score: number | null }[]>([]);
   const [todayScore, setTodayScore] = useState<number | null>(null);
   const [todayLabel, setTodayLabel] = useState<string>('');
@@ -109,17 +112,8 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
       setWeekHistory(week);
 
-      const dates = [...new Set(history.map((h) => h.date))].sort().reverse();
       const today = getTodayString();
-      let s = 0;
-      for (let i = 0; i < dates.length; i++) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const expected = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        if (dates[i] === expected) s++;
-        else break;
-      }
-      setStreak(s);
+      setStreak(getHomeMoodStreak(history.map(h => h.date), today));
 
       const last = history[history.length - 1];
       if (last && last.date === today && last.score) {
@@ -155,6 +149,11 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   const today = getTodayString();
   const challengeDoneToday = isDoneOn(challengeLog, today);
   const challengeStreak = getChallengeStreak(challengeLog, today);
+  const companionDays = Math.max(streak, challengeStreak, challengeDoneToday ? 1 : 0);
+  const activationKey = todayScore !== null || challengeDoneToday ? `${user?.id ?? 'local'}:${today}` : '';
+  useEffect(() => {
+    if (!loading && !savingMood) reportStreak({ days: companionDays, activationKey, challengeDone: challengeDoneToday });
+  }, [loading, savingMood, companionDays, activationKey, challengeDoneToday, reportStreak]);
 
   if (loading) {
     return (

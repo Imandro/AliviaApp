@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
       manifest: false,
       workbox: {
         importScripts: ['/push-sw.js'],
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json,webm}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,ico,woff2,json,webm}'],
         // Las 3 imagenes de la mascota (511 KB) solo se usan en la pantalla 404,
         // un caso raro. Precachearlas obliga a descargarlas en la primera visita
         // sin aportar nada al arranque offline habitual.

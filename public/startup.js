@@ -3,6 +3,7 @@
   const READY_EVENT = 'alivia:screen-ready';
   const MOBILE_INTRO_MS = 2800;
   const DESKTOP_INTRO_MS = 4000;
+  const MOBILE_READY_MS = 600;
   const EXIT_MS = 650;
   const RECOVERY_MS = 12000;
   const LANDING_KEY = 'alivia:landing-v1';
@@ -61,6 +62,8 @@
     const introMs = window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
       ? DESKTOP_INTRO_MS : MOBILE_INTRO_MS;
     const started = performance.now();
+    const mobile = window.matchMedia('(max-width: 767px)').matches;
+    let readyAt = started;
     let ready = false;
     let leaving = false;
     let exitTimer;
@@ -92,12 +95,14 @@
     };
     const scheduleExit = () => {
       clearTimeout(exitTimer);
-      const remaining = motion.matches ? 0 : Math.max(0, introMs - (performance.now() - started));
+      const minimumEnd = Math.max(started + introMs, readyAt + (mobile ? MOBILE_READY_MS : 0));
+      const remaining = motion.matches ? 0 : Math.max(0, minimumEnd - performance.now());
       exitTimer = setTimeout(exit, remaining);
     };
     const onReady = () => {
       if (ready) return;
       ready = true;
+      readyAt = performance.now();
       scheduleExit();
     };
     const onMotionChange = () => {
