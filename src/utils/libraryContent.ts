@@ -40,7 +40,7 @@ export interface GuideContent {
 export const GUIDE_MINUTES: Record<string, number> = {
   l1: 3, l2: 4, l3: 3, l4: 5, l5: 4, l6: 4, l7: 3, l8: 4, l9: 3, l10: 4,
   l11: 3, l12: 4, l13: 5, l14: 4, l15: 3, l16: 4, l17: 4, l18: 4, l19: 4, l20: 3,
-  l21: 1, l22: 4, l23: 4, l24: 5, l25: 4,
+  l21: 1, l22: 4, l23: 4, l24: 5, l25: 4, l26: 5, l27: 5, l28: 4, l29: 4, l30: 4,
 };
 
 const intro = (text: string): GuideBlock => ({ kind: 'intro', text });
@@ -266,6 +266,8 @@ export const GUIDES: Record<string, GuideContent> = {
       st('✦', 'Drenadora ≠ enemiga', 'No tienes que "declarar la guerra": puedes marcar distancia gradual. Menos reuniones, menos intimidad, más planes tuyos.'),
       st('✦', 'El test de la energía', 'Después de estar con alguien: ¿me da recarga o me da resaca? Diez minutos de honestidad valen más que años de "es que es mi amigo".'),
       chk(['Identifiqué al menos 2 señales de la lista', 'Apliqué distancia gradual sin drama', 'Hice el test de la energía con mi círculo']),
+      st('✦', 'Reconstruir red social paso a paso', 'Empieza pequeño: 1) saluda a alguien que te suma (aunque sea un mensaje) 2) repite contacto dos veces por semana 3) sumate a un grupo con un interés (deporte, arte, voluntariado) 4) sigue a quien te hizo sentir bien. La cantidad no importa: la constancia construye confianza de nuevo.'),
+      st('✦', 'Terapia de grupo: qué esperar', 'Un grupo reúne a gente con el mismo problema: no eres el raro/a del salón. El terapeuta guía, pero el verdadero curativo es escuchar a otros y que te escuchen. Al principio da vergüenza; al tercer encuentro ya no estás solo/a en lo que sientes.'),
       quiz(
         'Tu "amigo" se burla de ti y dice "es broma, ¿ya no aguantas nada?". La realidad...',
         ['Es niño, se lo permite', 'Que la broma te duela es información: una amistad sana se ajusta cuando avisas', 'Soy un exagerado, debo callarme'],
@@ -287,6 +289,22 @@ export const GUIDES: Record<string, GuideContent> = {
       st('✦', 'Dilo una vez, claramente', 'Pon tu límite con nombre: "no me escribas cuando me enoje", "no reviso más mi teléfono para ti". Si se repite, no es accidente: es decisión.'),
       st('✦', 'Salir es un acto de amor propio', 'Salir de una relación con banderas rojas no es fracaso: es terminar el curso a tiempo.'),
       chk(['Identifiqué al menos 1 bandera roja en mi historia', 'Puse un límite con nombre y cara', 'Reconocí que salir también puede ser ganar']),
+      st('✦', 'Test de relación sana (10 preguntas)', 'Marca SÍ o NO sin pensar demasiado. No hay nota: es para que veas el patrón.'),
+      chk([
+        '1) Puedo decir "no" sin que mi pareja se enoje',
+        '2) Tengo acceso a mis amigos y familia sin que lo revise',
+        '3) Mis opiniones importan en las decisiones',
+        '4) Me sientes cuando hablo de lo que me duele',
+        '5) Puede pedir perdón sin que le recuerde todo',
+        '6) No revisa mi teléfono ni me exige ubicación',
+        '7) Respeta mi tiempo y mis espacios',
+        '8) Celebra mis logros sin menospreciar',
+        '9) La mayoría de las charlas no terminan en discusión',
+        '10) Me sentí yo mismx hace 3 meses',
+      ]),
+      tip('Puntuación: 8-10 SÍ = relación sana; 5-7 = hay cosas para conversar; 0-4 = banderas rojas. Si marcas 4 o menos SÍ: lee l13 (salir de una relación tóxica) y considera apoyo.'),
+      st('✦', 'Guion para conversar con tu pareja', 'Usa la fórmula DESC: D "Cuando revisas mi teléfono, me siento invadido/a"; E "por qué me hace desconfiar de mí mismx"; S "necesito que dejes mi teléfono y mis mensajes en paz"; C "si seguimos juntos, quiero que esto cambie". Elige un momento tranquilo, no una pelea: es más fácil escuchar en paz.'),
+
       quiz(
         'Tu pareja revisa tu teléfono "porque te quiere". Eso es...',
         ['Prueba de amor', 'Control disfrazado de cariño: una relación sana no necesita vigilancia', 'Algo normal en todos los noviazgos'],
@@ -308,6 +326,8 @@ export const GUIDES: Record<string, GuideContent> = {
       st('✦', 'Cortes limpios', 'Bloqueo total: redes, número, amigos comunes (los que "te informan"). El algoritmo del cerebro necesita NO ver el vapor de la venganza para sanar.'),
       st('✦', 'Planea la emboscada emocional', 'A los 3-7 días te va a morir la tentación de volver. Ya lo sabes. Por eso tienes la lista (ver checklist) y personas que te la leen.'),
       chk(['Guardé y separé todo lo material en silencio', 'Confié mi plan a 1-2 personas reales', 'Bloqueé el contacto directo y el "puente informativo"']),
+      st('✦', 'Plan de seguridad física si hay riesgo', 'Si hay gritos, empujones o amenazas: elige un lugar seguro de la casa (sin armas, cerca de una salida), ten lista una mochila con documentos, dinero y celular, y un destino seguro (casa de alguien de confianza). En el momento: sal sin negociar y llama al 911.'),
+      st('✦', 'Recursos legales básicos por país', 'Nicaragua: Línea 611 (mujer) y 111 (niñez), Fiscalía. El Salvador: Línea 150 (mujer) y Fiscalía. Guatemala: Línea 1500 (mujer) y Fiscalía. Honduras: Línea 110 (mujer) y 911. Costa Rica: Línea 137 (mujer) y la FPAM. Panamá: Línea 134 y la AMPM. En muchos países hay abogado de oficio sin costo: pregunta en el colegio de abogados de tu país.'),
       quiz(
         'A la semana de terminar, sientes un vacío terrible y ganas de volver. Eso significa...',
         ['Que cometiste el peor error', 'Que tu cerebro pide la dosis conocida: abstinencia. Es química, no verdad', 'Que debes volver aunque fuera tóxico'],
@@ -391,6 +411,8 @@ export const GUIDES: Record<string, GuideContent> = {
       st('✦', 'Los síntomas reales', 'Dormir de más o de menos, comer de más o de menos, irritabilidad, llanto fácil, vacío, y esa niebla que hace lento todo. Si llevas 2+ semanas: señal.'),
       st('✦', 'El tratamiento funciona', 'Terapia + (a veces) medicación = el combo que más funciona. No es "para locos": es para gente que quiere su vida de vuelta.'),
       chk(['Identifiqué mis síntomas sin juzgarme', 'Le conté a un adulto o amigo que llevo +2 semanas con estos síntomas', 'Investigué al menos 1 lugar donde atienden gratis cerca de mí']),
+      st('✦', 'Plan de seguridad personalizado', 'Ante un bajón fuerte: 1) mis señales de aviso (no duermo, no como, quiero aislarme) 2) cosas que me calman (respirar, caminar, llamar a X) 3) personas a quienes contacto 4) profesionales si empeora (línea, urgencias, terapeuta). Escríbelo en el celular ahora, cuando estés en calma.'),
+      st('✦', 'Derivación a profesional: qué esperar', 'Terapia: hablas y te acompañan a ordenar; no te "arreglan" en una sesión. Psiquiatría: evalúa si la química necesita apoyo con medicación. La primera consulta es para conocerse: puedes llevar esta guía y tus apuntes. Nadie te va a encerrar por pedir ayuda.'),
       quiz(
         'Un amigo te dice "es que estás así porque piensas negativo, ¡póntela positiva!". La verdad técnica...',
         ['Tiene razón, soy flojo', 'La depresión no se revierte con pensamiento positivo forzado: necesita ayuda profesional, y eso es valentía', 'Debo esconder lo que siento'],
@@ -412,6 +434,8 @@ export const GUIDES: Record<string, GuideContent> = {
       st('✦', 'Anclaje de tierra', '5-4-3-2-1 (ves/tocas/oyes/hueles/saboreas) en voz alta si puedes. Tu cerebro no puede inventar miedo y contar objetos a la vez.'),
       st('✦', 'Reduce la semana después', 'Menos café, menos redes, más agua y sueño. Un pánico fuerte deja el sistema "alborotado": la semana siguiente hay que cuidar la central eléctrica.'),
       chk(['Dejé de pelear con mi pánico y lo nombre', 'Apliqué la exhalación larga (4-8)', 'Hice 5-4-3-2-1 hasta que bajó la marea']),
+      st('✦', 'Protocolo post-ataque (próximas 24h)', 'Hoy y mañana: solo hidratación, comida suave y descanso. Sin café, sin redes intensas, sin tomar decisiones. Un ataque fuerte deja el sistema alborotado: tratate como a una gripe fuerte, no como a un resfriado.'),
+      st('✦', 'Cuándo ir a urgencias', 'Es la primera vez que tienes un ataque y no tienes diagnóstico, o aparece con dolor de pecho real, desmayo, dificultad para respirar que no mejora, o estás pensando en hacerte daño: no esperes, ve a urgencias o llama al 911.'),
       quiz(
         '¿Qué hace la exhalación larga durante un ataque?',
         ['Nada', 'Activae el freno (parasimpático): bajar el ritmo del corazón', 'Trae más aire y empeora'],
@@ -566,6 +590,108 @@ export const GUIDES: Record<string, GuideContent> = {
       qt('No tienes que tener todas las respuestas. Tienes que estar.', 'ALIVIA'),
       act('Guardar líneas de crisis ahora', '/sos'),
       end('Cuidar a alguien también te cansa: comparte la carga con adultos de confianza. Ningún salvavidas trabaja solo. '),
+    ],
+  },
+
+  // ============ NUEVAS GUÍAS (l26-l30) ============
+
+  l26: {
+    minutes: 5,
+    blocks: [
+      intro('La depresión no es flojera: es como tener las piernas de plomo. No necesitas ganas para empezar: hace falta empezar para tener ganas. '),
+      st('✦', 'La regla de los 5 minutos', 'Pídele a tu cerebro solo 5 minutos: "hago esto apenas 5 minutos y luego decido". Casi siempre el impulso de parar se disuelve en el camino.'),
+      st('✦', 'Micro-actividad que cuente', 'Riega una planta, tira un envase, te duchas, preparas el café. No hace falta que sea "productivo": que rompa la inercia es suficiente.'),
+      st('✦', 'Plan semanal de micro-actividades', 'Elige 3 días y programa una cosa diminuta cada uno (lunes: regar; miércoles: caminar 10 minutos; viernes: llamar a alguien). La planificación vence a la voluntad.'),
+      st('✦', 'Registro de placer y logro', 'Al final del día escribe 1 cosa que lograste y 1 momento que te gustó, aunque haya durado 30 segundos. Tu cerebro deprimido se está entrenando para verlos.'),
+      chk(['Hice al menos una micro-actividad de 5 minutos', 'Anoté 1 logro y 1 momento de placer del día', 'Elegí 3 micro-actividades para esta semana']),
+      quiz(
+        'Tu cuerpo te pide quedarte en la cama. La opción que activa la depresión es...',
+        ['Pedirle 5 minutos a la cama y luego levantarte poco a poco', 'Quedarte dormido: ya descansarás mañana', 'Llorar toda la mañana sin moverte'],
+        0,
+        'Negociar 5 minutos con el cerebro y luego levantarte en pedacitos rompe la inercia sin abrumar. Las otras dos son la deriva que la depresión quiere.'
+      ),
+      act('Ver cómo entender la depresión', '/library/l17'),
+      end('No esperes a tener ganas: las ganas llegan cuando empiezas. Un paso diminuto hoy vale más que una motivación perfecta mañana. '),
+    ],
+  },
+
+  l27: {
+    minutes: 5,
+    blocks: [
+      intro('Huir de lo que da miedo es un préstamo con interés altísimo: hoy te alivia, mañana te cobra el doble. La exposición gradual lo paga poquito a poquito. '),
+      st('✦', 'Construye tu jerarquía de miedos', 'Haz una lista de 5-8 situaciones relacionadas con tu miedo, de menos (0) a más (100) de angustia. Empieza por la que te da "poco menos de miedo".'),
+      st('✦', 'Sube la escalera', 'Ante la situación elegida: quédate hasta que la ansiedad baje al menos a la mitad. No te vayas cuando empiece: vete cuando baje. Ahí es donde el cerebro aprende.'),
+      st('✦', 'Evita las conductas de seguridad', 'Si siempre llevas el teléfono "por si acaso" o tomas algo antes, suéltalas: esas muletas le dicen al cerebro que hubo peligro y cancelan el progreso.'),
+      st('✦', 'Repite hasta que se vuelva fácil', 'La misma situación, varias veces, hasta que la ansiedad inicial baje sola. Luego sube un escalón en tu jerarquía. Es entrenamiento, no castigo.'),
+      chk(['Escribí mi jerarquía de 5-8 situaciones', 'Elegí y enfrenté el escalón más bajo', 'Dejé de usar una conducta de seguridad que me protegía']),
+      quiz(
+        '¿Cuándo es el momento de irse de una exposición?',
+        ['En cuanto sienta la primera punzada de ansiedad', 'Cuando la ansiedad baje al menos a la mitad', 'Después de 5 minutos aunque siga igual de alto'],
+        1,
+        'Salir apenas sube la ansiedad refuerza el miedo: "tenía razón, era peligroso". Quedarse a que baje enseña lo contrario.'
+      ),
+      act('Ver mis ejercicios de calma', '/coping'),
+      end('Cada escalón subido es una prueba real de que aguantas y superas. El miedo baja cuando lo miras de frente, paso a paso. '),
+    ],
+  },
+
+  l28: {
+    minutes: 4,
+    blocks: [
+      intro('El gaslighting no es un mal día: es que alguien te hace dudar de tu memoria, tu juicio y tu percepción. No es amor, es manipulación. '),
+      st('✦', 'Señales típicas', '1) "eso no pasó, lo estás inventando" 2) "estás loco/a, demasiado sensible" 3) minimizan: "solo era un chiste" 4) te mueven las cosas y niegan haberlo hecho 5) todo se convierte en tu culpa.'),
+      st('✦', 'Frases que suelen usar', '"Nunca fuiste así", "te inventas las cosas", "estás loco/a", "yo digo la verdad y tú exageras". Cuando las escuchas varias veces, es una pista, no un debate.'),
+      st('✦', 'Pon tu límite con guion', 'Dile con calma: "lo que vivimos fue real para mí. No voy a seguir discutiendo si pasó o no. Si seguís diciéndome que estoy loco/a, tengo que alejarme". Límite = consecuencia.'),
+      st('✦', 'Plan de salida', 'Guarda pruebas (mensajes, fechas), cuéntale a alguien de confianza, separa objetos y cuentas compartidas y, si hay riesgo: busca ayuda profesional o una línea de crisis.'),
+      chk(['Identifiqué al menos 2 señales de gaslighting', 'No debatí: expresé mi límite con guion', 'Conté lo que pasa a 1 persona de confianza y guardé evidencias']),
+      quiz(
+        'Tu pareja dice "nunca te hice sentir así, tú lo exageras". Lo más sano es...',
+        ['Discutir hasta probar que pasó', 'Aceptar que estoy loco/a y pedir perdón', 'No debatir el hecho: comunicar el límite y alejarme si sigue'],
+        2,
+        'El gaslighting gana en debate: quien lo usa siempre reescribe la historia. Tu límite no necesita "pruebas": necesita acción.'
+      ),
+      act('Guardar ayuda por si necesito salir', '/sos'),
+      end('Tu percepción es válida. No tienes que convencer a nadie de que lo que sentiste fue real: solo necesitas actuar en consecuencia. '),
+    ],
+  },
+
+  l29: {
+    minutes: 4,
+    blocks: [
+      intro('El duelo no es un problema que se resuelve: es el precio del amor que tuviste. No hay un manual ni un plazo: cada uno lo lleva a su ritmo. '),
+      st('✦', 'Las fases (y no vienen en orden)', 'Negación, rabia, negociación, tristeza, aceptación... pero no son escalones: puedes volver a la rabia meses después. Oscilar es normal, no es retroceso.'),
+      st('✦', 'Ritualiza la despedida', 'Carta que nunca se envía, visitar un lugar, soltar una vela, guardar una cosa simbólica. El ritual le da al dolor un contenedor y al cuerpo un cierre.'),
+      st('✦', 'Cuándo buscar ayuda', 'Si después de varios meses no puedes comer o dormir, tienes pensamientos oscuros o el dolor te paraliza: un profesional no te "quita" el duelo, te acompaña.'),
+      st('✦', 'Acompañar a quien duelo', 'No digas "ya superará": di "estoy aquí". Escucha, nombra a quien se fue, no le tengas miedo a las lágrimas. La presencia es el mejor regalo.'),
+      chk(['Reconocí una emoción sin juzgarme', 'Hice un pequeño ritual de despedida', 'Identifiqué a quién puedo pedir ayuda si el duelo me paraliza']),
+      quiz(
+        'Un amigo perdió a alguien y le dices "ánimo, ya pasará". ¿Qué hace eso?',
+        ['Lo alivia: necesita fuerza', 'Minimiza su dolor: prefiere "estoy aquí"', 'Ayuda a que termine rápido'],
+        1,
+        'Las frases motivadoras cuando alguien duelo pesan como piedras. Presencia, silencio y escuchar ganan a los consejos.'
+      ),
+      act('Apoyar a un amigo que está duelando', '/library/l25'),
+      end('Llorar no es debilidad: es amor en movimiento. No corras el duelo: dale su tiempo y no tengas miedo de pedir ayuda en el camino. '),
+    ],
+  },
+
+  l30: {
+    minutes: 4,
+    blocks: [
+      intro('El TDAH no es falta de interés: es un cerebro con el termostato de la dopamina descalibrado. No te falta voluntad, te faltan herramientas externas. '),
+      st('✦', 'Entiende tu dopamina', 'Sin estímulo interesante o urgencia, tu cerebro cuesta arrancar. No es pereza: es neurobiología. Úsala a tu favor, no contra ti.'),
+      st('✦', 'La time blindness', 'El tiempo no se "siente": los relojes y alarmas no son opcionales. Pon avisos visuales y sonoros con anticipación, no solo a la hora.'),
+      st('✦', 'Herramientas externas', 'Listas en la pared, temporizador visual, bloques de 15-25 minutos, "donde va cada cosa". Tu cerebro no es una biblioteca: necesitas etiquetas.'),
+      st('✦', 'Body doubling', 'Trabaja junto a alguien (en persona o en video): la presencia ajena activa tu arranque sin que tengas que "querer".'),
+      chk(['Identifiqué 1 disparador de mi desorden', 'Puse al menos 1 herramienta externa (reloj, lista, temporizador)', 'Probé trabajar con alguien cerca (body doubling)']),
+      quiz(
+        'Tu cerebro no arranca con la tarea. La estrategia más útil es...',
+        ['Autocastigarte hasta que arranque', 'Poner un temporizador visual y pedir body doubling', 'Dejarla para cuando tengas más ganas'],
+        1,
+        'La motivación en el TDAH no llega por ósmosis: se activa con urgencia artificial, señales externas y compañía.'
+      ),
+      act('Ver mis herramientas de regulación', '/coping'),
+      end('No eres "desordenado" ni "flojo": tienes un cerebro que funciona distinto y necesitas las herramientas justas. Con ellas, funciona muy bien. '),
     ],
   },
 };

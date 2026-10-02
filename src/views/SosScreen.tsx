@@ -4,10 +4,14 @@
    ---------------------------------------------------- */
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check } from 'lucide-react';
 import { getEmergencyContact, saveEmergencyContact, deleteEmergencyContact } from '../utils/localDb';
 import { CountryPhoneInput } from '../components/CountryPhoneInput';
 import { CRISIS_LINES, CRISIS_COUNTRY_LABELS, CRISIS_COUNTRIES, crisisHref, type CrisisCountry } from '../utils/crisisLines';
+import { CrisisModeBanner } from './CrisisModeBanner';
+import { OfficialResourcesView } from './OfficialResourcesView';
+import { detectUserCountry, getCountryInfo, getEmergencyNumber, supportsGeolocation } from '../utils/officialResources';
 
 export const SosScreen: React.FC = () => {
   // Contacto Seguro local
@@ -18,6 +22,30 @@ export const SosScreen: React.FC = () => {
   
   // Selección de país para líneas de ayuda
   const [country, setCountry] = useState<CrisisCountry>('NI');
+  const navigate = useNavigate();
+
+  // Auto-detectar país al entrar (geolocalización con fallback a idioma)
+  useEffect(() => {
+    if (!supportsGeolocation()) return;
+    let mounted = true;
+    detectUserCountry()
+      .then((detected) => {
+        if (mounted && detected !== country) {
+          setCountry(detected as CrisisCountry);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Modo crisis aguda: solo botones de llamada gigantes (UI simplificada)
+  const [crisisMode, setCrisisMode] = useState(false);
+  const countryInfo = getCountryInfo(country);
+  const emergency = getEmergencyNumber(country);
+
+  const [activeTab, setActiveTab] = useState<'lines' | 'services'>('lines');
 
   useEffect(() => {
     // Cargar contacto al inicializar
@@ -54,7 +82,41 @@ export const SosScreen: React.FC = () => {
 
   return (
     <div className="fade-in flex flex-col gap-4">
-      {/* 1. SECCIÓN A: CONTACTO SEGURO LOCAL */}
+      <CrisisModeBanner variant="compact" countryEmergency={emergency} />
+
+      {/* Pestañas: Líneas de crisis | Servicios Oficiales */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => setActiveTab('lines')}
+          style={{
+            flex: 1, padding: '10px 16px', borderRadius: '12px',
+            background: activeTab === 'lines' ? 'var(--accent-sage)' : 'var(--bg-surface)',
+            color: activeTab === 'lines' ? '#0c1810' : 'var(--text-primary)',
+            border: '1px solid var(--border-color)', fontFamily: 'var(--font-title)',
+            fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          Líneas de Crisis
+        </button>
+        <button
+          onClick={() => setActiveTab('services')}
+          style={{
+            flex: 1, padding: '10px 16px', borderRadius: '12px',
+            background: activeTab === 'services' ? 'var(--accent-sage)' : 'var(--bg-surface)',
+            color: activeTab === 'services' ? '#0c1810' : 'var(--text-primary)',
+            border: '1px solid var(--border-color)', fontFamily: 'var(--font-title)',
+            fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          Servicios Oficiales
+        </button>
+      </div>
+
+      {activeTab === 'services' ? (
+        <OfficialResourcesView />
+      ) : (
+        <>
+          {/* 1. SECCIÓN A: CONTACTO SEGURO LOCAL */}
       <div className="glass-card flex flex-col gap-4" style={styles.emergencyCard}>
         <div style={styles.cardHeader}>
           <Heart size={16} color="var(--accent-rose)" />
@@ -219,6 +281,8 @@ export const SosScreen: React.FC = () => {
           <Phone size={16} color="#fff" />
         </div>
       </a>
+  </>
+      )}
     </div>
   );
 };
