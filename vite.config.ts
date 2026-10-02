@@ -5,6 +5,17 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
+    {
+      name: 'alivia-visible-startup',
+      apply: 'build',
+      transformIndexHtml: {
+        order: 'post',
+        handler: (html) => html.replace(
+          /<link rel="stylesheet"([^>]+)>/g,
+          '<link rel="stylesheet"$1 media="print" data-app-styles onload="this.media=\'all\'">',
+        ),
+      },
+    },
     react(),
     VitePWA({
       // El shell nativo iOS (WKWebView) carga desde file:// y no aplica service worker
@@ -25,6 +36,9 @@ export default defineConfig(({ mode }) => ({
           'workbox-*.js',
           '**/ALIVIA-*.apk',
           '**/mascota-*.png',
+          // Los videos antiguos ya no participan en las pantallas de carga.
+          'videos/alivia-reveal.webm',
+          'videos/alivia-pop.webm',
         ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/landing/],
