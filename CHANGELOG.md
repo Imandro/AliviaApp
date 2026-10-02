@@ -3,6 +3,31 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 versionado con [SemVer](https://semver.org/lang/es/).
 
+## [No publicado]
+
+### Añadido
+
+- **Página de descarga del APK** (`/descarga.html`), con su propio diseño: botón de
+  descarga, datos reales del binario publicado (v1.2.0 · 4,8 MB · Android 7.0+ ·
+  universal), SHA-256, requisitos, los cuatro pasos de instalación, aviso sobre el
+  "origen desconocido" de Android, alternativas (PWA, compilar desde el código,
+  notas de la versión) y un FAQ de 8 preguntas. Tiene canonical, Open Graph y
+  entrada propia en el sitemap.
+- **El landing enlaza a esa página** desde el nav, el hero y el footer. Los botones
+  "Descargar Android" ya no apuntan directo al asset de GitHub: apuntan a la página,
+  que a su vez enlaza al asset. Así el visitante que llega desde un buscador recibe
+  instrucciones de instalación en lugar de un `.apk` sin contexto.
+
+### Corregido
+
+- **El service worker respondía `/descarga.html` con el `index.html` de la SPA.**
+  `navigateFallbackDenylist` solo excluía `/landing`, así que la página nueva se
+  habría visto como la app. Añadido `/^\/descarga/` a la lista.
+- **Datos del APK desactualizados**: el landing y el README decían "3,6 MB" (el
+  asset publicado mide 5.032.862 bytes) y "v1.0" (el último release es v1.2.0).
+- **README**: el enlace de descarga apuntaba a `ALIVIA-1.0.apk`, un nombre de
+  archivo que no existe en ningún release; ahora lleva a `/descarga.html`.
+
 ## [1.3.0] — 2026-09-30
 
 ### Seguridad

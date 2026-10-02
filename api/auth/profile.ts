@@ -50,6 +50,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       [sessionUser.id, problems, situations, strategies, trustedPerson, trustedPhone, wantsContact, changes, goalsText, onboardingDone, phone]
     );
 
+    // landing_seen NO entra por fn_update_user_profile: esa funcion tiene la
+    // firma fija de 11 parametros y corresponde al formulario de perfil. Aqui
+    // se marca con un UPDATE aparte, que ademas solo escribe si el valor cambia.
+    if (body.landing_seen !== undefined) {
+      await pool.query(
+        `UPDATE users SET landing_seen = $2, updated_at = now() WHERE id = $1 AND landing_seen IS DISTINCT FROM $2`,
+        [sessionUser.id, Boolean(body.landing_seen)],
+      );
+      updated.rows[0].landing_seen = Boolean(body.landing_seen);
+    }
+
     return res.status(200).json(toSafeUser(updated.rows[0]));
   } catch (err) {
     console.error('Error en /api/auth/profile:', err);

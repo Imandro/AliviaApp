@@ -21,8 +21,8 @@
 ![AWS](https://img.shields.io/badge/AWS-Lambda%20%2B%20S3%20%2B%20CloudFront%20%2B%20RDS-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)
 
 **[Abrir la web](https://d3gm2ziao5tkw0.cloudfront.net)** ·
-**[Descargar Android](https://github.com/Imandro/AliviaApp/releases/latest/download/ALIVIA-1.0.apk)** ·
-**[Landing del proyecto](https://d3gm2ziao5tkw0.cloudfront.net/landing)** ·
+**[Descargar Android](https://alivia.lat/descarga.html)** ·
+**[Landing del proyecto](https://alivia.lat/landing.html)** ·
 **[Reportar un problema](https://github.com/Imandro/AliviaApp/issues)**
 
 </div>
@@ -152,7 +152,7 @@ sequenceDiagram
 | Métrica | Valor |
 |---|---|
 | Bundle web (gzip) | ~180 KB JS + 4.4 KB CSS |
-| APK firmado | ~3.6 MB |
+| APK firmado | ~4,8 MB |
 | Paridad web ↔ app | 100 % (mismo build) |
 | Fuentes | Auto-hospedadas, 0 peticiones a CDNs |
 | CI | Typecheck + build en cada push/PR |
@@ -246,7 +246,8 @@ petición manipulada no pueda degradar las respuestas de crisis.
 ├── db/                   # Esquema y funciones SQL de referencia
 ├── public/
 │   ├── fonts/            # Tipografía propia (Quicksand variable + Lato)
-│   └── landing.html      # Landing del proyecto (redirige a la app en modo PWA)
+│   ├── landing.html      # Landing del proyecto (redirige a la app en modo PWA)
+│   └── descarga.html     # Página de descarga del APK (requisitos, instalación, FAQ)
 ├── scripts/
 │   └── post-sync.js      # Limpieza de assets tras cap sync
 ├── src/
@@ -286,7 +287,7 @@ aws cloudformation deploy --template-file infra/web.yaml --stack-name alivia-web
 3. **alivia-app** — Lambdas `alivia-api` (dentro del VPC, habla con RDS), `alivia-tts` y `alivia-ai` (fuera del VPC, necesitan salida a internet), más el cron de notificaciones.
 4. **alivia-web** — S3 + CloudFront. La web se sirve desde S3 y `/api/*` va a `alivia-api`; `/api/tts` va a `alivia-tts`.
 
-La web y la API se publican en el mismo dominio de CloudFront, así que no hay CORS ni URLs distintas. La landing vive en [`/landing`](https://d3gm2ziao5tkw0.cloudfront.net/landing).
+La web y la API se publican en el mismo dominio de CloudFront, así que no hay CORS ni URLs distintas. La landing vive en [`/landing.html`](https://alivia.lat/landing.html) y la página de descarga del APK en [`/descarga.html`](https://alivia.lat/descarga.html); ambas llevan extensión a propósito, porque el fallback SPA de CloudFront solo reescribe a `index.html` las URI sin extensión.
 
 Los **recordatorios push** necesitan las claves VAPID en el secret `alivia/notification-secret` (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`). Sin ellas el cron corre pero no se entrega nada.
 
