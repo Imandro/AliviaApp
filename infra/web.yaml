@@ -1,6 +1,37 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AliviaAPP - Frontend estatico (S3 + CloudFront) con /api/* en la Lambda
 
+Parameters:
+  # Dominio del sitio. Se deja vacio para desplegar solo con la URL de
+  # CloudFront (d3gm2ziao5tkw0.cloudfront.net), que es el estado por defecto.
+  DomainName:
+    Type: String
+    Default: ''
+    Description: Dominio principal, sin https ni barra. Vacio = sin dominio.
+  AliasHost:
+    Type: String
+    Default: ''
+    Description: CNAME de www que redirige al dominio principal.
+  DomainDelegated:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Poner en true solo cuando los nameservers ya apunten a Route53.
+
+Conditions:
+  # Solo se crea el certificado, los aliases y los registros DNS si hay dominio.
+  HasDomain: !Not [!Equals [!Ref DomainName, '']]
+  # www es opcional.
+  HasAlias: !Not [!Equals [!Ref AliasHost, '']]
+  # Los registros DNS del dominio solo se crean si la zona ya fue delegada a
+  # Route53 desde el registrador. Delegar nameservers es manual, asi que este
+  # flag se activa a mano cuando el dominio ya resuelve contra Route53.
+  # Se exige HasDomain para que el lint no acepte HostedZone cuando el recurso
+  # no se crea.
+  DomainDelegated: !And
+    - !Equals [!Ref DomainDelegated, 'true']
+    - !Not [!Equals [!Ref DomainName, '']]
+
 Resources:
   FrontendBucket:
     Type: AWS::S3::Bucket
@@ -105,6 +136,17 @@ Resources:
         DefaultRootObject: index.html
         HttpVersion: http2and3
         PriceClass: PriceClass_100
+        # El dominio propio se sirve con el mismo certificado y la misma
+        # distribucion que la URL de CloudFront: no hay una distribucion aparte.
+        Aliases:
+          - !If [HasDomain, !Ref DomainName, !Ref 'AWS::NoValue']
+          - !If [HasAlias, !Ref AliasHost, !Ref 'AWS::NoValue']
+        ViewerCertificate: !If
+          - HasDomain
+          - AcmCertificateArn: !Ref SiteCertificate
+            MinimumProtocolVersion: TLSv1.2_2021
+            SslSupportMethod: sni-only
+          - CloudFrontDefaultCertificate: true
         Origins:
           # Sitios estaticos en S3
           - Id: S3Origin
@@ -214,6 +256,91 @@ Resources:
           return event.request;
         }
 
+  # ---------------------------------------------------------------------------
+  # Dominio propio: alivia.lat
+  #
+  # El certificado va en us-east-1 porque es la unica region donde CloudFront
+  # acepta ACM, aunque el resto de la app viva en otra. La zona de Route53 se
+  # creo a mano (Z08836062K7BJNET4K1AC) y el certificado tambien, porque ACM no
+  # se puede crear desde la plantilla sin conocer antes el certificado que
+  # valida el dominio: seria un ciclo.
+  # ---------------------------------------------------------------------------
+
+  SiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: HasDomain
+    Properties:
+      DomainName: !Ref DomainName
+      SubjectAlternativeNames:
+        - !Ref DomainName
+        - !If [HasAlias, !Ref AliasHost, !Ref 'AWS::NoValue']
+      ValidationMethod: DNS
+
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: HasDomain
+    Properties:
+      Name: !Sub '${DomainName}.'
+      HostedZoneConfig:
+        Comment: Zona de alivia.lat gestionada por CloudFormation
+
+  # CloudFront necesita saber que ese dominio es suyo antes de que le llegue
+  # trafico. Un alias A "hidden" no resuelve en DNS publico (la raiz no es
+  # *.cloudfront.net), pero CloudFront lo valida al vuelo.
+  CloudFrontDomainValidation:
+    Type: AWS::CloudFront::Distribution
+    Condition: HasDomain
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Validacion de dominio para alivia.lat
+        Origins:
+          - Id: ValidationOrigin
+            DomainName: !Select [2, !Split ['/', !ImportValue alivia-function-url]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+              HTTPPort: 80
+              HTTPSPort: 443
+        DefaultCacheBehavior:
+          TargetOriginId: ValidationOrigin
+          ViewerProtocolPolicy: redirect-to-https
+        Aliases:
+          - !If [HasAlias, !Ref AliasHost, !Ref 'AWS::NoValue']
+        ViewerCertificate:
+          AcmCertificateArn: !If [HasAlias, !Ref SiteCertificate, !Ref 'AWS::NoValue']
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+
+  # Los registros se crean solo si la zona ya fue delegada a Route53. Delegar
+  # nameservers es un paso manual en el registrador (SpaceShip), asi que sin
+  # delegation el dominio no resuelve y CloudFront rechaza el deployment.
+  ApexAlias:
+    Type: AWS::Route53::RecordSet
+    Condition: DomainDelegated
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      Name: !Sub '${DomainName}.'
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt Distribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+  WwwAlias:
+    Type: AWS::Route53::RecordSet
+    Condition: DomainDelegated
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      Name: !Sub '${AliasHost}.'
+      Type: CNAME
+      TTL: 300
+      ResourceRecords:
+        - !Sub '${DomainName}.'
+
+  # Alojamiento alterno de CloudFront (hosted zone Z2FDTNDATAQYW2, de AWS).
+  # No es un recurso nuestro: se referencia por id en ApexAlias.
+
 Outputs:
   FrontendBucketName:
     Value: !Ref FrontendBucket
@@ -221,3 +348,11 @@ Outputs:
     Value: !Ref Distribution
   DomainName:
     Value: !GetAtt Distribution.DomainName
+  SiteUrl:
+    Value: !If [HasDomain, !Sub 'https://${DomainName}', !GetAtt Distribution.DomainName]
+  CertificateArn:
+    Condition: HasDomain
+    Value: !Ref SiteCertificate
+  Route53ZoneId:
+    Condition: HasDomain
+    Value: !Ref HostedZone

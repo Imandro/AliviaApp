@@ -1,0 +1,15 @@
+# AliviaAPP - parametros del stack web (infra/web.yaml)
+#
+# Se usa con (SAM exige ruta absoluta en --config-file):
+#   sam deploy --template-file infra/web.yaml --stack-name alivia-web \
+#     --region us-east-1 --config-file "<repo>/infra/web-without-domain.toml"
+#
+# Estado actual: el dominio todavia no esta delegado a Route53, asi que se
+# despliega solo con la URL de CloudFront. Cuando los nameservers de
+# alivia.lat ya apunten a los de Route53 (los de SpaceShip son
+# launch1/launch2.spaceship.net), cambiar a web-with-domain.toml.
+version = 0.1
+[default.global.parameters]
+DomainName = ""
+AliasHost = ""
+DomainDelegated = "false"

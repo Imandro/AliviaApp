@@ -8,7 +8,7 @@ vi.mock('./nativeShell', () => ({
   },
 }));
 
-const CLOUDFRONT = 'https://d3gm2ziao5tkw0.cloudfront.net';
+const SITE = 'https://alivia.lat';
 
 async function load(env: Record<string, unknown>) {
   vi.resetModules();
@@ -30,13 +30,14 @@ describe('apiBase segun el shell', () => {
     expect(mod.TTS_ORIGIN).toBe('');
   });
 
-  it('en nativo cae al origen de CloudFront, no a rutas relativas', async () => {
+  it('en nativo cae al dominio propio, no a rutas relativas', async () => {
     // Regresion: sin VITE_API_URL, API_BASE se quedaba en '' y las peticiones
-    // relativas a file:// rompian el registro en la app nativa.
+    // relativas a file:// rompian el registro en la app nativa. Desde que
+    // alivia.lat existe, ese es el origen por defecto.
     nativeMock.value = true;
     const mod = await load({});
-    expect(mod.API_BASE).toBe(CLOUDFRONT);
-    expect(mod.TTS_ORIGIN).toBe(CLOUDFRONT);
+    expect(mod.API_BASE).toBe(SITE);
+    expect(mod.TTS_ORIGIN).toBe(SITE);
   });
 
   it('en nativo respeta VITE_API_URL y VITE_TTS_URL si estan', async () => {
