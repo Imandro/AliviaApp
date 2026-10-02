@@ -5,7 +5,8 @@ import { signalScreenReady } from './startup';
 
 const script = readFileSync(new URL('../../public/startup.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
-function setup(reducedMotion = false, device = {}, desktop = false) {
+function setup(reducedMotion = false, device = {}, opts: { desktop?: boolean; landingFlag?: string } = {}) {
+  const { desktop = false, landingFlag } = opts;
   const classes = new Set<string>();
   const overlay = Object.assign(new EventTarget(), {
     setAttribute: vi.fn(),
@@ -16,18 +17,32 @@ function setup(reducedMotion = false, device = {}, desktop = false) {
   const recovery = { hidden: true };
   const retry = new EventTarget();
   const motion = Object.assign(new EventTarget(), { matches: reducedMotion });
+  const location = { reload: vi.fn(), replace: vi.fn() };
   const window = Object.assign(new EventTarget(), {
     navigator: device,
-    matchMedia: (query: string) => query.includes('prefers-reduced-motion') ? motion : { matches: desktop },
-    location: { reload: vi.fn() },
+// El script pregunta por prefers-reduced-motion y por el tamano de pantalla
+    // (para alargar la animacion en laptop), asi que matchMedia tiene que
+    // responder distinto segun la media query.
+    matchMedia: (query: string) => (query.includes('prefers-reduced-motion') ? motion : { matches: desktop }),
+    location,
   });
+  const store = new Map<string, string>();
+  if (landingFlag) store.set('alivia:landing-v1', landingFlag);
+  const localStorage = {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => void store.set(k, v),
+    removeItem: (k: string) => void store.delete(k),
+  };
   const elements = { 'app-preloader': overlay, root, 'startup-recovery': recovery, 'startup-retry': retry };
   runInNewContext(script, {
     window,
-    document: { getElementById: (id: keyof typeof elements) => elements[id] },
+    document: { getElementById: (id: keyof typeof elements) => elements[id], addEventListener() {} },
+    localStorage,
+    navigator: device,
+    location,
     performance, setTimeout, clearTimeout,
   });
-  return { window, overlay, root, recovery, retry, motion, classes };
+  return { window, overlay, root, recovery, retry, motion, classes, location, store };
 }
 
 describe('arranque de ALIVIA', () => {
@@ -35,7 +50,7 @@ describe('arranque de ALIVIA', () => {
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
   it('mantiene la presentación de laptop cuatro segundos antes de salir', () => {
-    const { window, classes, overlay } = setup(false, {}, true);
+    const { window, classes, overlay } = setup(false, {}, { desktop: true });
     window.dispatchEvent(new Event('alivia:screen-ready'));
     vi.advanceTimersByTime(3999);
     expect(classes.has('is-leaving')).toBe(false);
@@ -46,7 +61,7 @@ describe('arranque de ALIVIA', () => {
   });
 
   it('cuenta la descarga lenta dentro de la espera mínima de laptop', () => {
-    const { window, classes } = setup(false, {}, true);
+    const { window, classes } = setup(false, {}, { desktop: true });
     vi.advanceTimersByTime(5000);
     window.dispatchEvent(new Event('alivia:screen-ready'));
     vi.advanceTimersByTime(0);
@@ -66,6 +81,35 @@ describe('arranque de ALIVIA', () => {
     expect(html).toContain('data:image/png;base64,');
     expect(html).not.toContain('href="/src/components/LoadingBrand.css"');
     expect(html).not.toContain('src="%BASE_URL%startup.js"');
+  });
+
+  it('la primera visita manda a la landing y no deja entrar en la app', () => {
+    const { location } = setup();
+    expect(location.replace).toHaveBeenCalledWith('/landing.html');
+  });
+
+  it('con el flag puesto entra directo a la app, sin volver a la landing', () => {
+    const { location } = setup(false, {}, { landingFlag: '1' });
+    expect(location.replace).not.toHaveBeenCalled();
+  });
+
+  it('un buscador no aterriza en la landing (si no, Google indexaria la presentación)', () => {
+    const { location, store } = setup(false, { userAgent: 'Googlebot/2.1 (+http://www.google.com/bot.html)' });
+    expect(location.replace).not.toHaveBeenCalled();
+    expect(store.get('alivia:landing-v1')).toBe('1');
+  });
+
+  it('si localStorage está bloqueado no rompe el arranque', () => {
+    // Modo privado o WebView restrictiva: es preferible dejar entrar a la app
+    // antes que dejar a nadie atrapado en un bucle de redirección.
+    const boom = new Proxy({}, { get() { throw new Error('bloqueado'); } });
+    expect(() => runInNewContext(script, {
+      window: { navigator: {}, matchMedia: () => ({ matches: false, addEventListener() {} }), location: { replace: vi.fn() } },
+      document: { getElementById: () => null, addEventListener() {} },
+      localStorage: boom,
+      navigator: { userAgent: 'Mozilla/5.0' },
+      performance, setTimeout, clearTimeout,
+    })).not.toThrow();
   });
 
   it('window.load no descubre una pantalla que React todavía no terminó', () => {
