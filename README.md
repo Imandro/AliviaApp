@@ -75,7 +75,7 @@ El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantall
 | **Radar de Bienestar** | Gráficas del estado de ánimo por rango (7 días, 30 días, todo) con tendencia y rachas. |
 | **Planes y retos** | Metas por área de vida con racha de días consecutivos. |
 | **Comunidad anónima** | Posts por temas y apoyo entre pares, sin perfiles públicos ni exposición. |
-| **8 juegos de regulación** | Burbujas Calma · Memoria de Emociones · Ancla 5-4-3-2-1 · Secuencia VIA · Marea Respira · Cuadrícula de Anclaje · Piloto de Pensamientos · Semilla que Crece. Todos de 30 s a 4 min y diseñados para bajar revoluciones. |
+| **Cosas que no importan** | 8 juegos sensoriales aburridos a propósito: Moneda Vieja · Pila de Bloques · Marimba Chiquita · Dardos al Corcho · Enhebrar Cuentas · Barrer Polvo · Doblar Papel · Ordenar Fichas. Sin puntuación, sin fallos, sin final. |
 
 ### Acompañamiento
 
@@ -310,7 +310,7 @@ petición manipulada no pueda degradar las respuestas de crisis.
 ├── src/
 │   ├── components/       # UI reutilizable (Header, Navigation, SyncToast, AppLock…)
 │   ├── views/            # Pantallas (Dashboard, Breathe, Chat, SOS, Radar, Library…)
-│   ├── games/            # 8 minijuegos de regulación emocional
+│   ├── games/            # Juegos sensoriales sin meta (aburridos a propósito)
 │   ├── i18n.ts           # Diccionarios es/en
 │   └── utils/
 │       ├── apiClient.ts  # Motor offline-first (caché + cola FIFO)

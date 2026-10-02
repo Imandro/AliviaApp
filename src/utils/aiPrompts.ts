@@ -27,7 +27,7 @@ const APP_RESOURCES = [
   'los planes de progreso (/plans)',
   'conectar con alguien de confianza (/connect)',
   'la comunidad anonima (/community)',
-  'los juegos de relajacion (/games)',
+  'los juegos sensoriales, aburridos y sin meta (/games)',
   'las lineas de ayuda del SOS (/sos)',
 ].join(', ');
 

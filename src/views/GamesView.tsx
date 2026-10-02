@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Timer, Play, Gamepad2 } from 'lucide-react';
+import { ArrowRight, Play, Hourglass, Gamepad2 } from 'lucide-react';
 import { GAMES } from '../utils/gamesCatalog';
+import { GameIcon } from '../utils/gameIcons';
 
 const STORAGE_KEY = 'alivia-games-played';
 
@@ -31,13 +32,13 @@ export const GamesView: React.FC = () => {
     <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '8px' }}>
       <div className="cm-card" style={{ padding: '20px 18px', background: 'linear-gradient(135deg, rgba(var(--accent-lavender-rgb), 0.12) 0%, rgba(var(--accent-sage-rgb), 0.05) 100%)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div className="cm-float" style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(var(--accent-lavender-rgb), 0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(var(--accent-lavender-rgb), 0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Gamepad2 size={24} color="var(--accent-lavender)" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 className="title-small" style={{ margin: 0, color: 'var(--text-primary)' }}>Juegos Mente-Activos</h3>
+            <h3 className="title-small" style={{ margin: 0, color: 'var(--text-primary)' }}>Cosas Que No Importan</h3>
             <p className="body-standard" style={{ margin: '4px 0 0', fontSize: '12px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-              Mini-juegos diseñados para momentos difíciles: calman, enfocan y te regalan pequeñas victorias.
+              Ocho tareas aburridas a propósito. No se ganan, no se pierden y no se acaban. Solo distracción.
             </p>
           </div>
         </div>
@@ -52,22 +53,21 @@ export const GamesView: React.FC = () => {
           role="button"
         >
           <div
-            className="cm-float"
-            style={{ width: '58px', height: '58px', borderRadius: '18px', background: 'rgba(255, 255, 255, 0.07)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', flexShrink: 0 }}
+            style={{ width: '58px', height: '58px', borderRadius: '18px', background: 'rgba(255, 255, 255, 0.07)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
           >
-            {game.emoji}
+            <GameIcon name={game.icon} size={26} color={game.accent} strokeWidth={1.5} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <h4 className="title-small" style={{ margin: 0, fontSize: '16px', color: 'var(--text-primary)' }}>{game.title}</h4>
               {played.has(game.id) && (
-                <span style={{ fontSize: '9.5px', fontWeight: 800, letterSpacing: '0.1em', color: 'var(--accent-sage)', background: 'rgba(var(--accent-sage-rgb), 0.12)', borderRadius: '999px', padding: '3px 10px' }}>JUGADO ✓</span>
+                <span style={{ fontSize: '9.5px', fontWeight: 800, letterSpacing: '0.1em', color: 'var(--accent-sage)', background: 'rgba(var(--accent-sage-rgb), 0.12)', borderRadius: '999px', padding: '3px 10px' }}>YA PROBADO</span>
               )}
             </div>
             <p className="body-standard" style={{ margin: '5px 0 8px', fontSize: '12px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>{game.desc}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)' }}>
-                <Timer size={11} /> {game.minutes}
+                <Hourglass size={11} /> {game.pace}
               </span>
               {game.forWhom.map(w => (
                 <span key={w} style={{ fontSize: '9.5px', fontWeight: 700, color: game.accent, background: 'rgba(0,0,0,0.10)', border: `1px solid ${game.accent}33`, borderRadius: '999px', padding: '2.5px 9px' }}>
@@ -79,7 +79,7 @@ export const GamesView: React.FC = () => {
           <button
             className="cm-press"
             style={{ flexShrink: 0, width: '42px', height: '42px', borderRadius: '50%', border: 'none', background: game.accent, color: '#0c1810', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-            aria-label={`Jugar ${game.title}`}
+            aria-label={`Abrir ${game.title}`}
           >
             <Play size={17} fill="#0c1810" />
           </button>

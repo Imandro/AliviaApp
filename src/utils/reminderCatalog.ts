@@ -45,7 +45,7 @@ export const REMINDER_CATALOG: ReminderDefinition[] = [
   { id: 'study-break', title: 'Pausa de estudio o trabajo', body: 'Haz una pausa breve antes de continuar.', path: '/breathe', defaultTime: '16:00', group: 'Hábitos' },
   { id: 'personal-goals', title: 'Metas personales', body: 'Revisa con calma un paso pequeño de tus metas.', path: '/plans', defaultTime: '18:00', group: 'Hábitos' },
   { id: 'daily-challenge', title: 'Retos', body: 'Hay un reto breve disponible para ti.', path: '/retos', defaultTime: '12:00', group: 'Herramientas' },
-  { id: 'wellbeing-game', title: 'Juego de bienestar', body: 'Prueba un juego corto para hacer una pausa.', path: '/games', defaultTime: '17:30', group: 'Herramientas' },
+  { id: 'wellbeing-game', title: 'Pausa aburrida', body: 'Haz una tarea sin importancia: frota una moneda o apila bloques.', path: '/games', defaultTime: '17:30', group: 'Herramientas' },
   { id: 'library', title: 'Biblioteca', body: 'Puedes explorar una lectura breve a tu ritmo.', path: '/library', defaultTime: '19:30', group: 'Herramientas' },
   { id: 'via-chat', title: 'Conversar con VIA', body: 'VIA está disponible si quieres conversar.', path: '/chat', defaultTime: '18:30', group: 'Conexión' },
   { id: 'support-network', title: 'Red de apoyo', body: 'Si te ayuda, puedes contactar a alguien de confianza.', path: '/connect', defaultTime: '18:00', group: 'Conexión' },
