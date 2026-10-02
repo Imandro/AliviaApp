@@ -8,7 +8,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'MÃƒÂ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -21,7 +21,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const cleanPassword = String(password || '');
 
     if (!cleanIdentifier || !cleanPassword) {
-      return res.status(400).json({ error: 'Ingresa tu usuario o correo y tu contraseÃƒÂ±a' });
+      return res.status(400).json({ error: 'Ingresa tu usuario o correo y tu contraseña' });
     }
 
     const { rows } = await pool.query(
@@ -31,7 +31,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     const user = rows[0];
     if (!user || !verifyPassword(cleanPassword, user.password_hash)) {
-      return res.status(401).json({ error: 'Usuario o contraseÃƒÂ±a incorrectos' });
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
 
     const token = await createSession(String(user.id));
@@ -39,6 +39,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(200).json({ token, user: toSafeUser(user) });
   } catch (err) {
     console.error('Error en /api/auth/login:', err);
-    return res.status(500).json({ error: 'No se pudo iniciar sesiÃƒÂ³n' });
+    return res.status(500).json({ error: 'No se pudo iniciar sesión' });
   }
 }
