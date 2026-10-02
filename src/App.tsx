@@ -7,29 +7,29 @@ import { InstallPrompt } from './components/InstallPrompt';
 import { Dashboard } from './views/Dashboard';
 
 // Code-splitting: cada pantalla viaja en su propio chunk y carga al vuelo.
-const mk = <T,>(p: Promise<{ [k: string]: T }>, key: string) =>
-  lazy(() => p.then(m => ({ default: m[key] as React.ComponentType<any> })));
+const mk = <T,>(load: () => Promise<{ [k: string]: T }>, key: string) =>
+  lazy(() => load().then(m => ({ default: m[key] as React.ComponentType<any> })));
 
-const Breathe = mk(import('./views/Breathe'), 'Breathe');
-const BurnJournal = mk(import('./views/BurnJournal'), 'BurnJournal');
-const Coping = mk(import('./views/Coping'), 'Coping');
-const RetosView = mk(import('./views/RetosView'), 'RetosView');
-const SosScreen = mk(import('./views/SosScreen'), 'SosScreen');
-const ExploreView = mk(import('./views/ExploreView'), 'ExploreView');
-const ChatView = mk(import('./views/ChatView'), 'ChatView');
-const RadarView = mk(import('./views/RadarView'), 'RadarView');
-const PlansView = mk(import('./views/PlansView'), 'PlansView');
-const CommunityView = mk(import('./views/CommunityView'), 'CommunityView');
-const LibraryView = mk(import('./views/LibraryView'), 'LibraryView');
-const GuideView = mk(import('./views/GuideView'), 'GuideView');
-const ConnectView = mk(import('./views/ConnectView'), 'ConnectView');
-const WelcomeView = mk(import('./views/WelcomeView'), 'WelcomeView');
-const OnboardingView = mk(import('./views/OnboardingView'), 'OnboardingView');
-const ProfileView = mk(import('./views/ProfileView'), 'ProfileView');
-const AssessmentView = mk(import('./views/AssessmentView'), 'AssessmentView');
-const GamesView = mk(import('./views/GamesView'), 'GamesView');
-const GameView = mk(import('./views/GameView'), 'GameView');
-const NotFoundView = mk(import('./views/NotFoundView'), 'NotFoundView');
+const Breathe = mk(() => import('./views/Breathe'), 'Breathe');
+const BurnJournal = mk(() => import('./views/BurnJournal'), 'BurnJournal');
+const Coping = mk(() => import('./views/Coping'), 'Coping');
+const RetosView = mk(() => import('./views/RetosView'), 'RetosView');
+const SosScreen = mk(() => import('./views/SosScreen'), 'SosScreen');
+const ExploreView = mk(() => import('./views/ExploreView'), 'ExploreView');
+const ChatView = mk(() => import('./views/ChatView'), 'ChatView');
+const RadarView = mk(() => import('./views/RadarView'), 'RadarView');
+const PlansView = mk(() => import('./views/PlansView'), 'PlansView');
+const CommunityView = mk(() => import('./views/CommunityView'), 'CommunityView');
+const LibraryView = mk(() => import('./views/LibraryView'), 'LibraryView');
+const GuideView = mk(() => import('./views/GuideView'), 'GuideView');
+const ConnectView = mk(() => import('./views/ConnectView'), 'ConnectView');
+const WelcomeView = mk(() => import('./views/WelcomeView'), 'WelcomeView');
+const OnboardingView = mk(() => import('./views/OnboardingView'), 'OnboardingView');
+const ProfileView = mk(() => import('./views/ProfileView'), 'ProfileView');
+const AssessmentView = mk(() => import('./views/AssessmentView'), 'AssessmentView');
+const GamesView = mk(() => import('./views/GamesView'), 'GamesView');
+const GameView = mk(() => import('./views/GameView'), 'GameView');
+const NotFoundView = mk(() => import('./views/NotFoundView'), 'NotFoundView');
 
 const ROUTE_PATTERNS = [
   '/',

@@ -1,114 +1,125 @@
-/* Se carga también desde index.html, antes de arrancar React. */
-@font-face {
-  font-family: 'Alivia Loading';
-  src: url('../assets/fonts/quicksand-300.woff2') format('woff2');
-  font-weight: 300;
-  font-display: swap;
-}
-
-#app-preloader,
-.loading-screen {
-  background: radial-gradient(ellipse at 50% 42%, #294b37 0%, #1a2a20 48%, #0d1810 100%);
-  color: #eaebdd;
+/* Apertura de marca: trazado, relleno y firma. También se carga antes de React. */
+#app-preloader, .loading-screen {
+  --brand-ivory: #eee9d9;
+  --brand-gold: #e2ca7e;
+  position: relative;
   display: grid;
   place-items: center;
-  min-height: 100%;
   width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  color: var(--brand-ivory);
+  background: #102a22;
+  isolation: isolate;
 }
 
 #app-preloader {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  box-sizing: border-box;
   padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
-  opacity: 1;
-  transition: opacity 360ms ease;
+  box-sizing: border-box;
+  transition: opacity 650ms cubic-bezier(.4, 0, .2, 1);
 }
-
 #app-preloader.is-leaving { opacity: 0; }
 .loading-screen { padding: 24px; box-sizing: border-box; }
 
+.brand-atmosphere { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
+.brand-atmosphere::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 48% 44%, #386447 0%, #1c3e30 25%, #0b211b 62%, #071813 100%);
+
+}
+.brand-atmosphere::after {
+  content: ''; position: absolute; width: min(110vw, 1100px); height: 180%; left: -35%; top: -60%;
+  border-radius: 50%; border: 1px solid rgba(222, 218, 183, .055);
+  box-shadow: 0 0 0 65px rgba(222, 218, 183, .018), 0 0 0 130px rgba(222, 218, 183, .012);
+  transform: rotate(-32deg); 
+}
+
 .loading-brand {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 360px;
   text-align: center;
-  isolation: isolate;
-  font-family: 'Lato', system-ui, sans-serif;
-  animation: alivia-arrive 800ms cubic-bezier(.2, .7, .25, 1) both;
-}
-
-.loading-brand-emblem {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 164px;
-  height: 164px;
-  margin-bottom: 16px;
-}
-
-.loading-brand-emblem::before,
-.loading-brand-emblem::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: 50%;
-  border: 1px solid rgba(166, 196, 161, .16);
-  animation: alivia-breathe 3200ms ease-in-out infinite;
-}
-
-.loading-brand-emblem::before {
-  inset: -28px;
-  border-color: rgba(166, 196, 161, .07);
-  background: radial-gradient(circle, rgba(156, 188, 145, .12), transparent 70%);
-}
-
-.loading-brand-emblem img {
-  display: block;
-  width: 96px;
-  height: 128px;
-  object-fit: contain;
-  filter: brightness(1.35) saturate(.85) drop-shadow(0 8px 18px rgba(0, 0, 0, .12));
-}
-
-.loading-brand-name {
-  color: #f1edda;
-  font-family: 'Alivia Loading', 'Quicksand', sans-serif;
-  font-size: 46px;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-weight: 300;
-  letter-spacing: .015em;
-  line-height: 1.2;
+  transform: translateY(-10px);
 }
-
-.loading-brand-tagline { margin-top: 10px; font-size: 14px; color: #b6c9b4; letter-spacing: .025em; }
-.loading-brand-pulse { display: flex; gap: 7px; margin-top: 34px; height: 6px; }
-.loading-brand-pulse i { width: 5px; height: 5px; border-radius: 50%; background: #d4d6aa; animation: alivia-dot 1500ms ease-in-out infinite; }
-.loading-brand-pulse i:nth-child(2) { animation-delay: 160ms; }
-.loading-brand-pulse i:nth-child(3) { animation-delay: 320ms; }
-.loading-brand-label { margin-top: 13px; color: #a6bba5; font-size: 12px; line-height: 1.5; }
-
-.startup-recovery { position: absolute; bottom: max(28px, env(safe-area-inset-bottom)); left: 24px; right: 24px; text-align: center; font: 13px/1.6 'Lato', system-ui, sans-serif; color: #b6c9b4; }
+.brand-symbol { width: 116px; height: 155px; overflow: hidden; display: block; }
+.brand-draw {
+  fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: brand-trace 1500ms cubic-bezier(.4, 0, .2, 1) 80ms both;
+}
+.brand-draw-wing { animation-delay: 300ms; animation-duration: 1400ms; }
+.brand-draw-ribbon { stroke: #fff; animation-delay: 650ms; animation-duration: 1100ms; }
+.brand-fill { animation: brand-ink 1100ms cubic-bezier(.4, 0, .2, 1) 600ms both; }
+.brand-symbol { animation: brand-settle 1900ms cubic-bezier(.22, 1, .36, 1) both; }
+.brand-signature {
+  display: block; width: 174px; height: 77px; margin-top: 16px; overflow: visible;
+  animation: brand-sign 1100ms cubic-bezier(.22, 1, .36, 1) 950ms both;
+}
+.brand-signature rect { fill: #fff; }
+.brand-tagline { margin: 16px 0 0; color: #c7d0bd; font-size: 14px; letter-spacing: .1em; line-height: 1.5; animation: brand-tagline 950ms cubic-bezier(.22, 1, .36, 1) 1550ms both; }
+.brand-wait {
+  position: absolute; bottom: max(48px, calc(env(safe-area-inset-bottom) + 24px)); left: 24px; right: 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  animation: brand-tagline 900ms ease 1900ms both;
+}
+.brand-wait-track { position: relative; height: 1px; width: 88px; overflow: hidden; background: rgba(215, 223, 197, .12); }
+.brand-wait-track::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, #e2ca7e, transparent); animation: brand-wait 2200ms ease-in-out infinite; }
+.brand-wait-label { color: #9eb3a3; font: 300 10px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif; letter-spacing: .18em; text-transform: uppercase; }
+.startup-recovery { position: absolute; bottom: max(30px, env(safe-area-inset-bottom)); left: 24px; right: 24px; text-align: center; font: 13px/1.6 'Lato', system-ui, sans-serif; color: #c7d0bd; }
 .startup-recovery[hidden] { display: none; }
-.startup-recovery button { display: block; margin: 10px auto 0; padding: 10px 20px; border: 1px solid #748d70; border-radius: 24px; color: #eaebdd; background: #294b37; font: inherit; cursor: pointer; }
-.startup-recovery button:focus-visible { outline: 2px solid #f2e3a0; outline-offset: 4px; }
+.startup-recovery button { display: block; margin: 10px auto 0; padding: 10px 22px; border: 1px solid #768d76; border-radius: 24px; color: #eee9d9; background: #244635; font: inherit; cursor: pointer; }
+.startup-recovery button:focus-visible { outline: 2px solid #e2ca7e; outline-offset: 4px; }
+#app-preloader.has-recovery .brand-wait { display: none; }
 
-@keyframes alivia-arrive { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
-@keyframes alivia-breathe { 0%, 100% { transform: scale(.96); opacity: .55; } 50% { transform: scale(1.04); opacity: 1; } }
-@keyframes alivia-dot { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+/* Las esperas internas muestran la firma ya construida: la presentación se hace una vez. */
+.loading-screen .brand-symbol, .loading-screen .brand-fill, .loading-screen .brand-signature, .loading-screen .brand-tagline, .loading-screen .brand-wait { animation: none; }
+.loading-screen .brand-draw { display: none; }
 
-@media (max-height: 540px) {
-  .loading-brand-emblem { width: 112px; height: 112px; margin-bottom: 10px; }
-  .loading-brand-emblem img { width: 66px; height: 88px; }
-  .loading-brand-name { font-size: 34px; }
-  .loading-brand-pulse { margin-top: 20px; }
-  #app-preloader.has-recovery .loading-brand-tagline,
-  #app-preloader.has-recovery .loading-brand-label { display: none; }
-  #app-preloader.has-recovery .loading-brand { transform: translateY(-28px); }
+@keyframes brand-trace { 0% { stroke-dashoffset: 1; opacity: 0; } 12% { opacity: 1; } 70% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes brand-ink { from { opacity: 0; } to { opacity: 1; } }
+@keyframes brand-settle { from { opacity: 0; transform: translateY(8px) scale(.97); } 25% { opacity: 1; } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes brand-sign { from { opacity: 0; transform: translateY(9px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes brand-tagline { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes brand-light-open { from { opacity: .35; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes brand-contour { from { opacity: 0; transform: rotate(-35deg) translateX(-30px); } to { opacity: 1; transform: rotate(-32deg) translateX(0); } }
+@keyframes brand-wait { 0% { transform: translateX(-100%); } 65%, 100% { transform: translateX(100%); } }
+
+@media (max-width: 480px) {
+  .brand-symbol { width: 106px; height: 142px; }
+  .brand-signature { width: 158px; height: 70px; margin-top: 14px; }
+  .brand-tagline { font-size: 12px; margin-top: 14px; }
+  .brand-wait { bottom: max(44px, calc(env(safe-area-inset-bottom) + 24px)); }
 }
-
+@media (max-height: 540px) {
+  .loading-brand { transform: translateY(-15px); }
+  .brand-symbol { width: 72px; height: 96px; }
+  .brand-signature { width: 116px; height: 51px; margin-top: 10px; }
+  .brand-tagline { margin-top: 10px; font-size: 11px; }
+  .brand-wait { bottom: 18px; gap: 10px; }
+  #app-preloader.has-recovery .brand-tagline { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   #app-preloader { transition: none; }
-  .loading-brand, .loading-brand-emblem::before, .loading-brand-emblem::after, .loading-brand-pulse i { animation: none; }
+  .loading-brand *, .brand-wait, .brand-wait-track::after, .brand-atmosphere::before, .brand-atmosphere::after { animation: none !important; }
+  .brand-draw { display: none; }
+}
+
+
+/* Solo pequeñas capas se animan. En móvil/ahorro de datos se omite el trazado SVG. */
+.brand-symbol, .brand-signature { contain: layout paint; }
+#app-preloader[data-lite] .brand-draw { display: none; }
+#app-preloader[data-lite] .brand-fill { animation: none; }
+#app-preloader[data-lite] .brand-symbol { animation: brand-settle 1400ms cubic-bezier(.22, 1, .36, 1) both; }
+@media (max-width: 480px) {
+  .brand-draw { display: none; }
+  .brand-fill { animation: none; }
+  .brand-atmosphere::after { display: none; }
 }

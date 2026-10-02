@@ -60,9 +60,18 @@ if (Capacitor.isNativePlatform()) {
 
 // El service worker solo aplica a la web; en cualquier shell nativo se omite.
 if ('serviceWorker' in navigator && !isNativeShell) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js');
-  });
+  // El precache de pantallas offline no debe competir con la primera pantalla.
+  let registrationTimer: ReturnType<typeof setTimeout>;
+  const scheduleRegistration = (delay: number) => {
+    clearTimeout(registrationTimer);
+    registrationTimer = setTimeout(() => {
+      void navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('No se pudo preparar el modo offline:', err);
+      });
+    }, delay);
+  };
+  window.addEventListener('load', () => scheduleRegistration(30000), { once: true });
+  window.addEventListener('alivia:screen-ready', () => scheduleRegistration(5000), { once: true });
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

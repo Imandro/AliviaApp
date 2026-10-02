@@ -5,7 +5,7 @@ import { signalScreenReady } from './startup';
 
 const script = readFileSync(new URL('../../public/startup.js', import.meta.url), 'utf8');
 
-function setup(reducedMotion = false) {
+function setup(reducedMotion = false, device = {}) {
   const classes = new Set<string>();
   const overlay = Object.assign(new EventTarget(), {
     setAttribute: vi.fn(),
@@ -17,6 +17,7 @@ function setup(reducedMotion = false) {
   const retry = new EventTarget();
   const motion = Object.assign(new EventTarget(), { matches: reducedMotion });
   const window = Object.assign(new EventTarget(), {
+    navigator: device,
     matchMedia: () => motion,
     location: { reload: vi.fn() },
   });
@@ -33,6 +34,21 @@ describe('arranque de ALIVIA', () => {
   beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] }));
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
+  it.each([{ hardwareConcurrency: 2 }, { connection: { saveData: true } }])('usa la presentación ligera en dispositivos limitados: %j', (device) => {
+    const { overlay } = setup(false, device);
+    expect(overlay.setAttribute).toHaveBeenCalledWith('data-lite', '');
+  });
+
+  it('el HTML inicial incluye estilo, arte y recuperación sin descargas adicionales', () => {
+    const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
+    const css = readFileSync(new URL('../components/LoadingBrand.css', import.meta.url), 'utf8');
+    expect(html).toContain(script);
+    expect(html).toContain(css);
+    expect(html).toContain('data:image/png;base64,');
+    expect(html).not.toContain('href="/src/components/LoadingBrand.css"');
+    expect(html).not.toContain('src="%BASE_URL%startup.js"');
+  });
+
   it('window.load no descubre una pantalla que React todavía no terminó', () => {
     const { window, overlay, recovery } = setup();
     window.dispatchEvent(new Event('load'));
@@ -45,12 +61,12 @@ describe('arranque de ALIVIA', () => {
     const { window, overlay, root, classes } = setup();
     window.dispatchEvent(new Event('alivia:screen-ready'));
     window.dispatchEvent(new Event('alivia:screen-ready'));
-    vi.advanceTimersByTime(799);
+    vi.advanceTimersByTime(2799);
     expect(classes.has('is-leaving')).toBe(false);
     vi.advanceTimersByTime(1);
     expect(classes.has('is-leaving')).toBe(true);
     expect(root.removeAttribute).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(440);
+    vi.advanceTimersByTime(730);
     expect(overlay.remove).toHaveBeenCalledTimes(1);
     expect(root.removeAttribute).toHaveBeenCalledWith('inert');
   });
@@ -74,7 +90,7 @@ describe('arranque de ALIVIA', () => {
   it('atiende cambios de movimiento reducido durante la salida', () => {
     const { window, overlay, motion } = setup();
     window.dispatchEvent(new Event('alivia:screen-ready'));
-    vi.advanceTimersByTime(800);
+    vi.advanceTimersByTime(2800);
     motion.matches = true;
     motion.dispatchEvent(new Event('change'));
     expect(overlay.remove).toHaveBeenCalledTimes(1);
@@ -88,7 +104,7 @@ describe('arranque de ALIVIA', () => {
     retry.dispatchEvent(new Event('click'));
     expect(window.location.reload).toHaveBeenCalledOnce();
     window.dispatchEvent(new Event('alivia:screen-ready'));
-    vi.advanceTimersByTime(440);
+    vi.advanceTimersByTime(730);
     expect(overlay.remove).toHaveBeenCalledOnce();
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -100,5 +116,21 @@ describe('arranque de ALIVIA', () => {
     signalScreenReady();
     expect(overlay.remove).toHaveBeenCalledOnce();
     expect(root.removeAttribute).toHaveBeenCalledWith('inert');
+  });
+
+  it('espera al CSS de la app antes de retirar la marca en una red lenta', () => {
+    const stylesheet = Object.assign(new EventTarget(), { sheet: null });
+    const ready = vi.fn();
+    const target = new EventTarget();
+    target.addEventListener('alivia:screen-ready', ready);
+    vi.stubGlobal('window', target);
+    vi.stubGlobal('document', {
+      getElementById: () => ({ hasAttribute: () => true }),
+      querySelector: () => stylesheet,
+    });
+    signalScreenReady();
+    expect(ready).not.toHaveBeenCalled();
+    stylesheet.dispatchEvent(new Event('load'));
+    expect(ready).toHaveBeenCalledOnce();
   });
 });

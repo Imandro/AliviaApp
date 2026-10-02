@@ -1,8 +1,8 @@
 (() => {
   'use strict';
   const READY_EVENT = 'alivia:screen-ready';
-  const INTRO_MS = 800;
-  const EXIT_MS = 360;
+  const INTRO_MS = 2800;
+  const EXIT_MS = 650;
   const RECOVERY_MS = 12000;
 
   /** Conserva una sola capa desde el HTML hasta que React haya pintado la pantalla. */
@@ -10,6 +10,10 @@
     const overlay = document.getElementById('app-preloader');
     if (!overlay) return;
     overlay.setAttribute('data-startup-mounted', '');
+    const device = window.navigator;
+    if (device?.connection?.saveData || (device?.hardwareConcurrency && device.hardwareConcurrency <= 4)) {
+      overlay.setAttribute('data-lite', '');
+    }
 
     const root = document.getElementById('root');
     const recovery = document.getElementById('startup-recovery');

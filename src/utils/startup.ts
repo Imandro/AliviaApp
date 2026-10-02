@@ -9,6 +9,15 @@ export function signalScreenReady() {
     overlay.remove();
     return;
   }
+  // El CSS de la app se descarga sin bloquear el logo del HTML inicial.
+  // La salida espera también al estilo, para no descubrir controles sin formato.
+  const stylesheet = document.querySelector?.<HTMLLinkElement>('link[data-app-styles]');
+  if (stylesheet && !stylesheet.sheet) {
+    stylesheet.addEventListener('load', () => {
+      window.dispatchEvent(new Event(READY_EVENT));
+    }, { once: true });
+    return;
+  }
   window.dispatchEvent(new Event(READY_EVENT));
 }
 
