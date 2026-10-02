@@ -61,6 +61,7 @@ import { SyncToast } from './components/SyncToast';
 import { AppLock } from './components/AppLock';
 import { FirstRunSpotlight } from './components/FirstRunSpotlight';
 import { LoadingBrand } from './components/LoadingBrand';
+import { StartupReady } from './components/StartupReady';
 
 const ROUTE_MAP: Record<string, TabId> = {
   '/': 'dashboard',
@@ -153,6 +154,7 @@ function AppShell({
                 />
                 <Route path="*" element={<NotFoundView />} />
               </Routes>
+                <StartupReady />
               </div>
             </Suspense>
           </ErrorBoundary>
@@ -168,21 +170,8 @@ function AppShell({
 
 function SplashScreen() {
   return (
-    <div className="app-shell auth-shell">
-      <div className="bg-blobs" aria-hidden="true">
-        <div className="bg-blob bg-blob-1" />
-        <div className="bg-blob bg-blob-2" />
-        <div className="bg-blob bg-blob-3" />
-      </div>
-      <div className="auth-centered" style={{
-        padding: '24px 20px',
-        position: 'relative',
-        zIndex: 1,
-        gap: '16px',
-        alignItems: 'center',
-      }}>
-        <LoadingBrand />
-      </div>
+    <div className="loading-screen">
+      <LoadingBrand />
     </div>
   );
 }
@@ -228,6 +217,7 @@ function Root() {
         <main className="app-content">
           <Suspense fallback={<SplashScreen />}>
             <NotFoundView />
+            <StartupReady />
           </Suspense>
         </main>
       </div>
@@ -236,25 +226,31 @@ function Root() {
 
   if (status === 'welcome') {
     return (
-      <WelcomeView
-        onAuthenticated={(u: SafeUser) => {
-          setUser(u);
-          setStatus('app');
-        }}
-      />
+      <>
+        <WelcomeView
+          onAuthenticated={(u: SafeUser) => {
+            setUser(u);
+            setStatus('app');
+          }}
+        />
+        <StartupReady />
+      </>
     );
   }
 
   if (status === 'onboarding') {
     return (
-      <OnboardingView
-        initial={user}
-        onSaved={(u: SafeUser) => {
-          setUser(u);
-          setStatus('app');
-        }}
-        onClose={user?.onboarding_done ? () => setStatus('app') : undefined}
-      />
+      <>
+        <OnboardingView
+          initial={user}
+          onSaved={(u: SafeUser) => {
+            setUser(u);
+            setStatus('app');
+          }}
+          onClose={user?.onboarding_done ? () => setStatus('app') : undefined}
+        />
+        <StartupReady />
+      </>
     );
   }
 
@@ -273,7 +269,9 @@ function Root() {
 function App() {
   return (
     <HashRouter>
-      <Root />
+      <Suspense fallback={<SplashScreen />}>
+        <Root />
+      </Suspense>
       <SyncToast />
       <AppLock />
       <FirstRunSpotlight />

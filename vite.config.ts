@@ -25,6 +25,9 @@ export default defineConfig(({ mode }) => ({
           'workbox-*.js',
           '**/ALIVIA-*.apk',
           '**/mascota-*.png',
+          // Los videos antiguos ya no participan en las pantallas de carga.
+          'videos/alivia-reveal.webm',
+          'videos/alivia-pop.webm',
         ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/landing/],
