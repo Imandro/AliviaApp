@@ -5,7 +5,7 @@ import { signalScreenReady } from './startup';
 
 const script = readFileSync(new URL('../../public/startup.js', import.meta.url), 'utf8');
 
-function setup(reducedMotion = false, device = {}) {
+function setup(reducedMotion = false, device = {}, mobile = false) {
   const classes = new Set<string>();
   const overlay = Object.assign(new EventTarget(), {
     setAttribute: vi.fn(),
@@ -18,7 +18,7 @@ function setup(reducedMotion = false, device = {}) {
   const motion = Object.assign(new EventTarget(), { matches: reducedMotion });
   const window = Object.assign(new EventTarget(), {
     navigator: device,
-    matchMedia: () => motion,
+    matchMedia: (query: string) => query === '(max-width: 767px)' ? { matches: mobile } : motion,
     location: { reload: vi.fn() },
   });
   const elements = { 'app-preloader': overlay, root, 'startup-recovery': recovery, 'startup-retry': retry };
@@ -76,6 +76,16 @@ describe('arranque de ALIVIA', () => {
     vi.advanceTimersByTime(5000);
     window.dispatchEvent(new Event('alivia:screen-ready'));
     vi.advanceTimersByTime(0);
+    expect(classes.has('is-leaving')).toBe(true);
+  });
+
+  it('conserva una pausa breve en celular cuando la pantalla llega tarde', () => {
+    const { window, classes } = setup(false, {}, true);
+    vi.advanceTimersByTime(5000);
+    window.dispatchEvent(new Event('alivia:screen-ready'));
+    vi.advanceTimersByTime(599);
+    expect(classes.has('is-leaving')).toBe(false);
+    vi.advanceTimersByTime(1);
     expect(classes.has('is-leaving')).toBe(true);
   });
 

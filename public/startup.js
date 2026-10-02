@@ -2,6 +2,7 @@
   'use strict';
   const READY_EVENT = 'alivia:screen-ready';
   const INTRO_MS = 2800;
+  const MOBILE_READY_MS = 600;
   const EXIT_MS = 650;
   const RECOVERY_MS = 12000;
 
@@ -20,6 +21,8 @@
     const retry = document.getElementById('startup-retry');
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const started = performance.now();
+    const mobile = window.matchMedia('(max-width: 767px)').matches;
+    let readyAt = started;
     let ready = false;
     let leaving = false;
     let exitTimer;
@@ -51,12 +54,14 @@
     };
     const scheduleExit = () => {
       clearTimeout(exitTimer);
-      const remaining = motion.matches ? 0 : Math.max(0, INTRO_MS - (performance.now() - started));
+      const minimumEnd = Math.max(started + INTRO_MS, readyAt + (mobile ? MOBILE_READY_MS : 0));
+      const remaining = motion.matches ? 0 : Math.max(0, minimumEnd - performance.now());
       exitTimer = setTimeout(exit, remaining);
     };
     const onReady = () => {
       if (ready) return;
       ready = true;
+      readyAt = performance.now();
       scheduleExit();
     };
     const onMotionChange = () => {
