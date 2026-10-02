@@ -3,9 +3,9 @@ import { runInNewContext } from 'node:vm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { signalScreenReady } from './startup';
 
-const script = readFileSync(new URL('../../public/startup.js', import.meta.url), 'utf8');
+const script = readFileSync(new URL('../../public/startup.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
-function setup(reducedMotion = false, device = {}) {
+function setup(reducedMotion = false, device = {}, desktop = false) {
   const classes = new Set<string>();
   const overlay = Object.assign(new EventTarget(), {
     setAttribute: vi.fn(),
@@ -18,7 +18,7 @@ function setup(reducedMotion = false, device = {}) {
   const motion = Object.assign(new EventTarget(), { matches: reducedMotion });
   const window = Object.assign(new EventTarget(), {
     navigator: device,
-    matchMedia: () => motion,
+    matchMedia: (query: string) => query.includes('prefers-reduced-motion') ? motion : { matches: desktop },
     location: { reload: vi.fn() },
   });
   const elements = { 'app-preloader': overlay, root, 'startup-recovery': recovery, 'startup-retry': retry };
@@ -34,14 +34,33 @@ describe('arranque de ALIVIA', () => {
   beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] }));
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
+  it('mantiene la presentación de laptop cuatro segundos antes de salir', () => {
+    const { window, classes, overlay } = setup(false, {}, true);
+    window.dispatchEvent(new Event('alivia:screen-ready'));
+    vi.advanceTimersByTime(3999);
+    expect(classes.has('is-leaving')).toBe(false);
+    vi.advanceTimersByTime(1);
+    expect(classes.has('is-leaving')).toBe(true);
+    vi.advanceTimersByTime(730);
+    expect(overlay.remove).toHaveBeenCalledOnce();
+  });
+
+  it('cuenta la descarga lenta dentro de la espera mínima de laptop', () => {
+    const { window, classes } = setup(false, {}, true);
+    vi.advanceTimersByTime(5000);
+    window.dispatchEvent(new Event('alivia:screen-ready'));
+    vi.advanceTimersByTime(0);
+    expect(classes.has('is-leaving')).toBe(true);
+  });
+
   it.each([{ hardwareConcurrency: 2 }, { connection: { saveData: true } }])('usa la presentación ligera en dispositivos limitados: %j', (device) => {
     const { overlay } = setup(false, device);
     expect(overlay.setAttribute).toHaveBeenCalledWith('data-lite', '');
   });
 
   it('el HTML inicial incluye estilo, arte y recuperación sin descargas adicionales', () => {
-    const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
-    const css = readFileSync(new URL('../components/LoadingBrand.css', import.meta.url), 'utf8');
+    const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+    const css = readFileSync(new URL('../components/LoadingBrand.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
     expect(html).toContain(script);
     expect(html).toContain(css);
     expect(html).toContain('data:image/png;base64,');
