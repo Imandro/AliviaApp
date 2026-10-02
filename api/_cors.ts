@@ -8,7 +8,7 @@ const CORS_HEADERS: Array<[string, string]> = [
   ['Access-Control-Max-Age', '86400'],
 ];
 
-// Aplica cabeceras CORS y responde preflight OPTIONS. Devuelve true si la peticiÃ³n ya fue respondida.
+// Aplica cabeceras CORS y responde preflight OPTIONS. Devuelve true si la petición ya fue respondida.
 export function applyCors(req: ApiRequest, res: ApiResponse): boolean {
   for (const [key, value] of CORS_HEADERS) {
     res.setHeader(key, value);

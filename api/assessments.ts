@@ -8,7 +8,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
-    return res.status(405).json({ error: 'MÃ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -54,7 +54,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if ([stress, anxiety, depression].some((s) => typeof s !== 'number' || s < 0 || s > 15)) {
-      return res.status(400).json({ error: 'Puntuaciones invÃ¡lidas (0-15)' });
+      return res.status(400).json({ error: 'Puntuaciones inválidas (0-15)' });
     }
 
     if (id && Number.isFinite(Number(id))) {
