@@ -5,8 +5,8 @@ import { signalScreenReady } from './startup';
 
 const script = readFileSync(new URL('../../public/startup.js', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
-function setup(reducedMotion = false, device = {}, opts: { desktop?: boolean; landingFlag?: string } = {}) {
-  const { desktop = false, landingFlag } = opts;
+function setup(reducedMotion = false, device = {}, opts: { desktop?: boolean; mobile?: boolean; landingFlag?: string } = {}) {
+  const { desktop = false, mobile = false, landingFlag } = opts;
   const classes = new Set<string>();
   const overlay = Object.assign(new EventTarget(), {
     setAttribute: vi.fn(),
@@ -23,7 +23,7 @@ function setup(reducedMotion = false, device = {}, opts: { desktop?: boolean; la
 // El script pregunta por prefers-reduced-motion y por el tamano de pantalla
     // (para alargar la animacion en laptop), asi que matchMedia tiene que
     // responder distinto segun la media query.
-    matchMedia: (query: string) => (query.includes('prefers-reduced-motion') ? motion : { matches: desktop }),
+    matchMedia: (query: string) => (query.includes('prefers-reduced-motion') ? motion : { matches: query.includes('max-width') ? mobile : desktop }),
     location,
   });
   const store = new Map<string, string>();
@@ -139,6 +139,16 @@ describe('arranque de ALIVIA', () => {
     vi.advanceTimersByTime(5000);
     window.dispatchEvent(new Event('alivia:screen-ready'));
     vi.advanceTimersByTime(0);
+    expect(classes.has('is-leaving')).toBe(true);
+  });
+
+  it('conserva una pausa breve en celular cuando la pantalla llega tarde', () => {
+    const { window, classes } = setup(false, {}, { mobile: true });
+    vi.advanceTimersByTime(5000);
+    window.dispatchEvent(new Event('alivia:screen-ready'));
+    vi.advanceTimersByTime(599);
+    expect(classes.has('is-leaving')).toBe(false);
+    vi.advanceTimersByTime(1);
     expect(classes.has('is-leaving')).toBe(true);
   });
 
