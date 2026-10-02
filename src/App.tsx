@@ -5,6 +5,7 @@ import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { InstallPrompt } from './components/InstallPrompt';
 import { Dashboard } from './views/Dashboard';
+import { HomeCompanion } from './components/HomeCompanion';
 
 // Code-splitting: cada pantalla viaja en su propio chunk y carga al vuelo.
 const mk = <T,>(load: () => Promise<{ [k: string]: T }>, key: string) =>
@@ -131,7 +132,7 @@ function AppShell({
             <Suspense fallback={<SplashScreen />}>
               <div className="page-enter" key={location.pathname}>
                 <Routes location={location}>
-                <Route path="/" element={<Dashboard user={user} />} />
+                <Route path="/" element={<HomeCompanion><Dashboard user={user} /></HomeCompanion>} />
                 <Route path="/breathe" element={<Breathe />} />
                 <Route path="/journal" element={<BurnJournal theme={theme} />} />
                 <Route path="/coping" element={<Coping />} />
