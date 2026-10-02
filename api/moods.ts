@@ -7,7 +7,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST');
-    return res.status(405).json({ error: 'MÃ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -22,7 +22,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     const { date, score, note } = req.body ?? {};
     if (!date || typeof score !== 'number' || score < 1 || score > 5) {
-      return res.status(400).json({ error: 'Datos invÃ¡lidos: date y score (1-5) son requeridos' });
+      return res.status(400).json({ error: 'Datos inválidos: date y score (1-5) son requeridos' });
     }
 
     const { rows } = await pool.query(

@@ -78,6 +78,15 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- La landing se muestra una sola vez por dispositivo (localStorage). Esta
+-- columna es la copia en la cuenta, para que al entrar desde otro telefono u
+-- otra computadora la landing tampoco reaparezca.
+--
+-- El ALTER va aparte del CREATE porque la tabla ya existe en produccion:
+-- CREATE TABLE IF NOT EXISTS no anade columnas nuevas. IF NOT EXISTS hace que
+-- el script sea idempotente y se pueda correr en cada arranque sin efecto.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS landing_seen BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

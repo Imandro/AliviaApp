@@ -7,7 +7,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'GET' && req.method !== 'PUT' && req.method !== 'DELETE') {
     res.setHeader('Allow', 'GET, PUT, DELETE');
-    return res.status(405).json({ error: 'MÃ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {

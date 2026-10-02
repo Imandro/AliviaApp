@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Landing estatica: la unica pagina real con contenido indexable. Las
+       rutas de la app usan #, que no viaja al servidor, asi que para un
+       crawler /#/breathe y / son la misma URL. -->
+  <url>
+    <loc>https://alivia.lat/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://alivia.lat/landing.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Pagina de descarga del APK: pasos de instalacion y requisitos, entra por
+       busqueda de quien ya quiere instalar y no necesita el pitch completo. -->
+  <url>
+    <loc>https://alivia.lat/descarga.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://alivia.lat/manifest.json</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+
+</urlset>

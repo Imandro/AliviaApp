@@ -19,6 +19,7 @@ export interface SafeUser {
   changes: string[];
   goals_text: string | null;
   onboarding_done: boolean;
+  landing_seen: boolean;
   created_at: string;
 }
 
@@ -38,6 +39,7 @@ export function toSafeUser(row: any): SafeUser {
     changes: row.changes ?? [],
     goals_text: row.goals_text ?? null,
     onboarding_done: Boolean(row.onboarding_done),
+    landing_seen: Boolean(row.landing_seen),
     created_at: String(row.created_at ?? ''),
   };
 }

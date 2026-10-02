@@ -7,7 +7,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'MÃƒÂ©todo no permitido' });
+    return res.status(405).json({ error: 'Método no permitido' });
   }
 
   try {
@@ -15,6 +15,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Error en /api/auth/logout:', err);
-    return res.status(500).json({ error: 'No se pudo cerrar la sesiÃƒÂ³n' });
+    return res.status(500).json({ error: 'No se pudo cerrar la sesión' });
   }
 }

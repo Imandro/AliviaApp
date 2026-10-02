@@ -1,0 +1,22 @@
+# ALIVIA - Tu Espacio de Calma
+# https://alivia.lat
+#
+# La app es una SPA con rutas por hash (#/breathe, #/journal...), asi que para
+# un crawler existe una sola URL real: la raiz. Lo indexable es la landing
+# estatica, que es la que describe el producto para buscadores y para los
+# enlaces compartidos en redes.
+
+User-agent: *
+Allow: /
+
+# La API y la Lambda de voz no aportan nada al indice: responden JSON y audio.
+Disallow: /api/
+Disallow: /api/tts
+
+# La SPA exige login para casi todo. No tiene sentido que un crawler entre a
+# paginas privadas: solo veria la pantalla de acceso, que no aporta contenido.
+Disallow: /#/chat
+Disallow: /#/community
+Disallow: /#/profile
+
+Sitemap: https://alivia.lat/sitemap.xml

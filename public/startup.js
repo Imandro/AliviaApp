@@ -1,9 +1,48 @@
 (() => {
   'use strict';
   const READY_EVENT = 'alivia:screen-ready';
-  const INTRO_MS = 2800;
+  const MOBILE_INTRO_MS = 2800;
+  const DESKTOP_INTRO_MS = 4000;
   const EXIT_MS = 650;
   const RECOVERY_MS = 12000;
+  const LANDING_KEY = 'alivia:landing-v1';
+
+  /** Primera visita: manda a la landing y no deja montar la app.
+   *
+   * Va aqui y no en React a proposito. Este script corre antes de que se
+   * cargue el bundle, asi que en la PWA instalada y en la app nativa
+   * (Capacitor / iOS) funciona igual que en web: no depende de que React ya
+   * haya montado ni de ninguna peticion. Un locate en React dejaria ver el
+   * preloader un instante y, si el bundle tardaba, abriria la app sin pasar
+   * por la landing.
+   *
+   * location.replace y no location.assign: replace no deja entrada en el
+   * historial, asi que el boton "atras" no devuelve a la landing.
+   */
+  const gateLanding = () => {
+    try {
+      if (localStorage.getItem(LANDING_KEY) === '1') return;
+
+      // A los buscadores se les sirve la app directamente: si caen en la
+      // landing, Google indexaria la pagina de presentacion en vez del sitio.
+      const agent = navigator.userAgent || '';
+      if (/bot|crawler|spider|slurp|bingpreview|facebookexternalhit|whatsapp|telegrambot/i.test(agent)) {
+        localStorage.setItem(LANDING_KEY, '1');
+        return;
+      }
+
+      // En nativo el origen es capacitor:// o file://, no un host web. La
+      // landing esta dentro del bundle (webDir: dist), asi que la ruta relativa
+      // resuelve; aun asi se comprueba que exista el fichero.
+      location.replace('/landing.html');
+    } catch (err) {
+      // Si localStorage esta bloqueado (modo privado, WebView restrictiva) no
+      // se puede recordar la visita. Es preferible dejar entrar a la app antes
+      // que dejar a nadie atrapado en un bucle de redireccion.
+    }
+  };
+
+  gateLanding();
 
   /** Conserva una sola capa desde el HTML hasta que React haya pintado la pantalla. */
   function mountStartup() {
@@ -19,6 +58,8 @@
     const recovery = document.getElementById('startup-recovery');
     const retry = document.getElementById('startup-retry');
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const introMs = window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
+      ? DESKTOP_INTRO_MS : MOBILE_INTRO_MS;
     const started = performance.now();
     let ready = false;
     let leaving = false;
@@ -51,7 +92,7 @@
     };
     const scheduleExit = () => {
       clearTimeout(exitTimer);
-      const remaining = motion.matches ? 0 : Math.max(0, INTRO_MS - (performance.now() - started));
+      const remaining = motion.matches ? 0 : Math.max(0, introMs - (performance.now() - started));
       exitTimer = setTimeout(exit, remaining);
     };
     const onReady = () => {
