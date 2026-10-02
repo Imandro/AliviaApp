@@ -37,6 +37,26 @@
 
 ---
 
+## Qué es ALIVIA
+
+**ALIVIA** es una aplicación de bienestar mental diseñada para adolescentes y jóvenes. Ofrece herramientas de primera línea — ejercicios de respiración, diario terapéutico, chequeos de bienestar, chat con IA empática (VIA), biblioteca de guías psicoeducativas, juegos de regulación emocional y botón SOS con líneas de crisis — **todo funcionando 100 % offline** y sincronizando cuando hay conexión. Una sola base de código React sirve Web (PWA), Android nativo (Capacitor) e iOS nativo (Swift/WKWebView).
+
+## Qué resuelve
+
+| Problema | Cómo lo resuelve ALIVIA |
+|---|---|
+| **Ansiedad y pánico en el momento** | Respiración guiada (Box 4·4·4·4, 4-7-8, coherente 5·5), técnica Tierra 5-4-3-2-1 por voz, 4 ejercicios de afrontamiento paso a paso. |
+| **Falta de espacio para desahogarse** | *Burn Journal*: escribe y observa tus pensamientos disolverse en partículas; todo local, privado y exportable. |
+| **No saber cómo estás realmente** | Chequeo de bienestar cada 5 días (estrés, ansiedad, depresión) + **Radar de Bienestar** con gráficas de tendencia y rachas. |
+| **Soledad y falta de apoyo** | Chat **VIA** (IA empática que pregunta *por qué* antes de aconsejar y te lleva a la función correcta), **Conecta con alguien** (plantillas para pedir ayuda a persona de confianza), comunidad anónima por temas. |
+| **Crisis sin saber a quién llamar** | Botón **SOS** con líneas gratuitas de 6 países centroamericanos (NI, SV, GT, HN, CR, PA), contacto de emergencia configurable, detección de riesgo por niveles en el chat. |
+| **Falta de hábitos y motivación** | 8 minijuegos de regulación (30 s–4 min), **Planes y Retos** con metas por área de vida y rachas, 20 recordatorios locales + push, biblioteca de guías interactivas con quiz. |
+| **Privacidad y control de datos** | Bloqueo biométrico + cortina de privacidad, exportación JSON + HTML imprimible, i18n es/en, datos guardados primero en el dispositivo. |
+
+## Contexto: Hackathon Kronox 2026
+
+ALIVIA nace como proyecto para competir en la **categoría amateur del Hackathon Nicaragua 2026 Kronox**. El reto: crear una solución tecnológica de impacto social con recursos limitados. Elegimos salud mental juvenil porque es una necesidad real, silenciosa y desatendida en nuestra región.
+
 ## Por qué existe
 
 **1 de cada 7** adolescentes entre 10 y 19 años vive con un trastorno mental diagnosticable, y cerca de la mitad nunca recibe atención (OMS). La ansiedad no espera a que haya turno disponible: aparece a las 2 a.m., antes de un examen, después de una pelea en casa.
@@ -436,16 +456,23 @@ en el servidor.
 
 > Verifica siempre el canal oficial vigente de tu país.
 
-## Equipo
+## Equipo: DataStorm
 
 <div align="center">
 
-**DataStorm**
+**DataStorm** — Equipo de estudiantes de la **UNAN León** (Universidad Nacional Autónoma de Nicaragua, León), **Centro Universitario Regional (CUR) Somoto**.
 
-Estudiantes de la **UNAN León** — Universidad Nacional Autónoma de Nicaragua, León · **CUR Somoto**
+| Integrante | Rol | Redes |
+|---|---|---|
+| **Zayri Azriel Wilson Sanchez** | Líder y diseñador | [![Instagram](https://img.shields.io/badge/Instagram-@zayriaz-E4405F?style=flat-square&logo=instagram)](https://instagram.com/zayriaz) [![GitHub](https://img.shields.io/badge/GitHub-ZAyriaz28-181717?style=flat-square&logo=github)](https://github.com/ZAyriaz28) |
+| **Mario Alejandro Ruiz Alvarez** | Comunicador y desarrollador | [![Instagram](https://img.shields.io/badge/Instagram-@_imandro-E4405F?style=flat-square&logo=instagram)](https://instagram.com/_imandro) [![TikTok](https://img.shields.io/badge/TikTok-@_imandro-000000?style=flat-square&logo=tiktok)](https://tiktok.com/@_imandro) [![Web](https://img.shields.io/badge/Portfolio-_imandro.dev-2C533D?style=flat-square)](https://_imandro.dev) |
+| **Freddy Jonathan Rivera Reyes** | Desarrollador Frontend | [![Instagram](https://img.shields.io/badge/Instagram-@dy.jona_g-E4405F?style=flat-square&logo=instagram)](https://instagram.com/dy.jona_g) [![GitHub](https://img.shields.io/badge/GitHub-Jonax17-181717?style=flat-square&logo=github)](https://github.com/Jonax17) |
+| **Erika Massiel Padilla Davila** | Marketing y creadora de material (pulseras, merchandising, contenido visual) | [![Instagram](https://img.shields.io/badge/Instagram-@___MASI_M-E4405F?style=flat-square&logo=instagram)](https://instagram.com/___MASI_M) |
+| **Pablo Antonio Sanchez Espinoza** | Supervisor de marketing y editor | [![Instagram](https://img.shields.io/badge/Instagram-@sanchez_pab-E4405F?style=flat-square&logo=instagram)](https://instagram.com/sanchez_pab) |
 
-Proyecto abierto construido con calma.
-Si ALIVIA te sirve, adáptala a tu comunidad — para eso es libre.
+Construimos ALIVIA con calma, código limpio y foco en el usuario real: adolescentes y jóvenes de Nicaragua y Centroamérica que necesitan herramientas de salud mental accesibles, privadas y que funcionen sin internet.
+
+> **Proyecto abierto.** Si ALIVIA te sirve, adáptala a tu comunidad — para eso es libre.
 
 [![GitHub](https://img.shields.io/badge/sigue_al_proyecto-AliviaApp-181717?style=flat-square&logo=github)](https://github.com/Imandro/AliviaApp)
 
