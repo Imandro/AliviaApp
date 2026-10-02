@@ -49,14 +49,21 @@ export interface AiTurn {
 
 /**
  * Solo se usa en desarrollo (VITE_AI_DIRECT=1). En produccion todo va por el
- * proxy, que es quien decide el upstream real. Chat a OpenAI, voz a Groq.
+ * proxy, que es quien decide el upstream real. Chat a Gemini, voz a Groq.
  */
-const OPENAI_CHAT_URL = 'https://api.openai.com/v1/chat/completions';
+const GEMINI_CHAT_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
 const GROQ_TRANSCRIBE_URL = 'https://api.groq.com/openai/v1/audio/transcriptions';
 const WHISPER_MODEL = 'whisper-large-v3-turbo';
 
-/** Mismo orden que el proxy: si difieren, el desarrollo no reproduce produccion. */
-const OPENAI_MODELS = ['gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o-mini'];
+/**
+ * Mismo orden que el proxy en api/ai.ts. Si difieren, el desarrollo no
+ * reproduce produccion y ademas el proxy rechaza con 400 cualquier modelo que
+ * no este en su lista.
+ *
+ * El orden no es por calidad en abstracto: Google devuelve 429 "high demand"
+ * de forma intermitente en los Flash, asi que se prueban en cascada.
+ */
+const CHAT_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
 
 const LLM_TIMEOUT_MS = 20000;
 const FIRST_TOKEN_TIMEOUT_MS = 12000;
@@ -81,8 +88,8 @@ const env = (key: string): string => {
   }
 };
 
-/** En desarrollo directo, el chat va a OpenAI y la voz a Groq. */
-const directChatKey = (): string => env('VITE_OPENAI_API_KEY');
+/** En desarrollo directo, el chat va a Gemini y la voz a Groq. */
+const directChatKey = (): string => env('VITE_GEMINI_API_KEY');
 const directVoiceKey = (): string => env('VITE_GROQ_API_KEY');
 
 /** El proxy es el camino normal en produccion; el directo, solo en desarrollo. */
@@ -95,11 +102,11 @@ const aiBase = (): string => {
 };
 
 const configuredModels = (): string[] => {
-  const list = env('VITE_OPENAI_MODEL')
+  const list = env('VITE_CHAT_MODEL')
     .split(',')
     .map(m => m.trim())
     .filter(Boolean);
-  return list.length ? list : OPENAI_MODELS;
+  return list.length ? list : CHAT_MODELS;
 };
 
 export const hasOnlineAI = (): boolean => {
@@ -407,7 +414,7 @@ const readJson = async (res: Response): Promise<any> => {
 const callDirect = async (plan: Plan, model: string, signal: AbortSignal): Promise<AttemptResult> => {
   const key = directChatKey();
   if (!key) return { text: null, status: 0, retryAfter: null };
-  const res = await fetch(OPENAI_CHAT_URL, {
+  const res = await fetch(GEMINI_CHAT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: groqBody(plan, model, false),
@@ -561,7 +568,7 @@ export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerato
 const streamDirect = async (plan: Plan, model: string, handlers: StreamHandlers): Promise<string | null> => {
   const key = directChatKey();
   if (!key) return null;
-  const res = await fetch(OPENAI_CHAT_URL, {
+  const res = await fetch(GEMINI_CHAT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: groqBody(plan, model, true),

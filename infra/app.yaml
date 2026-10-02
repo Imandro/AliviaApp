@@ -151,6 +151,16 @@ Resources:
       Environment:
         Variables:
           NODE_ENV: production
+          # Gemini es el proveedor principal del chat. Va antes que OpenAI y
+          # Groq en la cadena de respaldo porque responde mejor en espanol y
+          # ya esta facturado. La clave vive en Secrets Manager.
+          GEMINI_API_KEY: '{{resolve:secretsmanager:alivia/gemini-api-key:SecretString:GEMINI_API_KEY}}'
+          # El endpoint compatible con OpenAI de Google devuelve 429 "high
+          # demand" de forma intermitente en los Flash (probado con esta
+          # cuenta), asi que se prueban en orden. gemini-3.1-pro-preview queda
+          # fuera porque con esta clave responde "exceeded your current quota":
+          # el plan no cubre el tier Pro.
+          GEMINI_MODELS: 'gemini-3.6-flash,gemini-3.5-flash,gemini-flash-latest'
           GROQ_API_KEY: '{{resolve:secretsmanager:alivia/groq-api-key:SecretString:VITE_GROQ_API_KEY}}'
           OPENAI_API_KEY: '{{resolve:secretsmanager:alivia/openai-api-key:SecretString:VITE_OPENAI_API_KEY}}'
           OPENAI_MODELS: 'gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini'
@@ -170,6 +180,7 @@ Resources:
               Resource:
                 - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/groq-api-key-*'
                 - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/openai-api-key-*'
+                - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/gemini-api-key-*'
 
   GitHubActionsRole:
     Type: AWS::IAM::Role

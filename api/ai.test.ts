@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import aiHandler from './ai';
+import aiHandler, { chatFallbacks } from './ai';
 import type { ApiRequest, ApiResponse } from '../_types.js';
 
 interface Captured {
@@ -45,10 +45,12 @@ const makeReq = (over: Partial<ApiRequest> = {}): ApiRequest =>
 
 const originalOpenAIKey = process.env.OPENAI_API_KEY;
 const originalGroqKey = process.env.GROQ_API_KEY;
+const originalGeminiKey = process.env.GEMINI_API_KEY;
+const originalGeminiModels = process.env.GEMINI_MODELS;
 const originalOpenAIModels = process.env.OPENAI_MODELS;
 const originalFetch = globalThis.fetch;
 
-/** Shape de respuesta de chat, identico en OpenAI y Groq. */
+/** Shape de respuesta de chat, identico en Gemini, OpenAI y Groq. */
 const chatJson = (text: string, status = 200): Response =>
   new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), {
     status,
@@ -56,8 +58,12 @@ const chatJson = (text: string, status = 200): Response =>
   });
 
 beforeEach(() => {
+  // Gemini es el proveedor principal. Los tests de proveedor mas abajo lo
+  // borran a proposito para probar la cadena de respaldo.
+  process.env.GEMINI_API_KEY = 'test-gemini-key';
   process.env.OPENAI_API_KEY = 'test-openai-key';
   process.env.GROQ_API_KEY = 'test-groq-key';
+  delete process.env.GEMINI_MODELS;
   delete process.env.OPENAI_MODELS;
 });
 
@@ -66,6 +72,10 @@ afterEach(() => {
   else process.env.OPENAI_API_KEY = originalOpenAIKey;
   if (originalGroqKey === undefined) delete process.env.GROQ_API_KEY;
   else process.env.GROQ_API_KEY = originalGroqKey;
+  if (originalGeminiKey === undefined) delete process.env.GEMINI_API_KEY;
+  else process.env.GEMINI_API_KEY = originalGeminiKey;
+  if (originalGeminiModels === undefined) delete process.env.GEMINI_MODELS;
+  else process.env.GEMINI_MODELS = originalGeminiModels;
   if (originalOpenAIModels === undefined) delete process.env.OPENAI_MODELS;
   else process.env.OPENAI_MODELS = originalOpenAIModels;
   globalThis.fetch = originalFetch;
@@ -73,6 +83,7 @@ afterEach(() => {
 
 describe('configuracion', () => {
   it('responde 503 si la Lambda no tiene ninguna clave', async () => {
+    process.env.GEMINI_API_KEY = '';
     process.env.OPENAI_API_KEY = '';
     process.env.GROQ_API_KEY = '';
     const { res, captured } = makeRes();
@@ -80,9 +91,69 @@ describe('configuracion', () => {
     expect(captured.status).toBe(503);
   });
 
-  it('el chat va a OpenAI cuando hay OPENAI_API_KEY', async () => {
+  it('el chat va a Gemini cuando hay GEMINI_API_KEY', async () => {
     let url = '';
+    let headers: Record<string, string> = {};
     globalThis.fetch = (async (u: string, init?: RequestInit) => {
+      url = u;
+      headers = (init?.headers ?? {}) as Record<string, string>;
+      return chatJson('ok');
+    }) as typeof fetch;
+
+    const { res } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(url).toContain('generativelanguage.googleapis.com');
+    // El endpoint compatible de Google tambien usa Authorization: Bearer.
+    // x-goog-api-key es lo que acepta la API nativa (generateContent), pero en
+    // /v1beta/openai responde 400 "Missing or invalid Authorization header".
+    expect(headers.Authorization).toBe('Bearer test-gemini-key');
+  });
+
+  it('respeta GEMINI_MODELS para ordenar la cadena', async () => {
+    process.env.GEMINI_MODELS = 'gemini-3.6-flash,gemini-3.5-flash';
+    const pedidos: string[] = [];
+    globalThis.fetch = (async (_u: string, init?: RequestInit) => {
+      pedidos.push(JSON.parse(String(init?.body)).model);
+      return chatJson('boom', 500);
+    }) as typeof fetch;
+
+    const { res } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(pedidos.slice(0, 2)).toEqual(['gemini-3.6-flash', 'gemini-3.5-flash']);
+  });
+
+  it('el 429 de Gemini se trata como demanda puntual y prueba otro modelo', async () => {
+    // Es la diferencia clave con OpenAI y Groq: en Google el 429 es "high
+    // demand" transitorio, no cuota agotada. Si se cortara con 429, VIA se
+    // quedaria muda justo cuando el modelo esta saturado.
+    const pedidos: string[] = [];
+    globalThis.fetch = (async (_u: string, init?: RequestInit) => {
+      const model = JSON.parse(String(init?.body)).model;
+      pedidos.push(model);
+      return model === 'gemini-3.6-flash'
+        ? chatJson('saturado', 429)
+        : chatJson('respuesta del modelo de respaldo');
+    }) as typeof fetch;
+
+    const { res, captured } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(pedidos[0]).toBe('gemini-3.6-flash');
+    expect(pedidos[1]).not.toBe('gemini-3.6-flash');
+    expect(captured.status).toBe(200);
+  });
+
+  it('el 429 de OpenAI sigue cortando: es cuota de la cuenta', async () => {
+    delete process.env.GEMINI_API_KEY;
+    globalThis.fetch = (async () => chatJson('saturado', 429)) as typeof fetch;
+    const { res, captured } = makeRes();
+    await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
+    expect(captured.status).toBe(429);
+  });
+
+  it('el chat cae a OpenAI cuando no hay GEMINI_API_KEY', async () => {
+    delete process.env.GEMINI_API_KEY;
+    let url = '';
+    globalThis.fetch = (async (u: string) => {
       url = u;
       return chatJson('ok');
     }) as typeof fetch;
@@ -92,7 +163,8 @@ describe('configuracion', () => {
     expect(url).toContain('api.openai.com');
   });
 
-  it('el chat cae a Groq si OPENAI_API_KEY no esta', async () => {
+  it('el chat cae a Groq si no hay ni Gemini ni OpenAI', async () => {
+    delete process.env.GEMINI_API_KEY;
     delete process.env.OPENAI_API_KEY;
     let url = '';
     globalThis.fetch = (async (u: string) => {
@@ -135,6 +207,43 @@ describe('configuracion', () => {
     const { res, captured } = makeRes();
     await aiHandler(makeReq({ url: '/api/ai/otro' }), res);
     expect(captured.status).toBe(404);
+  });
+});
+
+describe('cadena de proveedores', () => {
+  it('Gemini es el principal y OpenAI y Groq quedan como respaldo', () => {
+    const cadena = chatFallbacks();
+    expect(cadena.map((u) => u.base)).toEqual([
+      'https://generativelanguage.googleapis.com/v1beta/openai',
+      'https://api.openai.com/v1',
+      'https://api.groq.com/openai/v1',
+    ]);
+  });
+
+  it('sin la clave de Gemini el principal pasa a ser OpenAI', () => {
+    delete process.env.GEMINI_API_KEY;
+    const cadena = chatFallbacks();
+    expect(cadena[0].base).toBe('https://api.openai.com/v1');
+    // Gemini desaparece de la cadena: sin clave no puede servir ni de principal
+    // ni de respaldo.
+    expect(cadena.map((u) => u.base)).not.toContain('https://generativelanguage.googleapis.com/v1beta/openai');
+  });
+
+  it('sin clave de Gemini ni OpenAI, Groq queda como unico proveedor', () => {
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    const cadena = chatFallbacks();
+    expect(cadena.map((u) => u.base)).toEqual(['https://api.groq.com/openai/v1']);
+  });
+
+  it('respeta GEMINI_MODULES como orden de preferencia, incluido el default', () => {
+    process.env.GEMINI_MODELS = 'gemini-3.5-flash,gemini-3.6-flash';
+    const cadena = chatFallbacks();
+    expect(cadena[0].models).toEqual(['gemini-3.5-flash', 'gemini-3.6-flash']);
+    // El default debe ser el primero de la lista configurada. Antes hardcodeaba
+    // GEMINI_MODELS[0] y se contradicia con `models` si alguien cambiaba la
+    // variable.
+    expect(cadena[0].defaultModel).toBe('gemini-3.5-flash');
   });
 });
 
@@ -183,8 +292,18 @@ describe('sanitizacion del prompt', () => {
   });
 
   it('acota max_tokens', async () => {
+    // El techo es 8192: Gemini 3 razona antes de responder y sus tokens de
+    // razonamiento se descuentan del mismo presupuesto. Con el techo anterior
+    // (1024) la respuesta llegaba cortada a media frase, con finish_reason
+    // "length": el razonamiento se comía unos 700 tokens.
     const raw = await run([{ role: 'user', content: 'hola' }], { max_tokens: 99999 });
-    expect(JSON.parse(raw).max_tokens).toBe(1024);
+    expect(JSON.parse(raw).max_tokens).toBe(8192);
+  });
+
+  it('el max_tokens por defecto da margen a una respuesta completa de Gemini', async () => {
+    // 320 y 1024 cortaban a media frase; 4096 devolvio la respuesta entera.
+    const raw = await run([{ role: 'user', content: 'hola' }]);
+    expect(JSON.parse(raw).max_tokens).toBe(4096);
   });
 
   it('usa valores por defecto si params viene vacio', async () => {
@@ -201,12 +320,15 @@ describe('sanitizacion del prompt', () => {
 
   it('usa el primer modelo de la lista permitida', async () => {
     const raw = await run([{ role: 'user', content: 'hola' }]);
-    expect(JSON.parse(raw).model).toBe('gpt-4.1-mini');
+    expect(JSON.parse(raw).model).toBe('gemini-3.6-flash');
   });
 });
 
 describe('fallo hacia Groq', () => {
   it('propaga 429 sin reintentar, para que el cliente caiga a reglas', async () => {
+    // Sin la clave de Gemini, el proveedor principal pasa a ser OpenAI, cuyo 429
+    // es cuota de la cuenta y no mejora cambiando de modelo.
+    delete process.env.GEMINI_API_KEY;
     let n = 0;
     globalThis.fetch = (async () => {
       n += 1;
@@ -224,7 +346,7 @@ describe('fallo hacia Groq', () => {
     globalThis.fetch = (async (_u: unknown, init?: RequestInit) => {
       const model = JSON.parse(String(init?.body)).model;
       usados.push(model);
-      return model === 'gpt-4.1-mini'
+      return model === 'gemini-3.6-flash'
         ? new Response(JSON.stringify({ error: 'boom' }), { status: 500 })
         : chatJson('Respuesta del segundo modelo');
     }) as typeof fetch;
@@ -233,7 +355,7 @@ describe('fallo hacia Groq', () => {
     await aiHandler(makeReq({ body: { messages: [{ role: 'user', content: 'hola' }] } }), res);
     expect(captured.status).toBe(200);
     expect((captured.body as { text: string }).text).toBe('Respuesta del segundo modelo');
-    expect(usados).toContain('gpt-4.1-nano');
+    expect(usados).toContain('gemini-3.5-flash');
   });
 
   it('devuelve 502 si Groq no esta disponible', async () => {

@@ -25,7 +25,7 @@
 
 import type { ApiRequest, ApiResponse } from './_types.js';
 
-export type Upstream = 'openai' | 'groq';
+export type Upstream = 'gemini' | 'openai' | 'groq';
 
 export interface UpstreamConfig {
   base: string;
@@ -33,6 +33,36 @@ export interface UpstreamConfig {
   defaultModel: string;
   models: string[];
 }
+
+/**
+ * Gemini va primero porque es el proveedor con mejor respuesta empatica en
+ * espanol de los tres, y la cuenta ya esta pagada.
+ *
+ * El orden importa y no es por calidad en abstracto: la API de Google devuelve
+ * 429 "high demand" de forma intermitente en los modelos Flash (se comprobo con
+ * esta misma clave). Por eso va una cadena de modelos y no uno solo: si el
+ * primero esta saturado, el siguiente recoge la conversacion.
+ *
+ * `gemini-3.1-pro-preview` se deja fuera a proposito: con esta clave responde
+ * "You exceeded your current quota", y el plan no cubre el tier Pro. Si algun
+ * dia se activa, basta con ponerlo el primero de la lista.
+ */
+export const GEMINI_MODELS = [
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-flash-latest',
+];
+
+/**
+ * Endpoint compatible con OpenAI de Google. Emite el mismo streaming SSE que
+ * espera el proxy (`choices[0].delta.content` y cierre con `[DONE]`), asi que
+ * no hizo falta tocar el manejo de chunks de ai-handler.ts.
+ *
+ * Exportada porque el handler la necesita para distinguir el 429 de Gemini
+ * ("high demand", puntual, se reintenta con otro modelo) del 429 de OpenAI y
+ * Groq, que es cuota de la cuenta y no mejora cambiando de modelo.
+ */
+export const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/openai';
 
 /**
  * Modelos de chat en orden de preferencia. gpt-4.1-mini primero: es el
@@ -45,6 +75,11 @@ export const OPENAI_MODELS = ['gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o-mini'];
 /** Groq solo aparece como respaldo del chat si OpenAI no responde. */
 export const GROQ_CHAT_MODELS = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b'];
 
+/**
+ * Endpoint compatible con OpenAI de Google. Emite el mismo streaming SSE que
+ * espera el proxy (`choices[0].delta.content` y cierre con `[DONE]`), asi que
+ * no hace falta tocar el manejo de chunks de ai-handler.ts.
+ */
 const OPENAI_BASE = 'https://api.openai.com/v1';
 const GROQ_BASE = 'https://api.groq.com/openai/v1';
 
@@ -77,11 +112,25 @@ const listFrom = (raw: string | undefined, fallback: string[]): string[] => {
 };
 
 /**
- * Si OPENAI_API_KEY no esta configurada, el chat cae a Groq. Asi el deploy
- * de una Lambda que solo tiene la clave de Groq sigue funcionando (es lo
- * que pasa hoy), y migrar a OpenAI es solo anadir el secreto.
+ * Se elige proveedor por el primero que tenga clave. El orden es Gemini,
+ * OpenAI y luego Groq, que es exactamente el orden en que estan declaradas las
+ * claves abajo.
+ *
+ * Cada uno conserva su propia cadena de modelos: si Gemini esta saturado se
+ * prueba con el siguiente modelo de Gemini antes de saltar de proveedor, porque
+ * cambiar de familia de modelo a mitad de conversacion se nota mas que un
+ * modelo equivalente de la misma familia.
  */
 export const chatUpstream = (): UpstreamConfig => {
+  const geminiKey = (process.env.GEMINI_API_KEY ?? '').trim();
+  if (geminiKey) {
+    return {
+      base: GEMINI_BASE,
+      key: geminiKey,
+      defaultModel: GEMINI_MODELS[0],
+      models: listFrom(process.env.GEMINI_MODELS, GEMINI_MODELS),
+    };
+  }
   const openaiKey = (process.env.OPENAI_API_KEY ?? '').trim();
   if (openaiKey) {
     return {
@@ -97,6 +146,37 @@ export const chatUpstream = (): UpstreamConfig => {
     defaultModel: GROQ_CHAT_MODELS[0],
     models: listFrom(process.env.GROQ_MODELS, GROQ_CHAT_MODELS),
   };
+};
+
+/**
+ * Cadena de proveedores del chat, en orden de preferencia. Se construye una
+ * sola vez para que el camino con streaming y el que responde en un bloque
+ * apliquen exactamente la misma cadena: si divergieran, el chat responderia
+ * distinto segun si el cliente pidio streaming.
+ *
+ * Solo entran los proveedores que tienen clave. Un proveedor sin clave no sirve
+ * de nada como respaldo.
+ */
+const construirCadena = (
+  base: string,
+  key: string,
+  fallbackModels: string[],
+  envModels: string | undefined,
+): UpstreamConfig => {
+  const models = listFrom(envModels, fallbackModels);
+  return { base, key, models, defaultModel: models[0] };
+};
+
+export const chatFallbacks = (): UpstreamConfig[] => {
+  const gemini = (process.env.GEMINI_API_KEY ?? '').trim();
+  const openai = (process.env.OPENAI_API_KEY ?? '').trim();
+  const groq = (process.env.GROQ_API_KEY ?? '').trim();
+
+  const todos: UpstreamConfig[] = [];
+  if (gemini) todos.push(construirCadena(GEMINI_BASE, gemini, GEMINI_MODELS, process.env.GEMINI_MODELS));
+  if (openai) todos.push(construirCadena(OPENAI_BASE, openai, OPENAI_MODELS, process.env.OPENAI_MODELS));
+  if (groq) todos.push(construirCadena(GROQ_BASE, groq, GROQ_CHAT_MODELS, process.env.GROQ_MODELS));
+  return todos;
 };
 
 /** La transcripcion siempre va a Groq: alli Whisper es mucho mas barato. */
@@ -127,12 +207,30 @@ interface SanitizedParams {
   max_tokens: number;
 }
 
+/**
+ * /**
+ * Gemini 3 razona antes de responder y sus tokens de razonamiento salen del
+ * mismo presupuesto que el texto. Medido con esta cuenta, con 1024 la respuesta
+ * llegaba cortada a media frase y con finish_reason "length" (la razonamiento se
+ * comia ~700 tokens de los 1024); con 4096 la misma pregunta devolvio 2666
+ * caracteres, completa.
+ *
+ * Subir el tope no cuesta nada por si mismo: max_tokens es un limite, no una
+ * peticion, y solo se factura lo que el modelo genera de verdad. El freno real
+ * de la extension de la respuesta es el prompt, que pide dos frases.
+ *
+ * El valor es el mismo en ai-handler.ts: ambos caminos mandan max_tokens y si no
+ * coinciden el chat y la transcripcion responderian distinto.
+ */
+const DEFAULT_MAX_TOKENS = 4096;
+const MAX_MAX_TOKENS = 8192;
+
 const sanitizeParams = (raw: unknown): SanitizedParams => {
   const src = (raw ?? {}) as Record<string, unknown>;
   return {
     temperature: clamp(src.temperature, 0, 1, 0.8),
     top_p: clamp(src.top_p, 0, 1, 0.9),
-    max_tokens: Math.round(clamp(src.max_tokens, 32, 1024, 320)),
+    max_tokens: Math.round(clamp(src.max_tokens, 32, MAX_MAX_TOKENS, DEFAULT_MAX_TOKENS)),
   };
 };
 
@@ -236,18 +334,25 @@ const sendError = (res: ApiResponse, status: number, message: string): void => {
 
 // ---------- handlers ----------
 
+// Los tres proveedores usan Authorization: Bearer, incluido el endpoint
+// compatible de Google. Se probo tambien x-goog-api-key, que es lo que acepta la
+// API nativa de Gemini (generateContent), y el endpoint compatible responde
+// 400 "Missing or invalid Authorization header". La clave va siempre en la
+// cabecera, nunca en la query, para que no acabe en los logs de CloudFront.
+const cabecerasAuth = (upstream: UpstreamConfig): Record<string, string> => ({
+  Authorization: `Bearer ${upstream.key}`,
+});
+
 const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
-  const upstream = chatUpstream();
-  if (!upstream.key) return sendError(res, 503, 'IA no configurada');
+  const upstreams = chatFallbacks();
+  const principal = upstreams[0];
+  if (!principal?.key) return sendError(res, 503, 'IA no configurada');
 
   const body = await readBody(req);
   const messages = sanitizeMessages(body.messages);
   if (!messages) return sendError(res, 400, 'Mensajes inválidos');
 
   const params = sanitizeParams(body.params);
-  const models = isValidModel(body.model, upstream.models)
-    ? [body.model]
-    : upstream.models;
 
   const payload = (model: string, stream: boolean): string =>
     JSON.stringify({
@@ -261,44 +366,65 @@ const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
     });
 
   let lastStatus = 502;
-  for (const model of models) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
-    try {
-      const res2 = await fetch(`${upstream.base}/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${upstream.key}` },
-        body: payload(model, false),
-        signal: controller.signal,
-      });
 
-      if (res2.ok) {
-        const data = (await res2.json()) as {
-          choices?: Array<{ message?: { content?: string } }>;
-        };
-        const text = data?.choices?.[0]?.message?.content;
-        if (typeof text === 'string' && text.trim()) {
-          res.status(200).json({ text, model });
-          return;
+  // Se recorre proveedor por proveedor, y dentro de cada uno sus modelos en
+  // orden. El 429 tiene tratamiento distinto segun el proveedor: en Gemini
+  // significa "high demand" de forma puntual, asi que si conviene probar otro
+  // modelo; en OpenAI y Groq es cuota agotada de la cuenta y reintentar con
+  // otro modelo del mismo proveedor no va a ayudar.
+  for (const upstream of upstreams) {
+    if (!upstream.key) continue;
+    const models = isValidModel(body.model, upstream.models) ? [body.model] : upstream.models;
+
+    for (const model of models) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+      try {
+        const res2 = await fetch(`${upstream.base}/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...cabecerasAuth(upstream) },
+          body: payload(model, false),
+          signal: controller.signal,
+        });
+
+        if (res2.ok) {
+          const data = (await res2.json()) as {
+            choices?: Array<{ message?: { content?: string } }>;
+          };
+          const text = data?.choices?.[0]?.message?.content;
+          if (typeof text === 'string' && text.trim()) {
+            res.status(200).json({ text, model, upstream: modeloDe(upstream.base) });
+            return;
+          }
+          lastStatus = 502;
+        } else if (res2.status === 429) {
+          const saturado = upstream.base === GEMINI_BASE;
+          if (!saturado) {
+            // Limite de cuota de la cuenta: no tiene sentido reintentar.
+            res.status(429).json({ error: 'IA saturada' });
+            return;
+          }
+          // En Gemini el 429 es demanda puntual: se sigue con el siguiente
+          // modelo, y si se agotan, con el siguiente proveedor.
+          lastStatus = 429;
+        } else {
+          lastStatus = res2.status === 401 || res2.status === 403 ? 500 : 502;
+          // 401/403 es un problema de credenciales: seguir probando modelos de
+          // este proveedor no lo arregla, pero otro proveedor si puede.
         }
+      } catch {
         lastStatus = 502;
-      } else if (res2.status === 429) {
-        // Limite de cuota: no tiene sentido reintentar con otro modelo, la
-        // cuota es por cuenta. El cliente cae a las reglas locales.
-        res.status(429).json({ error: 'IA saturada' });
-        return;
-      } else {
-        lastStatus = res2.status === 401 || res2.status === 403 ? 500 : 502;
+      } finally {
+        clearTimeout(timer);
       }
-    } catch {
-      lastStatus = 502;
-    } finally {
-      clearTimeout(timer);
     }
   }
 
   res.status(lastStatus).json({ error: 'IA no disponible' });
 };
+
+const modeloDe = (base: string): Upstream =>
+  base === GEMINI_BASE ? 'gemini' : base === OPENAI_BASE ? 'openai' : 'groq';
 
 const handleTranscribe = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
   const upstream = transcribeUpstream();

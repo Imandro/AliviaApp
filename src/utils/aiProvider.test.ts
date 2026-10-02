@@ -200,7 +200,7 @@ describe('getModelReply - failover y reintentos', () => {
     vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
       calls.push({ url, init });
       const model = JSON.parse(String(init?.body)).model;
-      return model === 'gpt-4.1-mini'
+      return model === 'gemini-3.6-flash'
         ? jsonResponse({ error: 'boom' }, 500)
         : proxyChat('Gracias por contarme eso.');
     }));
@@ -208,8 +208,8 @@ describe('getModelReply - failover y reintentos', () => {
     const reply = await getModelReply('hola, como estas', { history: [], crisisMode: false });
     expect(reply.source).toBe('groq');
     const models = calls.map(c => JSON.parse(String(c.init?.body)).model);
-    expect(models).toContain('gpt-4.1-mini');
-    expect(models).toContain('gpt-4.1-nano');
+    expect(models).toContain('gemini-3.6-flash');
+    expect(models).toContain('gemini-3.5-flash');
   }, 30000);
 
   it('no reintenta ante un fallo de red: no hay servidor al que preguntar', async () => {
