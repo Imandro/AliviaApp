@@ -343,6 +343,22 @@ const cabecerasAuth = (upstream: UpstreamConfig): Record<string, string> => ({
   Authorization: `Bearer ${upstream.key}`,
 });
 
+/**
+ * Un 429 (o 503) de este tipo es de la cuenta o del plan, no del modelo:
+ * probar el siguiente modelo del mismo proveedor es perder tiempo, porque a ese
+ * tampoco le va a ir. Se distinguen porque dicen cosas distintas:
+ *
+ *   Gemini: "You exceeded your current quota"     (cuota del tier)
+ *   OpenAI: "You have no credits remaining"       (saldo agotado)
+ *   Groq:   "Rate limit reached for model ..."    (este SI es del modelo)
+ *
+ * El de Groq no aparece en la lista a proposito: es cuota por modelo y el
+ * siguiente puede funcionar, asi que conviene probarlo.
+ *
+ * ai-handler.ts tiene la misma regla para el camino con streaming.
+ */
+export const CUENTA_SIN_FONDOS = /exceeded your current quota|no credits|add credits|billing|quota/i;
+
 const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
   const upstreams = chatFallbacks();
   const principal = upstreams[0];
@@ -397,15 +413,22 @@ const handleChat = async (req: ApiRequest, res: ApiResponse): Promise<void> => {
             return;
           }
           lastStatus = 502;
-        } else if (res2.status === 429) {
-          const saturado = upstream.base === GEMINI_BASE;
-          if (!saturado) {
-            // Limite de cuota de la cuenta: no tiene sentido reintentar.
-            res.status(429).json({ error: 'IA saturada' });
-            return;
+        } else if (res2.status === 429 || res2.status === 503) {
+          // Mismo criterio que el streaming, y por el mismo motivo: hay que
+          // leer el mensaje para saber si el limite es de la cuenta (no tiene
+          // sentido probar el siguiente modelo) o de ese modelo concreto (si).
+          //
+          //   Gemini: "You exceeded your current quota"   -> cuenta
+          //   OpenAI: "You have no credits remaining"     -> cuenta
+          //   Groq:   "Rate limit reached for model ..."   -> ese modelo
+          const detalle = await res2.text().catch(() => '');
+          if (CUENTA_SIN_FONDOS.test(detalle)) {
+            // Se registra 429 antes de salir: si la cadena entera falla asi, el
+            // cliente tiene que recibir 429 y no el 502 inicial, porque su
+            // decision de caer a las reglas locales depende de eso.
+            lastStatus = 429;
+            break; // al siguiente proveedor, sin probar mas modelos aqui
           }
-          // En Gemini el 429 es demanda puntual: se sigue con el siguiente
-          // modelo, y si se agotan, con el siguiente proveedor.
           lastStatus = 429;
         } else {
           lastStatus = res2.status === 401 || res2.status === 403 ? 500 : 502;
