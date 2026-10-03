@@ -118,6 +118,8 @@ export const ChatView: React.FC = () => {
   messagesRef.current = messages;
   crisisRef.current = crisisMode;
 
+  const isAIActive = isTyping || streamingText.length > 0;
+
   const [voiceEngaged, setVoiceEngaged] = useState(false);
 
   const showToast = useCallback((text: string) => {
@@ -754,33 +756,35 @@ export const ChatView: React.FC = () => {
         </div>
       )}
 
-      <div style={styles.inputBar}>
-        <input
-          type="text"
-          placeholder="Escribe o habla con VIA…"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-          className="input-apple"
-          style={{ flex: 1, padding: '12px 16px', fontSize: '13.5px' }}
-        />
-        <button
-          onClick={startVoice}
-          disabled={!speechSupported || voiceSession !== 'idle'}
-          title="Hablar con VIA"
-          style={{
-            ...styles.micBtn,
-            background: voiceSession !== 'idle' ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'rgba(255, 255, 255, 0.06)',
-            border: `1px solid ${voiceSession !== 'idle' ? 'rgba(244, 63, 94, 0.6)' : 'var(--border-color)'}`,
-            boxShadow: voiceSession !== 'idle' ? '0 0 20px rgba(244, 63, 94, 0.45)' : 'none',
-          }}
-        >
-          <Mic size={16} color={voiceSession !== 'idle' ? '#fff' : 'var(--text-secondary)'} />
-        </button>
-        <button onClick={() => handleSend()} disabled={!input.trim() || isTyping} style={styles.sendBtn}>
-          <Send size={16} color="#fff" />
-        </button>
-      </div>
+      {!isAIActive && (
+        <div style={styles.inputBar}>
+          <input
+            type="text"
+            placeholder="Escribe o habla con VIA…"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+            className="input-apple"
+            style={{ flex: 1, padding: '12px 16px', fontSize: '13.5px' }}
+          />
+          <button
+            onClick={startVoice}
+            disabled={!speechSupported || voiceSession !== 'idle'}
+            title="Hablar con VIA"
+            style={{
+              ...styles.micBtn,
+              background: voiceSession !== 'idle' ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'rgba(255, 255, 255, 0.06)',
+              border: `1px solid ${voiceSession !== 'idle' ? 'rgba(244, 63, 94, 0.6)' : 'var(--border-color)'}`,
+              boxShadow: voiceSession !== 'idle' ? '0 0 20px rgba(244, 63, 94, 0.45)' : 'none',
+            }}
+          >
+            <Mic size={16} color={voiceSession !== 'idle' ? '#fff' : 'var(--text-secondary)'} />
+          </button>
+          <button onClick={() => handleSend()} disabled={!input.trim() || isTyping} style={styles.sendBtn}>
+            <Send size={16} color="#fff" />
+          </button>
+        </div>
+      )}
 
       {toast && (
         <div style={styles.toast}>
