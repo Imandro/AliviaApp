@@ -349,10 +349,20 @@ const finalize = (plan: Plan, raw: string | null, message: string): AiReply => {
   };
 };
 
+/* La interpolacion anterior metia el condicional dentro de la frase y dejaba un
+   espacio colgando cuando valia false ("eso, y que te cueste menos"). Ahora se
+   arma la frase y se une con espacios, sin recortar a mano. */
 const rulesReplyExitText = (plan: Plan): string =>
-  `Qué bueno que me cuentes eso, ${plan.assessment.normalized ? 'de verdad' : ''} y que te cueste menos ahora. ` +
-  'Gracias por haberlo contado aquí: eso ya es un paso grande. El SOS y las líneas de ayuda siguen aquí cuando las necesites, sin prisa. ' +
-  'Si quieres, hoy basta con algo pequeño: caminar un poco, escribir una línea en tu diario o hablar con alguien que te importa.';
+  [
+    'Qué bueno que me cuentes eso',
+    plan.assessment.normalized ? 'y que de verdad te cueste menos ahora' : '',
+    'Gracias por haberlo contado: eso ya es un paso grande. El SOS y las líneas de ayuda siguen aquí cuando las necesites, sin prisa.',
+    'Si quieres, hoy basta con algo pequeño: caminar un poco, escribir una línea en tu diario o hablar con alguien que te importa.',
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 // ---------- red ----------
 
