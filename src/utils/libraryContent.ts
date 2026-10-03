@@ -40,7 +40,8 @@ export interface GuideContent {
 export const GUIDE_MINUTES: Record<string, number> = {
   l1: 3, l2: 4, l3: 3, l4: 5, l5: 4, l6: 4, l7: 3, l8: 4, l9: 3, l10: 4,
   l11: 3, l12: 4, l13: 5, l14: 4, l15: 3, l16: 4, l17: 4, l18: 4, l19: 4, l20: 3,
-  l21: 1, l22: 4, l23: 4, l24: 5, l25: 4, l26: 5, l27: 5, l28: 4, l29: 4, l30: 4,
+  l21: 1, l22: 4, l23: 4, l24: 5, l25: 4,
+  l26: 5, l27: 5, l28: 4, l29: 4, l30: 4, l31: 4, l32: 4, l33: 3,
 };
 
 const intro = (text: string): GuideBlock => ({ kind: 'intro', text });
@@ -261,7 +262,7 @@ export const GUIDES: Record<string, GuideContent> = {
   l11: {
     minutes: 3,
     blocks: [
-      intro('Hay amigos que te recargan y amigos que te cobran con intereses. Aprende la factura. '),
+      intro('Hay amigos que te recargan y amigos que te cobran con intereses. Aprende a leer la factura. '),
       st('✦', 'Las 8 señales', '1) solo te buscan para pedir 2) te "chanchan" y si te molestas eres "sensible" 3) controlan tu tiempo 4) se burlan "es broma" 5) te copian para taparte 6) te aíslan del resto 7) tus logros los ven raros 8) te sientes vacío después de verlos.'),
       st('✦', 'Drenadora ≠ enemiga', 'No tienes que "declarar la guerra": puedes marcar distancia gradual. Menos reuniones, menos intimidad, más planes tuyos.'),
       st('✦', 'El test de la energía', 'Después de estar con alguien: ¿me da recarga o me da resaca? Diez minutos de honestidad valen más que años de "es que es mi amigo".'),

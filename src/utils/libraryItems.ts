@@ -149,8 +149,8 @@ export const LIBRARY: LibraryItem[] = [
     category: ['amistades', 'suicidio'], age: '13+',
   },
   {
-    id: 'l26', type: 'libro', title: 'Activación conductual para la depresión',
-    desc: 'Pequeñas acciones diarias y un registro de placer: cómo activarte cuando la depresión pone las piernas de plomo.',
+    id: 'l26', type: 'libro', title: 'Salir del bache: activación conductual',
+    desc: 'La depresión te pide esperar a tener ganas: actúa primero y luego te animas. Micro-pasos y acción opuesta.',
     category: 'depresion', age: '14+',
   },
   {

@@ -112,11 +112,10 @@ export const LUCHAS: Lucha[] = [
       },
       {
         id: 'dep-8',
-        emoji: '✦',
-        title: 'El micro-paso de 5 minutos',
-        sub: 'Activación conductual: solo 5 minutos, sin presión.',
+        emoji: '↶',
+        title: 'Acción opuesta',
+        sub: 'Cuando no tengas ganas, haz lo opuesto 5 minutos: una ducha, salir o escribir.',
         steps: [
-          'Elige una micro-tarea (beber agua, tender la cama, regar una planta)',
           'Di "solo 5 minutos" y empieza',
           'Si quieres, sigue; si no, ya ganaste',
         ],
