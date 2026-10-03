@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Handshake, User, MessageSquare, ArrowRight, ArrowLeft, Phone, Check, PartyPopper, Heart } from 'lucide-react';
+import { Handshake, User, MessageSquare, ArrowRight, ArrowLeft, Phone, Check, PartyPopper, Heart, Shield, BookOpen } from 'lucide-react';
 import { CountryPhoneInput, isPhoneComplete } from '../components/CountryPhoneInput';
 
 type Stage = 1 | 2 | 3 | 4 | 5;

@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Clock, Sparkles } from 'lucide-react';
+import { Check, Clock, Sparkles, AlertTriangle, Shield, Phone } from 'lucide-react';
 import { getMoodHistory } from '../utils/localDb';
 import {
   LIBRARY,
