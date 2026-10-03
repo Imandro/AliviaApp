@@ -35,6 +35,12 @@
   --spring-fast: cubic-bezier(0.16, 1, 0.3, 1);
   --spring-smooth: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Aviso de crisis. Vive aqui y ningun tema lo redefine a proposito: en modo
+     mono --accent-rose es gris y el aviso de crisis perderia toda su seña.
+     Es lo unico que se sale del tema, y es una decision de seguridad. */
+  --crisis: #ff8a80;
+  --crisis-rgb: 255, 138, 128;
 }
 
 [data-theme="light"] {
@@ -1109,6 +1115,161 @@ html[data-theme="mono"] body {
 .bubble p {
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* ------------------------------------------------------------------
+   Globos del chat
+   ------------------------------------------------------------------ */
+.chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.chat-row--user { justify-content: flex-end; }
+/* Avatar solo en el primer mensaje de una racha: en el segundo ya se sabe
+   quien escribe y el hueco se lee como un error de maquetacion. */
+.chat-row--lead { margin-top: 10px; }
+.chat-row--user.chat-row--lead { margin-top: 12px; }
+
+.bubble {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* 88% + padding dejaba que una linea larga rozara el borde en pantallas de
+     360px. El limite en ch lo marca el texto del modelo cuando es largo. */
+  max-width: min(82%, 46ch);
+  padding: 11px 14px;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+.bubble p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: pre-line;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Cola de la burbuja. Como pseudo-elemento porque el radio asimetrico solo
+   insinuaba la direccion. */
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+}
+
+.bubble--ai {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-bottom-left-radius: 6px;
+}
+.bubble--ai::after {
+  left: -1px;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  border-bottom-left-radius: 6px;
+}
+
+.bubble--user {
+  background: linear-gradient(135deg, rgba(var(--accent-gold-rgb), 0.22), rgba(var(--accent-sage-rgb), 0.14));
+  border: 1px solid rgba(var(--accent-gold-rgb), 0.22);
+  border-bottom-right-radius: 6px;
+}
+.bubble--user::after {
+  right: -1px;
+  background: rgba(var(--accent-gold-rgb), 0.14);
+  border-right: 1px solid rgba(var(--accent-gold-rgb), 0.22);
+  border-bottom: 1px solid rgba(var(--accent-gold-rgb), 0.22);
+  border-bottom-right-radius: 6px;
+}
+
+/* El color de crisis estaba fijo a rgba(211,47,47) y #ff8a80, con lo que se
+   salia del tema claro y del modo mono. Ahora sale de --crisis. */
+.bubble--crisis {
+  background: rgba(var(--crisis-rgb), 0.12);
+  border: 1px solid rgba(var(--crisis-rgb), 0.45);
+  border-bottom-left-radius: 6px;
+}
+.bubble--crisis::after {
+  left: -1px;
+  background: rgba(var(--crisis-rgb), 0.12);
+  border-left: 1px solid rgba(var(--crisis-rgb), 0.45);
+  border-bottom: 1px solid rgba(var(--crisis-rgb), 0.45);
+  border-bottom-left-radius: 6px;
+}
+
+.crisis-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--crisis);
+}
+.crisis-header span {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+.chat-source {
+  align-self: flex-start;
+  font-size: 9.5px;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+/* Sugerencias dentro del globo: botones alineados al ancho del texto. */
+.chat-suggest { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.chat-suggest button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(var(--accent-gold-rgb), 0.08);
+  border: 1px solid rgba(var(--accent-gold-rgb), 0.15);
+  color: var(--accent-gold);
+  font-family: var(--font-title);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.chat-suggest button:hover {
+  background: rgba(var(--accent-gold-rgb), 0.14);
+  border-color: rgba(var(--accent-gold-rgb), 0.3);
+}
+
+/* Indicador de espera. */
+.chat-wait { display: flex; align-items: center; gap: 9px; }
+.chat-wait i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.chat-wait i:nth-child(2) { animation-delay: 0.2s; }
+.chat-wait i:nth-child(3) { animation-delay: 0.4s; }
+
+.chat-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  marginLeft: 2px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--accent-gold);
+  animation: typingBounce 1s infinite;
 }
 
 /* Avisos persistentes tipo "micrófono denegado" */

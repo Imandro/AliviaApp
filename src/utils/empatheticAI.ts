@@ -131,18 +131,26 @@ const RULES: TopicRule[] = [
   },
 ];
 
+/* Antes todas estas frases abrian igual ("Gracias por compartir", "Entiendo
+   que", "Estoy contigo"), que es como suenan las muletillas de consulta: la
+   persona percibe que no le estan leyendo y que el texto es de catalogo.
+   Aqui se pregunta de entrada, en segunda persona, y sin repetir la misma
+   formula dos veces seguidas. */
 const FALLBACK_RESPONSES = [
-  'Gracias por compartir eso conmigo. No tienes que tenerlo resuelto: describir lo que sientes ya es un paso adelante.',
-  'Estoy contigo en esto. Cuéntame un poco más: ¿hace cuánto te sientes así? ¿Hay un momento del día en que pesa más?',
-  'Entiendo que esto te está costando. Una pregunta que ayuda: ¿qué necesitas EN ESTE momento, no para siempre? ¿Agua, aire, escribir, hablar, llorar?',
-  'Aunque no tenga todas las respuestas, sí puedo acompañarte y compartirte herramientas. ¿Quieres que intentemos una actividad de apoyo ahora?',
+  '¿Qué te pasa ahora mismo, en este momento exacto?',
+  'Eso que describes suena pesado. ¿Desde cuándo lo cargas?',
+  'Me lo cuentas y aquí sigo. ¿Quieres desahogarte o prefieres que te ayude a buscarle una salida?',
+  'No hace falta explicarlo del todo. ¿Lo escribes en el desahogo o lo hablamos aquí?',
 ];
 
+/* El mensaje caia siempre en el mismo sitio ("he notado que mencionas X"), que
+   es como se delata el buscador de palabras clave. Ahora el tema se nombra
+   desde el cuerpo, no desde el metacomentario. */
 const WITH_TOPIC_REPLY = (topic: string) =>
-  `He notado que mencionas "${topic}". Quiero reconocer lo que estás diciendo y ofrecerte un espacio seguro para seguirlo: ¿cómo se siente físicamente tu cuerpo ahora mismo?`;
+  `Lo de ${topic} está ahí, y no hace falta que lo justifiques. ¿Qué se siente en el cuerpo ahora mismo: pecho, estómago, hombros?`;
 
 const CONTINUE_TOPIC_REPLY = (topic: string) =>
-  `Sigo aquí contigo. Me cuentas de "${topic}" y quiero seguir escuchándote: ¿qué ha cambiado desde que hablamos? Respira profundo: acompañarte no es apresurarte.`;
+  `Seguimos con ${topic}. ¿Ha cambiado algo desde la última vez que lo nombraste, o sigue igual?`;
 
 const FALLBACK_ROUTES = ['no se', 'no sé', 'no lo se', 'no lo sé', 'no quiero hablar', 'nada', 'no se que'];
 
@@ -302,13 +310,12 @@ export const getNavigationIntent = (message: string): NavIntent | null => {
   return null;
 };
 
+/* La coletilla ("mientras llegamos, respira lento... acto de autocuidado") era
+   un sermon pegado a una navegacion que no lo necesita. Se va: quien pulsa
+   quiere llegar a la pantalla, no que le regañen. */
 export const getNavReply = (nav: NavIntent): string =>
-  `¡Claro que sí! Te llevo al ${nav.label} ahora mismo. Mientras llegamos, respira lento: este paso que estás dando es un acto de autocuidado.`;
+  `Vamos a ${nav.label}. Te llevo ahí.`;
 
-export const getAiIntro = (): AiResponse => ({
-  isCrisis: false,
-  topics: [],
-  text:
-    'Hola, soy VIA. Cuéntame cómo te sientes y te acompaño con pasos pequeños y sin juicios. Si estás en crisis, hablar con una persona real es importante.',
-  suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_SOS],
-});
+/* No hay getAiIntro: el chat ya no abre con un globo de bienvenida. La
+   conversacion la empieza siempre la persona, y un mensaje de apertura del
+   bot era justo lo que empujaba a arrancar con algo escrito por la app. */

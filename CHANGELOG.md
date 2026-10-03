@@ -26,9 +26,42 @@ versionado con [SemVer](https://semver.org/lang/es/).
   con los comandos `Get-FileHash` y `shasum -a 256` para comprobarlo a mano.
 - `index.html`: el JSON-LD ya no anuncia "Juegos de calma" sino "Cosas que no
   importan (juegos sin meta)".
+- **El chat ya no abre con un globo de bienvenida.** La conversación la empieza
+  siempre la persona; `getAiIntro` desaparece. Se va también el `setTimeout` de
+  300 ms que solo servía para que ese globo apareciera después, y durante el cual
+  la lista de mensajes quedaba vacía. Los cuatro chips rápidos se muestran ahora
+  también con la lista vacía, para que sirvan de ayuda al primer mensaje.
+- **Los globos de texto pasan a clases CSS** en vez de un objeto de estilos en
+  línea. Ganan cola real (pseudo-elemento en lugar de radio asimétrico), ancho
+  máximo `min(82%, 46ch)` —a 88 % una línea larga rozaba el borde en pantallas de
+  360 px— y agrupado por racha: el avatar solo aparece al abrir un turno nuevo.
+- **El aviso de crisis sale de un token `--crisis`** en vez de `#ff8a80` fijo. El
+  color estaba cableado en cuatro sitios y con `--accent-rose` en modo mono el
+  aviso se volvía gris, que es justo cuando más tiene que destacar. Ningún tema
+  redefine ese token a propósito.
+- **Las respuestas por defecto dejan de sonar a catálogo.** Se quitan las
+  cabeceras de muletilla ("Gracias por compartir", "Entiendo que", "Estoy
+  contigo") que hacían que las cuatro sonaran idénticas, y el metacomentario "he
+  notado que mencionas «ansiedad»" que delata el buscador de palabras clave. También
+  se van el sermón de "te llevo a…" y los textos de error y sin conexión.
+
+### Corregido
+
+- **`npm run release:apk -- --invalidate` fallaba siempre** con
+  `InvalidArgument`. `execFileSync` no pasa por shell, así que los tres paths de
+  CloudFront llegaban a la CLI como un único argumento con espacios en vez de tres.
+- **Espacio colgante en la salida de crisis** (`aiProvider.ts`): la interpolación
+  condicional dentro de la frase producía "eso,  y que te cueste menos" cuando el
+  valor era falso. Ahora la frase se arma por partes y se une con espacios.
 
 ### Añadido
 
+- **VIA tiene rostro en el chat.** Los globos de la IA llevan un avatar de 28 px
+  que cambia de expresión: `comprensiva` cuando hay crisis detectada, `normal` en
+  reposo y parpadeo cada 5,2 s. Los avatares son recortes de rostro generados a
+  partir de las 7 poses de cuerpo entero que ya existían (`mascota-inicio-*.webp`),
+  porque esas figuras de 144×324 no se leen a ese tamaño. 33 KB en total, sin arte
+  nuevo, y precacheadas por el service worker para que funcionen sin conexión.
 - **El APK se sirve desde el propio dominio**, en `/releases/` del bucket de la
   web, sin tocar la plantilla de CloudFormation: la CloudFront Function
   `alivia-spa-fallback` ya deja pasar cualquier URI con un punto. Con
