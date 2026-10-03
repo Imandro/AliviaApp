@@ -4,6 +4,36 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
   let y = 0;
   let gesture: { id: number; startX: number; startY: number; x: number; y: number; moved: boolean } | null = null;
   let suppressClick = false;
+  let dockedSide: 'left' | 'right' | null = null;
+  let settling: Animation | null = null;
+
+  function stopSettling() {
+    if (!settling) return;
+    // Retomar desde la posición visible si se vuelve a agarrar durante el deslizamiento.
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(anchor).transform);
+    x = matrix.m41;
+    y = matrix.m42;
+    settling.cancel();
+    settling = null;
+    anchor.style.transform = `translate(${x}px, ${y}px)`;
+  }
+
+  function dock(animate = true) {
+    const rect = anchor.getBoundingClientRect();
+    const left = rect.left - x;
+    dockedSide ??= rect.left + rect.width / 2 < window.innerWidth / 2 ? 'left' : 'right';
+    const from = anchor.style.transform;
+    place(dockedSide === 'left' ? 12 - left : window.innerWidth - 12 - rect.width - left, y);
+    // El regreso solicitado es un desplazamiento simple, sin rebotes ni sacudidas,
+    // también cuando el sistema reduce las animaciones decorativas.
+    if (animate && anchor.animate) {
+      const animation = anchor.animate([{ transform: from }, { transform: anchor.style.transform }], {
+        duration: 650, easing: 'cubic-bezier(.45,0,.2,1)',
+      });
+      settling = animation;
+      animation.onfinish = () => { if (settling === animation) settling = null; };
+    }
+  }
 
   function place(nextX: number, nextY: number) {
     const rect = anchor.getBoundingClientRect();
@@ -22,6 +52,7 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
   }
   function down(event: PointerEvent) {
     if (!event.isPrimary || event.button !== 0 || gesture) return;
+    stopSettling();
     suppressClick = false;
     gesture = { id: event.pointerId, startX: event.clientX, startY: event.clientY, x, y, moved: false };
     button.setPointerCapture(event.pointerId);
@@ -33,6 +64,7 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
     const dy = event.clientY - gesture.startY;
     if (!gesture.moved && Math.hypot(dx, dy) < 5) return;
     gesture.moved = true;
+    dockedSide = null;
     suppressClick = true;
     anchor.dataset.dragging = 'true';
     place(gesture.x + dx, gesture.y + dy);
@@ -40,10 +72,12 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
   function end(event: PointerEvent) {
     if (!gesture || event.pointerId !== gesture.id) return;
     suppressClick = gesture.moved || event.type === 'pointercancel';
+    const moved = gesture.moved;
     gesture = null;
     delete anchor.dataset.dragging;
     delete anchor.dataset.held;
     if (button.hasPointerCapture(event.pointerId)) button.releasePointerCapture(event.pointerId);
+    if (moved) dock();
   }
   function click(event: MouseEvent) {
     if (suppressClick && event.detail !== 0) {
@@ -56,9 +90,20 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
     const step = steps[event.key];
     if (!step) return;
     event.preventDefault();
+    stopSettling();
+    dockedSide = null;
     place(x + step[0], y + step[1]);
   }
-  const constrain = () => place(x, y);
+  function keyup(event: KeyboardEvent) {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    stopSettling();
+    dock();
+  }
+  const constrain = () => {
+    stopSettling();
+    if (dockedSide && !gesture) dock(false);
+    else place(x, y);
+  };
   button.addEventListener('pointerdown', down);
   button.addEventListener('pointermove', move);
   button.addEventListener('pointerup', end);
@@ -66,6 +111,7 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
   button.addEventListener('lostpointercapture', end);
   button.addEventListener('click', click);
   button.addEventListener('keydown', keydown);
+  button.addEventListener('keyup', keyup);
   window.addEventListener('resize', constrain);
   window.addEventListener('scroll', constrain, true);
   constrain();
@@ -77,6 +123,8 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
     button.removeEventListener('lostpointercapture', end);
     button.removeEventListener('click', click);
     button.removeEventListener('keydown', keydown);
+    button.removeEventListener('keyup', keyup);
+    settling?.cancel();
     window.removeEventListener('resize', constrain);
     window.removeEventListener('scroll', constrain, true);
     if (gesture && button.hasPointerCapture(gesture.id)) button.releasePointerCapture(gesture.id);
