@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Phone, ShieldAlert, ShieldCheck, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
-import { getAiIntro, getNavigationIntent } from '../utils/empatheticAI';
+import { getNavigationIntent } from '../utils/empatheticAI';
+import { ViaAvatar } from '../components/ViaAvatar';
 import {
   streamAiReply,
   hasOnlineAI,
@@ -9,7 +10,6 @@ import {
   type AiReply,
   type AiTurn,
 } from '../utils/aiProvider';
-import { assessCrisis } from '../utils/crisisSafety';
 import { speakNatural, stopSpeaking, preloadVoices, unlockAudio } from '../utils/tts';
 
 interface ChatMessage {
@@ -129,16 +129,13 @@ export const ChatView: React.FC = () => {
     setOnlineMode(hasOnlineAI());
     preloadVoices();
     const saved = loadHistory();
-    const t = setTimeout(() => {
-      if (saved.length > 0) {
-        setMessages(saved);
-        if (saved.some(m => m.isCrisis)) setCrisisMode(true);
-      } else {
-        const intro = getAiIntro();
-        setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
-      }
-    }, 300);
-    return () => clearTimeout(t);
+    // Sin globo de bienvenida: la conversacion la abre siempre la persona.
+    // Antes habia un setTimeout de 300ms que solo servia para que ese globo
+    // apareciera despues, y durante ese tiempo la lista quedaba vacia.
+    if (saved.length > 0) {
+      setMessages(saved);
+      if (saved.some(m => m.isCrisis)) setCrisisMode(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -417,8 +414,8 @@ export const ChatView: React.FC = () => {
       setMessages(prev => [...prev, {
         role: 'ai',
         text: offline
-          ? 'Estoy sin señal ahora mismo, pero sigo aquí. Mientras vuelve la conexión puedo acompañarte igual: prueba Respirar o el Desahogo en las pestañas de abajo. Todo lo que escribas queda guardado y se envía solo cuando vuelvas a tener internet.'
-          : 'Algo falló al procesar tu mensaje. ¿Puedes intentar de nuevo en un momento?',
+          ? 'Se me fue la señal. Lo que escribas se guarda igual y sale solo cuando vuelvas; mientras, Respiratory y el Desahogo funcionan sin internet.'
+          : 'No pude procesar eso. Inténtalo otra vez en un momento.',
         source: 'rules',
       }]);
       return null;
@@ -528,8 +525,7 @@ export const ChatView: React.FC = () => {
     } catch {
       /* noop */
     }
-    const intro = getAiIntro();
-    setMessages([{ role: 'ai', text: intro.text, suggest: intro.suggest, source: 'rules' }]);
+    setMessages([]);
     setLastSource(null);
     setCrisisMode(false);
     setIsTyping(false);
@@ -566,7 +562,7 @@ export const ChatView: React.FC = () => {
           : 'Modo guiado';
 
   const statusColor = crisisMode
-    ? '#ff8a80'
+    ? 'var(--crisis)'
     : lastSource === 'groq' || (onlineMode && lastSource !== 'rules')
       ? '#7fd6a1'
       : 'var(--accent-gold)';
@@ -653,13 +649,13 @@ export const ChatView: React.FC = () => {
           {crisisMode && (
             <button
               onClick={handleCrisisExit}
-              style={{ ...styles.iconBtn, borderColor: 'rgba(255,138,128,0.4)' }}
+              style={{ ...styles.iconBtn, borderColor: 'rgba(var(--crisis-rgb), 0.4)' }}
               title="Ya estoy bien, salir del modo crisis"
             >
-              <ShieldCheck size={15} color="#ff8a80" />
+              <ShieldCheck size={15} color="var(--crisis)" />
             </button>
           )}
-          {messages.length > 1 && (
+          {messages.length > 0 && (
             <button onClick={handleReset} style={styles.iconBtn} title="Reiniciar conversación">
               <RotateCcw size={14} color="var(--text-muted)" />
             </button>
@@ -672,30 +668,37 @@ export const ChatView: React.FC = () => {
         style={styles.chatScroll}
         className="flex flex-col gap-3"
       >
-        {messages.map((msg, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+        {messages.map((msg, i) => {
+          const esUser = msg.role === 'user';
+          const previa = i > 0 ? messages[i - 1] : null;
+          // El avatar va solo al abrir una racha: dentro de un mismo turno ya no
+          // hace falta repetirlo y el hueco se lee como un descuadre.
+          const abreRacha = !previa || previa.role !== msg.role || Boolean(msg.isCrisis) !== Boolean(previa.isCrisis);
+          return (
+          <div
+            key={i}
+            className={`chat-row${esUser ? ' chat-row--user' : ''}${abreRacha ? ' chat-row--lead' : ''}`}
+            data-crisis={msg.isCrisis ? 'true' : undefined}
+          >
+            {!esUser && abreRacha && (
+              <ViaAvatar pose={msg.isCrisis ? 'comprensiva' : 'normal'} size={28} />
+            )}
             <div
-              className="fade-in"
-              style={{
-                ...styles.bubble,
-                ...(msg.role === 'user' ? styles.userBubble : msg.isCrisis ? styles.crisisBubble : styles.aiBubble),
-              }}
+              className={`fade-in bubble ${esUser ? 'bubble--user' : msg.isCrisis ? 'bubble--crisis' : 'bubble--ai'}`}
             >
               {msg.isCrisis && (
-                <div style={styles.crisisHeader}>
-                  <ShieldAlert size={14} color="#ff8a80" />
-                  <span style={{ fontWeight: 700, fontSize: '11px', color: '#ff8a80' }}>CRISIS DETECTADA</span>
+                <div className="crisis-header">
+                  <ShieldAlert size={14} color="var(--crisis)" />
+                  <span>CRISIS DETECTADA</span>
                 </div>
               )}
-              <p className="body-standard" style={{ fontSize: '13.5px', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                {msg.text}
-              </p>
+              <p>{msg.text}</p>
 
               {msg.suggest && msg.suggest.length > 0 && (
-                <div style={styles.suggestWrap}>
+                <div className="chat-suggest">
                   {msg.suggest.map((s, j) => (
-                    <button key={j} onClick={() => navigate(s.path)} style={styles.suggestBtn}>
-                      <span style={styles.suggestLabel}>{s.label}</span>
+                    <button key={j} onClick={() => navigate(s.path)}>
+                      <span>{s.label}</span>
                       <ArrowRight size={12} />
                     </button>
                   ))}
@@ -703,39 +706,45 @@ export const ChatView: React.FC = () => {
               )}
 
               {msg.role === 'ai' && msg.source && (
-                <span style={styles.sourceTag}>
+                <span className="chat-source">
                   {msg.source === 'groq' ? 'Acompañamiento en línea' : 'Modo guiado'}
                 </span>
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
 
         {streamingText && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ ...styles.bubble, ...styles.aiBubble, ...(crisisMode ? styles.crisisBubble : null) }} className="fade-in">
-              <p className="body-standard" style={{ fontSize: '13.5px', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+          <div className="chat-row chat-row--lead" data-crisis={crisisMode ? 'true' : undefined}>
+            <ViaAvatar pose="normal" size={28} />
+            <div className={`fade-in bubble ${crisisMode ? 'bubble--crisis' : 'bubble--ai'}`}>
+              <p>
                 {streamingText}
-                <span style={styles.caret} />
+                <span className="chat-caret" />
               </p>
             </div>
           </div>
         )}
 
         {isTyping && !streamingText && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ ...styles.bubble, ...styles.aiBubble }} className="fade-in">
-              <div style={styles.typingDots}>
-                <span style={styles.dot} />
-                <span style={{ ...styles.dot, animationDelay: '0.2s' }} />
-                <span style={{ ...styles.dot, animationDelay: '0.4s' }} />
+          <div className="chat-row chat-row--lead" data-crisis={crisisMode ? 'true' : undefined}>
+            <ViaAvatar pose="normal" size={28} />
+            <div className="fade-in bubble bubble--ai">
+              <div className="chat-wait">
+                <i />
+                <i />
+                <i />
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {messages.length >= 2 && messages.length < 6 && (
+      {/* Con la lista vacia los chips hacen de unica ayuda visible, asi que tambien
+          se muestran al abrir. Se ocultan mientras la IA responde (1 mensaje) y
+          se retiran a los 6 para no saturar una conversacion ya empezada. */}
+      {(messages.length === 0 || (messages.length >= 2 && messages.length < 6)) && (
         <div style={styles.quickRow}>
           {QUICK_PROMPTS.map((q) => (
             <button key={q} onClick={() => handleSend(q)} style={styles.quickChip}>
@@ -780,7 +789,7 @@ export const ChatView: React.FC = () => {
       )}
 
       <button onClick={() => navigate('/sos')} style={styles.sosInline}>
-        <Phone size={13} color="#ff8a80" />
+        <Phone size={13} color="var(--crisis)" />
         <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
           En crisis? Líneas de ayuda gratuitas y contacto de emergencia →
         </span>
@@ -946,87 +955,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '14px 2px',
     maxHeight: '50dvh',
     scrollbarWidth: 'thin',
-  },
-  bubble: {
-    maxWidth: '88%',
-    padding: '12px 14px',
-    borderRadius: '18px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    position: 'relative',
-  },
-  aiBubble: {
-    background: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid var(--border-color)',
-    borderBottomLeftRadius: '6px',
-  },
-  userBubble: {
-    background: 'linear-gradient(135deg, rgba(var(--accent-gold-rgb), 0.25) 0%, rgba(var(--accent-sage-rgb), 0.15) 100%)',
-    border: '1px solid rgba(var(--accent-gold-rgb), 0.2)',
-    borderBottomRightRadius: '6px',
-  },
-  crisisBubble: {
-    background: 'rgba(211, 47, 47, 0.1)',
-    border: '1.5px solid rgba(211, 47, 47, 0.4)',
-    borderBottomLeftRadius: '6px',
-  },
-  crisisHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-  },
-  sourceTag: {
-    fontSize: '9.5px',
-    color: 'var(--text-muted)',
-    opacity: 0.65,
-    alignSelf: 'flex-start',
-    letterSpacing: '0.4px',
-  },
-  suggestWrap: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    marginTop: '2px',
-  },
-  suggestBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '8px',
-    padding: '8px 12px',
-    borderRadius: '12px',
-    background: 'rgba(var(--accent-gold-rgb), 0.08)',
-    border: '1px solid rgba(var(--accent-gold-rgb), 0.15)',
-    cursor: 'pointer',
-    color: 'var(--accent-gold)',
-    fontSize: '12px',
-    fontFamily: 'var(--font-title)',
-    transition: 'all 0.2s',
-  },
-  suggestLabel: {
-    fontWeight: 500,
-  },
-  typingDots: {
-    display: 'flex',
-    gap: '5px',
-    padding: '4px 2px',
-  },
-  caret: {
-    display: 'inline-block',
-    width: '2px',
-    height: '1em',
-    marginLeft: '2px',
-    verticalAlign: 'text-bottom',
-    background: 'var(--accent-gold)',
-    animation: 'typingBounce 1s infinite',
-  },
-  dot: {
-    width: '7px',
-    height: '7px',
-    borderRadius: '50%',
-    background: 'var(--text-muted)',
-    animation: 'typingBounce 1.2s infinite',
   },
   quickRow: {
     display: 'flex',

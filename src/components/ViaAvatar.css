@@ -1,0 +1,27 @@
+/* Avatar de VIA en los globos del chat. Sin caja propia: el tamano lo fija el
+   prop width/height del span, y aqui solo se resuelve la forma y el halo. */
+.via-avatar {
+  display: inline-block;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 38%, rgba(var(--accent-gold-rgb), 0.18), rgba(255, 255, 255, 0.04) 70%);
+  box-shadow: 0 0 0 1px var(--border-color), 0 2px 8px rgba(0, 0, 0, 0.28);
+  vertical-align: top;
+}
+.via-avatar > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Cuando VIA acompaña una crisis el avatar se tiñe: el color lo decide el
+   padre con data-crisis, no un color fijo aqui, para que respete el tema. */
+[data-crisis='true'] .via-avatar {
+  box-shadow: 0 0 0 1px rgba(var(--crisis-rgb), 0.55), 0 0 14px rgba(var(--crisis-rgb), 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .via-avatar > img { animation: none !important; }
+}
