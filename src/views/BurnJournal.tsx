@@ -44,11 +44,15 @@ export const BurnJournal: React.FC<BurnJournalProps> = ({ theme }) => {
   const handleDissolveComplete = () => {
     setIsDissolving(false);
     setText('');
+    setDissolvedText('');
     const randomIdx = Math.floor(Math.random() * therapeuticQuotes.length);
     setComfortQuote(therapeuticQuotes[randomIdx]);
   };
 
   const handleWriteAgain = () => {
+    setText('');
+    setDissolvedText('');
+    setIsDissolving(false);
     setComfortQuote(null);
     setViaNote(null);
   };
@@ -90,7 +94,7 @@ export const BurnJournal: React.FC<BurnJournalProps> = ({ theme }) => {
           </div>
         ) : (
           <div style={styles.editorContainer}>
-            {(isDissolving || dissolvedText) && (
+            {isDissolving && (
               <ParticleCanvas
                 text={dissolvedText}
                 isDissolving={isDissolving}
