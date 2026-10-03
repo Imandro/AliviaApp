@@ -756,8 +756,18 @@ export const ChatView: React.FC = () => {
         </div>
       )}
 
-      {!isAIActive && (
-        <div style={styles.inputBar}>
+      <div
+        style={{
+          ...styles.inputBar,
+          visibility: isAIActive ? 'hidden' : 'visible',
+          opacity: isAIActive ? 0 : 1,
+          pointerEvents: isAIActive ? 'none' : 'auto',
+          height: isAIActive ? 0 : 'auto',
+          overflow: isAIActive ? 'hidden' : 'visible',
+          transition: 'opacity 0.2s ease, visibility 0.2s ease, height 0.2s ease',
+          marginTop: isAIActive ? 0 : '4px',
+        }}
+      >
           <input
             type="text"
             placeholder="Escribe o habla con VIA…"
@@ -784,7 +794,6 @@ export const ChatView: React.FC = () => {
             <Send size={16} color="#fff" />
           </button>
         </div>
-      )}
 
       {toast && (
         <div style={styles.toast}>
