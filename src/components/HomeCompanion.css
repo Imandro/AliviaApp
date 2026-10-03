@@ -100,7 +100,17 @@
   box-shadow: 0 4px 16px rgba(12, 28, 18, .18);
   pointer-events: none;
   user-select: text;
-  animation: home-companion-dialog-in 180ms ease-out;
+  /* El globo "sale" de la mascota: el origen de la escala se pone junto a la
+     puntita (::after, a la derecha) para que crezca desde ella y no desde el
+     centro, que se lee como si apareciera de la nada. */
+  transform-origin: calc(100% - 16px) 30px;
+  animation: home-companion-dialog-in 260ms var(--spring-smooth, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+}
+/* Estado de salida: el componente lo mantiene montado estos 180 ms (EXIT_MS en
+   useCompanionDialog.ts) para que el desvanecido llegue a completarse. */
+.home-companion-dialog[data-leaving] {
+  pointer-events: none;
+  animation: home-companion-dialog-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 .home-companion-dialog::after {
   content: '';
@@ -131,9 +141,21 @@
   pointer-events: auto;
 }
 .home-companion-dialog p { margin: 5px 0 0; font-size: 13px; font-weight: 600; line-height: 1.45; }
+/* Entrada: rebote corto con desborde, desde la mascotita.
+   El 0% sale desplazado hacia la derecha (5px) y encogido; el 62% pasa
+   ligeramente mayor de lo normal, que es lo que da el caracter de rebote; y
+   el 100% queda en reposo. El desplazamiento va en X y no en Y porque el globo
+   esta pegado a la puntita: moverse en vertical lo despegaria visualmente. */
 @keyframes home-companion-dialog-in {
-  from { opacity: 0; transform: translateY(3px); }
-  to { opacity: 1; transform: translateY(0); }
+  0% { opacity: 0; transform: translateX(5px) scale(0.9); }
+  62% { opacity: 1; transform: translateX(-1px) scale(1.025); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+/* Salida: se encoge y se va hacia la mascotita, mas rapido que la entrada
+   porque es el cierre y conviene liberar la pantalla ya. */
+@keyframes home-companion-dialog-out {
+  0% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(3px) scale(0.94); }
 }
 .home-companion-mascot {
   position: relative;
@@ -198,10 +220,14 @@
   .home-companion-thought p { font-size: 10px; line-height: 1.35; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-companion-anchor[data-held="true"] .home-companion-mascot,
+.home-companion-anchor[data-held="true"] .home-companion-mascot,
   .home-companion-anchor[data-held="true"] .home-companion-angry-steam,
   .home-companion-anchor[data-held="true"] .home-companion-thought { animation: none; }
-  .home-companion-dialog { animation: none; }
+  /* Se anulan las dos animaciones del globo, no solo la de entrada: la de
+     salida se declara despues en la cascada y lleva selector de atributo, asi
+     que sin esto ganaria igualmente. */
+  .home-companion-dialog,
+  .home-companion-dialog[data-leaving] { animation: none; }
   .home-companion-mascot { animation: home-companion-soft-breathe 4000ms ease-in-out infinite; }
   .home-companion-mascot[data-pose="relax"] { animation: home-companion-soft-breathe 4000ms ease-in-out infinite; }
   .home-companion-mascot[data-pose="celebrate"] { animation: home-companion-soft-celebrate 1800ms ease-out; }
