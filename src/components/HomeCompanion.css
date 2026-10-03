@@ -31,7 +31,7 @@
     drop-shadow(0 1px 0 #f1edda) drop-shadow(0 -1px 0 #f1edda)
     drop-shadow(0 2px 2px rgba(12, 28, 18, .2));
 }
-.home-companion-touch:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 4px; }
+.home-companion-touch:focus { outline: none; }
 .home-companion-anchor[data-dragging="true"] .home-companion-touch { cursor: grabbing; }
 .home-companion-anchor[data-dragging="true"] .home-companion-mascot { animation-play-state: paused; }
 .home-companion-angry { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; visibility: hidden; pointer-events: none; }
