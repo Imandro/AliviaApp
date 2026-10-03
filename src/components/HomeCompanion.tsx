@@ -15,7 +15,7 @@ export function HomeCompanion({ children }: { children: ReactNode }) {
   }, []);
   const [progress, setProgress] = useState<CompanionProgress | null>(null);
   const lastActivation = useRef('');
-  const { message, queueAutomatic, dismiss, showManual } = useCompanionDialog();
+  const { message, leaving, queueAutomatic, dismiss, showManual } = useCompanionDialog();
   const manualPhrase = useRef(0);
   const progressReady = progress !== null;
   useEffect(() => {
@@ -53,7 +53,15 @@ export function HomeCompanion({ children }: { children: ReactNode }) {
           <p>Grrr… ¡yo estaba<br />tranquila!</p>
         </div>
         {message && (
-          <div className="home-companion-dialog">
+          <div
+            className="home-companion-dialog"
+            // El globo sigue montado mientras `leaving` es true para que la
+            // animación de salida llegue a verse. El texto no cambia en ese
+            // tramo, pero se marca aria-hidden para que un lector de pantalla
+            // no lo anuncie dos veces.
+            data-leaving={leaving ? 'true' : undefined}
+            aria-hidden={leaving || undefined}
+          >
             <div className="home-companion-dialog-heading"><span>VIA · A TU RITMO</span><button type="button" onClick={dismiss} aria-label="Cerrar mensaje de VIA">×</button></div>
             <p role="status" aria-live="polite" aria-atomic="true">{message}</p>
           </div>
