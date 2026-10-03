@@ -31,6 +31,7 @@ const AssessmentView = mk(() => import('./views/AssessmentView'), 'AssessmentVie
 const GamesView = mk(() => import('./views/GamesView'), 'GamesView');
 const GameView = mk(() => import('./views/GameView'), 'GameView');
 const NotFoundView = mk(() => import('./views/NotFoundView'), 'NotFoundView');
+const OfficialResourcesView = mk(() => import('./views/OfficialResourcesView'), 'OfficialResourcesView');
 
 const ROUTE_PATTERNS = [
   '/',
@@ -46,6 +47,7 @@ const ROUTE_PATTERNS = [
   '/community',
   '/library',
   '/library/:id',
+  '/resources',
   '/games',
   '/games/:id',
   '/connect',
@@ -145,6 +147,7 @@ function AppShell({
                 <Route path="/community" element={<CommunityView />} />
                 <Route path="/library" element={<LibraryView />} />
                 <Route path="/library/:id" element={<GuideView />} />
+                <Route path="/resources" element={<OfficialResourcesView />} />
                 <Route path="/games" element={<GamesView />} />
                 <Route path="/games/:id" element={<GameView />} />
                 <Route path="/connect" element={<ConnectView />} />

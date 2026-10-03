@@ -160,20 +160,35 @@ export const LIBRARY: LibraryItem[] = [
   },
   {
     id: 'l28', type: 'articulo', title: 'Detectar y salir del gaslighting',
-    desc: 'Señales, frases típicas y guion para poner límites: no es amor, es manipulación.',
+    desc: 'Reconoce el patrón (te hacen dudar de tu memoria), escribe tu versión y sal con un límite y un plan.',
     category: ['noviazgo', 'amistades'], age: '14+',
   },
   {
-    id: 'l29', type: 'articulo', title: 'Duelo y pérdidas',
-    desc: 'Fases, rituales y cuándo buscar apoyo: cómo cuidar tu duelo y acompañar a quien lo padece.',
-    category: ['depresion', 'bienestar'], age: '14+',
+    id: 'l29', type: 'articulo', title: 'Duelo y pérdidas: caminar sin cronómetro',
+    desc: 'Las 5 fases (sin orden fijo), un ritual pequeño y cuándo pedir ayuda profesional.',
+    category: ['depresion', 'bienestar'], age: '13+',
   },
   {
-    id: 'l30', type: 'articulo', title: 'TDAH y regulación emocional',
-    desc: 'Dopamina, ceguera temporal y herramientas externas: estrategias reales para un cerebro con termostato descalibrado.',
-    category: ['ansiedad', 'bienestar'], age: '14+',
+    id: 'l30', type: 'recurso', title: 'TDAH y regulación emocional',
+    desc: 'Menos dopamina y time blindness: timers, listas, body doubling y autocompasión.',
+    category: ['ansiedad', 'bienestar'], age: '13+',
   },
-];
+  {
+    id: 'l31', type: 'articulo', title: 'Asertividad: decir lo que necesitas sin dañar',
+    desc: 'Los 3 estilos de comunicación y frases listas para poner límites con respeto, usando el "yo" y el no claro.',
+    category: ['amistades', 'noviazgo'], age: '13+',
+  },
+  {
+    id: 'l32', type: 'articulo', title: 'Revisión de relaciones: quién me suma y quién me resta',
+    desc: 'Clasifica tu círculo en 4 tipos y decide con calma qué relación cuidar, qué límite poner y cuándo alejarte.',
+    category: ['amistades', 'noviazgo'], age: '14+',
+  },
+  {
+    id: 'l33', type: 'recurso', title: 'Botiquín de primeros auxilios emocionales',
+    desc: 'Prepara tu kit de crisis: personas de apoyo, técnicas que te funcionan y la regla "no ahora" para decisiones.',
+    category: ['depresion', 'ansiedad', 'suicidio'], age: '12+',
+  },
+  ];
 
 const LUCHA_META: Record<string, { emoji: string; color: string }> = {
   bienestar: { emoji: '✦', color: 'var(--accent-sage)' },
