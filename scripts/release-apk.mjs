@@ -186,6 +186,10 @@ execFileSync(
 );
 
 if (invalidate) {
+  // Cada path va como argumento propio: execFileSync no pasa por shell, asi que
+  // un unico string con espacios llega a la CLI como un solo path y CloudFront lo
+  // rechaza con InvalidArgument.
+  const paths = [`/${key}`, `/${REMOTE_KEY}`, '/releases.json'];
   console.log('\ninvalidando CloudFront');
   execFileSync(
     'aws',
@@ -194,8 +198,8 @@ if (invalidate) {
       'create-invalidation',
       '--distribution-id',
       DIST_ID,
-      `--paths`,
-      `/${key} /${REMOTE_KEY} /releases.json`,
+      '--paths',
+      ...paths,
       '--query',
       'Invalidation.Id',
       '--output',
