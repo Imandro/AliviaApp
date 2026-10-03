@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Clock, Sparkles, AlertTriangle, Shield, Phone } from 'lucide-react';
+import { Check, Clock, Sparkles, AlertTriangle, Phone } from 'lucide-react';
 import { getMoodHistory } from '../utils/localDb';
 import {
   LIBRARY,
@@ -44,7 +44,7 @@ const TYPE_LABEL: Record<string, string> = { libro: 'Libro', articulo: 'Artícul
 
 export const LibraryView: React.FC = () => {
   const navigate = useNavigate();
-  const [category, setCategory] = useState<GuideCategory | 'todas'>('todas');
+  const [category, setCategory] = useState<GuideCategory | 'todas' | 'urgente'>('todas');
   const [moodBased, setMoodBased] = useState<GuideCategory | null>(null);
   const [doneIds, setDoneIds] = useState<string[]>(() => loadDone());
 
@@ -71,7 +71,7 @@ export const LibraryView: React.FC = () => {
   }, []);
 
   const filtered = useMemo(() => {
-    const base = category === 'todas' ? LIBRARY : LIBRARY.filter(i =>
+    const base = category === 'todas' || category === 'urgente' ? LIBRARY : LIBRARY.filter(i =>
       Array.isArray(i.category) ? i.category.includes(category) : i.category === category);
     if (!moodBased) return base;
     const scored = base.map(item => {
@@ -82,6 +82,22 @@ export const LibraryView: React.FC = () => {
     });
     return scored.sort((a, b) => a.score - b.score).map(s => s.item);
   }, [category, moodBased]);
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { todas: LIBRARY.length };
+    Object.keys(CATEGORY_META).forEach((key) => {
+      const cat = key as GuideCategory;
+      c[cat] = LIBRARY.filter((i) =>
+        Array.isArray(i.category) ? i.category.includes(cat) : i.category === cat
+      ).length;
+    });
+    c.urgente = LIBRARY.filter((i) =>
+      Array.isArray(i.category)
+        ? i.category.includes('suicidio') || i.category.includes('depresion')
+        : i.category === 'suicidio' || i.category === 'depresion'
+    ).length;
+    return c;
+  }, []);
 
   return (
     <div className="fade-in flex flex-col gap-4">
@@ -96,6 +112,28 @@ export const LibraryView: React.FC = () => {
             : 'Guías cortas, con retos clicables y mini-test. Se guarda tu avance y completas en minutos. '}
           Conocerse y aprender son pasos de cuidado.
         </p>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+          <button
+            onClick={() => setCategory('urgente')}
+            style={{
+              ...styles.topicBtn,
+              ...(category === 'urgente'
+                ? { background: 'rgba(211, 47, 47, 0.18)', color: '#ff8a80', borderColor: 'rgba(211, 47, 47, 0.4)' }
+                : { background: 'rgba(211, 47, 47, 0.08)', color: '#e57373', borderColor: 'rgba(211, 47, 47, 0.25)' }),
+            }}
+          >
+            <AlertTriangle size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+            <span style={{ verticalAlign: 'middle' }}>Urgente</span>
+            <span style={{ marginLeft: '5px', opacity: 0.85, fontSize: '10px' }}>{counts.urgente}</span>
+          </button>
+          <button
+            onClick={() => navigate('/sos')}
+            style={styles.nowBtn}
+          >
+            <Phone size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+            <span style={{ verticalAlign: 'middle' }}>Necesito ayuda AHORA</span>
+          </button>
+        </div>
         <div style={styles.topicRow}>
           {(['todas', ...Object.keys(CATEGORY_META)] as const).map(c => (
             <button
@@ -109,6 +147,7 @@ export const LibraryView: React.FC = () => {
               }}
             >
               {c === 'todas' ? 'Todas' : `${CAT_SYMBOL[c] ?? '✦'} ${c}`}
+              {c !== 'todas' && <span style={{ marginLeft: '5px', opacity: 0.7, fontSize: '10px' }}>{counts[c as GuideCategory]}</span>}
             </button>
           ))}
         </div>
@@ -200,6 +239,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '11px',
     cursor: 'pointer',
     transition: 'all 0.2s',
+  },
+  nowBtn: {
+    padding: '8px 14px',
+    borderRadius: '12px',
+    border: '1px solid rgba(211, 47, 47, 0.4)',
+    background: 'linear-gradient(135deg, rgba(211, 47, 47, 0.9) 0%, rgba(198, 40, 40, 0.85) 100%)',
+    color: '#fff',
+    fontFamily: 'var(--font-title)',
+    fontSize: '11px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 12px rgba(211, 47, 47, 0.3)',
   },
   itemCard: {
     display: 'flex',

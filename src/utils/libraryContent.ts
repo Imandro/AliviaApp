@@ -695,4 +695,71 @@ export const GUIDES: Record<string, GuideContent> = {
       end('No eres "desordenado" ni "flojo": tienes un cerebro que funciona distinto y necesitas las herramientas justas. Con ellas, funciona muy bien. '),
     ],
   },
+
+  l31: {
+    minutes: 4,
+    blocks: [
+      intro('Asertividad no es gritar más ni tener razón: es decir lo que piensas y sientes con respeto, hacia los demás y hacia ti. '),
+      st('✦', 'Los 3 estilos', 'Pasivo: callas y guardas resentimiento. Agresivo: impones y hiere. Asertivo: dices lo tuyo sin dañar. Busca el medio: firmeza + respeto.'),
+      st('✦', 'El cuerpo lo primero', 'Postura firme, mirada a los ojos, voz audible y pausada. Lo que dices importa, pero cómo lo dices también: hombros atrás, aire abajo, palabras cortas.'),
+      st('✦', 'Frases de entrada', 'Empieza con "yo": "yo siento", "yo necesito", "a mí me gustaría". Evita "tú siempre"/"tú nunca": esos disparan la defensa antes de escuchar.'),
+      st('✦', 'El sandwich asertivo', '1) Algo positivo o de aprecio. 2) Lo que necesitas (claro, concreto). 3) Cierre de confianza: "confío en que podemos manejarlo".'),
+      st('✦', 'La técnica de disco-rayado', 'Si no te escuchan, repite lo mismo con otras palabras, sin enojarte ni justificar en exceso: "entiendo tu punto, pero yo necesito X".'),
+      st('✦', 'El no asertivo', 'No + motivo breve + alternativa. "No puedo este fin de semana, pero el jueves sí me viene mejor". Sin excusas de 5 párrafos.'),
+      chk(['Ejercité postura y voz firme con una persona', 'Escribí mis frases con "yo" en lugar de "tú siempre"', 'Dije "no" con alternativa sin dar 5 excusas', 'Practiqué la técnica de disco-rayado una vez']),
+      quiz(
+        'Alguien te pide un favor y no puedes. La respuesta asertiva es...',
+        ['Mentir y decir que sí, luego no cumplir', 'Decir "no puedo esta semana, pero la otra me viene mejor"', 'Echarle la culpa a que "no me dejaron"'],
+        1,
+        'El no claro con alternativa protege tu tiempo y mantiene la relación. Las mentiras y excusas largas solo acumulan resentimiento.'
+      ),
+      tip('La asertividad da vergüenza los primeros usos: el miedo a incomodar es normal, y la incomodidad del otro suele ser menor a la que imaginas.'),
+      act('Practicar un "no" en Coping', '/coping'),
+      end('Decir lo que necesitas no es egoísmo: es el precio de que te entiendan de verdad. '),
+    ],
+  },
+
+  l32: {
+    minutes: 4,
+    blocks: [
+      intro('No todas las relaciones que tienes te quedan bien. Una revisión honesta de tu círculo es uno de los actos de autocuidado más grandes. '),
+      st('✦', 'Los 4 tipos', 'Suman: te energizan y te respetan. Neutras: se limitan a un contexto (colegio, trabajo). Drenan: toman sin dar y te dejan vacío. Tóxicas: te hacen daño y te aíslan.'),
+      st('✦', 'Revisión de 6 semanas', 'Mira las últimas 6 semanas de interacciones: ¿cuántas fueron con ganas? ¿cuántas terminaron con resaca emocional? Los números no mienten.'),
+      st('✦', 'Relaciona por energía, no por historia', 'El tiempo que llevan juntos no justifica que te hagan mal. Una amistad de años que te drena sigue drenando; el pasado no cambia el presente.'),
+      st('✦', 'Qué hacer con cada tipo', 'Suman: cuídalas y acércalas. Neutras: las tratas con amabilidad en su contexto. Drenan: reduces contacto y pones límites. Tóxicas: plan de salida seguro.'),
+      st('✦', 'La lista de "me suma"', 'Escribe 3-5 personas que te sumen. Cuando dudes de ti, usa esa lista como evidencia. La gente que te suma no necesita que la justifiques.'),
+      chk(['Clasifiqué a las personas de mi círculo en los 4 tipos', 'Hice la revisión de 6 semanas y anoté lo que vi', 'Escribí mi lista de "me suma" con 3-5 personas', 'Puse 1 límite o reduje contacto con alguien que drena']),
+      quiz(
+        'Una amistad de años te hace sentir mal casi siempre. Lo más sano es...',
+        ['Quedarme porque lleva años, da culpa dejarla', 'Revisar si la relación me suma o me resta y decidir con calma', 'Hacerle un drama público para que sepa'],
+        1,
+        'Los años no son un argumento de calidad: una relación se mide por cómo te hace sentir en el presente, no por cuánto tiempo existe.'
+      ),
+      tip('No tienes que explicar ni justificar tus límites. Reducir contacto es una decisión privada; compartir tu decisión es opcional.'),
+      act('Clasificar mi círculo en Coping', '/coping'),
+      end('Tu círculo es un reflejo de lo que eliges día a día: sigue construyéndolo con personas que no te hagan pagar por estar cerca. '),
+    ],
+  },
+
+  l33: {
+    minutes: 3,
+    blocks: [
+      intro('En una crisis no piensas con claridad: tener un kit listo para usar cuando la mente no responde lo cambia todo. '),
+      st('✦', 'Los próximos 30 minutos', '1) Respira 2 min. 2) Ancla con 5-4-3-2-1. 3) Llama a 1 persona o a una línea. 4) No decidas nada grande hasta que pase.'),
+      st('✦', 'El botiquín de primeros auxilios', 'Tiene 3 cosas: personas y líneas de contacto (SOS), 2 técnicas que te funcionan (respiración, anclaje), 1 actividad que te calma (música, paseo).'),
+      st('✦', 'Antes de la crisis, prepara la respuesta', 'En días tranquilos escribe: quiénes te apoyan, qué técnicas bajan tu ansiedad, qué te calma, qué NO te ayuda (redes, alcohol, peleas).'),
+      st('✦', 'Señales de aviso personal', '¿Qué le avisa a tu cuerpo que vas a estallar? (quijada apretada, respiración rápida, ganas de huir). Esas señales son tu alarma temprana para usar el kit.'),
+      st('✦', 'El "no ahora" para decisiones', 'Prométete: cualquier decisión grande se pospone 24 horas en crisis. Es más fácil mantener una regla simple en el caos.'),
+      chk(['Escribí mi botiquín emocional con personas, técnicas y actividades', 'Identifiqué mis 2-3 señales de aviso de estallido', 'Probé una técnica de calma hoy y anoté cómo me quedó']),
+      quiz(
+        'Estás en crisis y tienes ganas de tomar una decisión grande. Lo más seguro es...',
+        ['Decidir rápido para acabar con la ansiedad', 'Posponer la decisión 24 horas y usar el botiquín primero', 'Decidir sin pensar, porque la ansiedad ya se fue'],
+        1,
+        'En crisis el juicio está afectado: la regla "no ahora, en 24 horas" te ahorra muchas decisiones que luego te pesan.'
+      ),
+      tip('El botiquín no evita que vengan las crisis: hace que la próxima vez no empieces de cero, sino desde lo que ya sabes que te ayuda.'),
+      act('Llenar mi botiquín en Coping', '/coping'),
+      end('Una crisis no dura para siempre, pero las decisiones de una crisis sí pueden quedarse. Prepara tu kit, usa tu regla "no ahora", y confía en que la ola baja. '),
+    ],
+  },
 };
