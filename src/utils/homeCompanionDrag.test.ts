@@ -33,6 +33,7 @@ describe('arrastre de la mascota', () => {
     f.send('pointermove', { clientX: 200, clientY: 220 });
     expect(f.anchor.style.transform).toBe('translate(-150px, 120px)');
     f.send('pointerup');
+    expect(f.anchor.style.transform).toBe('translate(0px, 120px)');
     expect(f.captured()).toBeNull();
     expect(f.anchor.dataset.held).toBeUndefined();
     expect(f.send('click', { detail: 1 }).defaultPrevented).toBe(true);
@@ -45,6 +46,40 @@ describe('arrastre de la mascota', () => {
     f.send('pointermove', { clientX: 352, clientY: 102 });
     f.send('pointerup');
     expect(f.send('click', { detail: 1 }).defaultPrevented).toBe(false);
+    f.dispose();
+  });
+  it('retoma el arrastre desde la posición visible durante el deslizamiento', () => {
+    const f = fixture();
+    const cancel = vi.fn();
+    Object.assign(f.anchor, { animate: vi.fn(() => ({ cancel, onfinish: null })) });
+    Object.assign(f.page, { matchMedia: () => ({ matches: false }) });
+    vi.stubGlobal('getComputedStyle', () => ({ transform: 'matrix(1,0,0,1,-200,120)' }));
+    vi.stubGlobal('DOMMatrixReadOnly', class { m41 = -200; m42 = 120; });
+    f.send('pointerdown');
+    f.send('pointermove', { clientX: 80, clientY: 220 });
+    f.send('pointerup');
+    f.send('pointerdown');
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(f.anchor.style.transform).toBe('translate(-200px, 120px)');
+    f.send('pointermove', { clientX: 370, clientY: 130 });
+    expect(f.anchor.style.transform).toBe('translate(-180px, 150px)');
+    f.dispose();
+  });
+  it.each([390, 1280])('se pega al borde más cercano al soltar en una pantalla de %s px', width => {
+    const f = fixture();
+    f.page.innerWidth = width;
+    f.send('pointerdown');
+    f.send('pointermove', { clientX: 80, clientY: 300 });
+    expect(f.anchor.style.transform).toBe('translate(-270px, 200px)');
+    f.send('pointerup');
+    expect(f.anchor.style.transform).toBe('translate(-318px, 200px)');
+    f.send('pointerdown');
+    f.send('pointermove', { clientX: 350 + width - 130, clientY: 170 });
+    f.send('pointerup');
+    expect(f.anchor.style.transform).toBe(`translate(${width - 390}px, 270px)`);
+    f.page.innerWidth = 500;
+    f.page.dispatchEvent(new Event('resize'));
+    expect(f.anchor.style.transform).toBe('translate(110px, 270px)');
     f.dispose();
   });
   it('mantiene la mascota visible y cambia el diálogo de lado', () => {
