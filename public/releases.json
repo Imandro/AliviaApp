@@ -1,10 +1,10 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "asset": "ALIVIA-android.apk",
-  "bytes": 5032862,
-  "sizeLabel": "4,8 MB",
-  "sha256": "e77e372d8971ad092a94f9fe71bbe1ce398f9e33097e448c25b9b9f9c2331484",
-  "url": "/releases/v1.2.0/ALIVIA-android.apk",
+  "bytes": 8100717,
+  "sizeLabel": "7,7 MB",
+  "sha256": "8bef644ca0ef9e7ff040bdf87e0efdcea44068df53fc75473396c3ed566a9bdb",
+  "url": "/releases/v1.2.1/ALIVIA-android.apk",
   "minAndroid": "7.0",
-  "publishedAt": "2026-10-03"
+  "publishedAt": "2026-10-04"
 }
