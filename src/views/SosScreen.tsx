@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check } from 'lucide-react';
+import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check, Shield, ChevronRight } from 'lucide-react';
 import { getEmergencyContact, saveEmergencyContact, deleteEmergencyContact } from '../utils/localDb';
 import { CountryPhoneInput } from '../components/CountryPhoneInput';
 import { CRISIS_LINES, CRISIS_COUNTRY_LABELS, CRISIS_COUNTRIES, crisisHref, type CrisisCountry } from '../utils/crisisLines';
@@ -266,6 +266,42 @@ export const SosScreen: React.FC = () => {
             );
           })}
         </div>
+
+        {/* CTA a Recursos Oficiales completos */}
+        <button
+          onClick={() => navigate('/resources')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginTop: '16px',
+            padding: '14px 20px',
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.18) 0%, rgba(var(--accent-gold-rgb), 0.1) 100%)',
+            border: '1px solid rgba(var(--accent-sage-rgb), 0.25)',
+            color: 'var(--accent-sage)',
+            fontFamily: 'var(--font-title)',
+            fontWeight: 600,
+            fontSize: '13px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(var(--accent-sage-rgb), 0.15)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.25) 0%, rgba(var(--accent-gold-rgb), 0.15) 100%)';
+            e.currentTarget.style.boxShadow = '0 6px 24px rgba(var(--accent-sage-rgb), 0.25)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.18) 0%, rgba(var(--accent-gold-rgb), 0.1) 100%)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(var(--accent-sage-rgb), 0.15)';
+          }}
+        >
+          <Shield size={16} />
+          Ver todos los recursos oficiales (hospitales, ONGs, centros)
+          <ChevronRight size={14} />
+        </button>
+
       </div>
 
       {/* 3. LÍNEA GENERAL DE EMERGENCIAS (911) */}
