@@ -61,6 +61,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       },
     ];
@@ -132,6 +133,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       virtual: true,
       specialties: ['suicidio'],
       source: 'GOV',
+      contactStatus: 'verified',
       lastVerified: '2024-01-01',
     };
     expect(suggestContactKind(hotline)).toBe('call');
@@ -151,6 +153,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       virtual: true,
       specialties: ['suicidio'],
       source: 'GOV',
+      contactStatus: 'verified',
       lastVerified: '2024-01-01',
     };
     expect(suggestContactKind(hotline)).toBe('wa');
@@ -170,6 +173,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       virtual: false,
       specialties: ['suicidio'],
       source: 'GOV',
+      contactStatus: 'verified',
       lastVerified: '2024-01-01',
     };
     expect(suggestContactKind(hospital)).toBe('visit');
@@ -188,6 +192,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       virtual: true,
       specialties: ['bienestar'],
       source: 'NGO',
+      contactStatus: 'verified',
       lastVerified: '2024-01-01',
     };
     expect(suggestContactKind(dir)).toBe('call');
@@ -206,6 +211,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       virtual: false,
       specialties: ['bienestar'],
       source: 'NGO',
+      contactStatus: 'verified',
       lastVerified: '2024-01-01',
     };
     // inPerson=true pero sin city -> cae al fallback website -> 'web'

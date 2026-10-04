@@ -228,6 +228,7 @@ describe('officialResources — recursos oficiales verificados', () => {
       virtual: true,
       specialties: ['suicidio'],
       source: 'GOV',
+      contactStatus: 'verified',
       lastVerified: '2024-01-01',
     };
     it('formatea 24/7 correctamente', () => {
@@ -257,6 +258,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       const title = resourceCardTitle(r);
@@ -279,6 +281,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       expect(contactHref(r, 'call')).toBe('tel:128');
@@ -297,6 +300,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       expect(contactHref(r, 'wa')).toBe('https://wa.me/50512345678');
@@ -315,6 +319,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['bienestar'],
         source: 'NGO',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       expect(contactHref(r, 'web')).toBe('https://example.org');
@@ -332,6 +337,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       expect(contactHref(r, 'wa')).toBeNull();
@@ -354,6 +360,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       await shareResource(r);
@@ -380,6 +387,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       await shareResource(r);
@@ -416,6 +424,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         virtual: true,
         specialties: ['suicidio', 'depresion'],
         source: 'GOV',
+      contactStatus: 'verified',
         lastVerified: '2024-01-01',
       };
       expect(resourcesMatchProblem('suicidio').find((r) => r.id === 'ni-minsa-l128')).toBeDefined();

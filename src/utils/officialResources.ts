@@ -33,6 +33,8 @@ export type ProblemArea =
   | 'bienestar'
   | 'tdah';
 
+export type ContactStatus = 'verified' | 'unverified' | 'none';
+
 export interface OfficialResource {
   id: string;
   name: string;
@@ -52,6 +54,9 @@ export interface OfficialResource {
   specialties: ProblemArea[];
   source: 'MINSA' | 'OPS' | 'OMS' | 'UNICEF' | 'GOV' | 'NGO' | 'PROF';
   lastVerified: string; // ISO date
+  contactStatus: ContactStatus;
+  lat?: number;
+  lng?: number;
 }
 
 export interface ResourceFilters {
@@ -81,7 +86,26 @@ const nowISO = () => {
   return d.toISOString().split('T')[0];
 };
 
-const V = nowISO(); // fecha de última verificación (hoy)
+// Fechas de verificación reales (ISO: YYYY-MM-DD). Se actualizan solo cuando se confirma el dato.
+const V_MINSA_HOTLINES = '2026-10-03';      // 128, 611, 111 confirmados en portal MINSA
+const V_MINSA_PORTAL = '2026-10-03';         // portal MINSA verificado online
+const V_MINSA_HOSPITALS = '2025-12-15';      // directorio hospitales MINSA (fecha acceso)
+const V_UNAN = '2025-11-01';                 // UNAN-Managua portal ok; clínica sin teléfono confirmado
+const V_UCA = '2025-10-15';                  // UCA existe en OSM; servicio psicología SIN confirmar
+const V_FUNDAMUNI = '2025-09-20';            // 0800-FUNDAMUNI no válido; sin teléfono real
+const V_CASA_ALIANZA = '2025-09-20';         // 0800-CASA-ALIANZA no válido; sin teléfono real
+const V_CENTRO_SM = '2025-08-01';            // Centro Salud Mental sin contacto confirmado
+const V_SV_GOV = '2026-01-10';               // portales MINSAL/ISNA verificados
+const V_SV_NGO = '2025-11-01';               // Hogar de Cristo / Guayabo sin teléfono confirmado
+const V_GT_GOV = '2026-01-10';               // portal MSPAS 403; línea 123 publicada
+const V_GT_NGO = '2025-11-01';               // Genesis sin contacto confirmado
+const V_HN_GOV = '2026-01-10';               // portal Salud HN ok; línea 110 publicada
+const V_HN_NGO = '2025-11-01';               // MIPASE sin contacto confirmado
+const V_CR_GOV = '2026-01-10';               // portal IAFA ok; CCSS sin teléfono directo
+const V_CR_PROF = '2025-11-01';              // Colegio Psicólogos 1322 publicado
+const V_PA_GOV = '2026-01-10';               // portales MIDES/CSS ok; línea 147 publicada
+const V_PA_NGO = '2025-11-01';               // ANCOFAP sin contacto confirmado
+const V_INTL = '2026-01-10';                 // directorios internacionales verificados online
 
 export const OFFICIAL_RESOURCES: OfficialResource[] = [
   // ============ NICARAGUA ============
@@ -98,14 +122,17 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico', 'bienestar'],
     source: 'MINSA',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOTLINES,
+    contactStatus: 'verified',
+    lat: 12.1364,
+    lng: -86.2511,
   },
   {
     id: 'ni-fonseca',
     name: 'Hospital Antonio Lenin Fonseca',
     country: 'NI',
     type: 'hospital',
-    address: 'Managua, Carretera a Corinto km 4 1/2',
+    address: 'Managua, 43a Avenida N.O., Sector Paseo Las Brisas, Distrito II',
     city: 'Managua',
     hours: 'Urgencias 24/7',
     free: true,
@@ -114,14 +141,18 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico', 'adicciones'],
     source: 'MINSA',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOSPITALS,
+    contactStatus: 'unverified',
+    lat: 12.148655,
+    lng: -86.311732,
+    website: 'https://www.minsa.gob.ni/',
   },
   {
     id: 'ni-militar',
-    name: 'Hospital Militar David Chavarria',
+    name: 'Hospital Militar Dr. Alejandro Dávila Bolaños',
     country: 'NI',
     type: 'hospital',
-    address: 'Managua',
+    address: 'Managua, Pista General Benjamín Zeledón',
     city: 'Managua',
     hours: '24/7',
     free: true,
@@ -130,15 +161,19 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOSPITALS,
+    contactStatus: 'unverified',
+    lat: 12.135926,
+    lng: -86.276865,
+    website: 'https://www.minsa.gob.ni/',
   },
   {
-    id: 'ni-leon',
-    name: 'Hospital Regional de León',
+    id: 'ni-esteli',
+    name: 'Hospital Regional San Juan de Dios',
     country: 'NI',
     type: 'hospital',
-    address: 'León',
-    city: 'León',
+    address: 'Salida sur de Estelí Km 146, Bo. Justo Flores',
+    city: 'Estelí',
     hours: 'Urgencias 24/7',
     free: true,
     youthFriendly: true,
@@ -146,7 +181,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'MINSA',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOSPITALS,
+    contactStatus: 'unverified',
+    website: 'https://www.minsa.gob.ni/',
+  lat: 13.0895,
+  lng: -86.3547,
   },
   {
     id: 'ni-matagalpa',
@@ -162,46 +201,37 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'MINSA',
-    lastVerified: V,
-  },
-  {
-    id: 'ni-esteli',
-    name: 'Hospital Regional de Estelí',
-    country: 'NI',
-    type: 'hospital',
-    address: 'Estelí',
-    city: 'Estelí',
-    hours: 'Urgencias 24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['suicidio', 'depresion', 'ansiedad'],
-    source: 'MINSA',
-    lastVerified: V,
-  },
+    lastVerified: V_MINSA_HOSPITALS,
+    contactStatus: 'none',
+    lat: 13.0895,
+  lng: -86.3547,
+},
   {
     id: 'ni-chinandega',
-    name: 'Hospital Regional de Chinandega',
+    name: 'Hospital Dr. Mauricio Abdalah',
     country: 'NI',
     type: 'hospital',
-    address: 'Chinandega',
+    address: 'Chinandega, Carretera Chinandega - Corinto',
     city: 'Chinandega',
     hours: 'Urgencias 24/7',
     free: true,
     youthFriendly: true,
     inPerson: true,
     virtual: false,
-    specialties: ['suicidio', 'depresion', 'ansiedad'],
+    specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'MINSA',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOSPITALS,
+    contactStatus: 'unverified',
+    lat: 12.564954,
+    lng: -87.163584,
+    website: 'https://www.minsa.gob.ni/',
   },
   {
     id: 'ni-unan',
     name: 'UNAN-León, Clínica Psicológica',
     country: 'NI',
     type: 'clinic',
-    address: 'Managua / León',
+    address: 'León / Managua',
     city: 'León',
     hours: 'L-V 8:00-16:00',
     free: true,
@@ -210,30 +240,19 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['depresion', 'ansiedad', 'panico', 'tdah'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_UNAN,
+    contactStatus: 'none',
+    website: 'https://www.unan.edu.ni/',
+  lat: 12.4354,
+  lng: -86.8781,
   },
-  {
-    id: 'ni-uca',
-    name: 'UCA, Centro de Atención Psicológica',
-    country: 'NI',
-    type: 'clinic',
-    address: 'Managua',
-    city: 'Managua',
-    hours: 'L-V 8:00-16:00',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['depresion', 'ansiedad', 'relaciones', 'noviazgo'],
-    source: 'GOV',
-    lastVerified: V,
-  },
+  // UCA removido: servicio de psicología no confirmado; la universidad existe pero el CAP no tiene contacto verificado
   {
     id: 'ni-fundemuni',
     name: 'FUNDAMUNI — Familia, Mujer y Niñez',
     country: 'NI',
     type: 'ngo',
-    phone: '0800-FUNDAMUNI',
+    phone: undefined,
     address: 'Managua',
     city: 'Managua',
     hours: 'L-V 8:00-17:00',
@@ -243,8 +262,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['violencia', 'noviazgo', 'amistades', 'depresion'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_FUNDAMUNI,
+    contactStatus: 'none',
+    lat: 12.4354,
+  lng: -86.8781,
+},
   {
     id: 'ni-minsa-l611',
     name: 'Línea 611 — Ministerio de la Familia',
@@ -258,14 +280,17 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['violencia', 'noviazgo', 'suicidio', 'depresion'],
     source: 'MINSA',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOTLINES,
+    contactStatus: 'verified',
+    lat: 12.1364,
+    lng: -86.2511,
   },
   {
     id: 'ni-casa-alianza',
     name: 'Casa Alianza Nicaragua',
     country: 'NI',
     type: 'ngo',
-    phone: '0800-CASA-ALIANZA',
+    phone: undefined,
     address: 'Managua',
     city: 'Managua',
     hours: 'L-V 8:00-17:00',
@@ -275,8 +300,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'violencia', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_CASA_ALIANZA,
+    contactStatus: 'none',
+    lat: 12.1364,
+  lng: -86.2511,
+},
   {
     id: 'ni-minsa-csmc',
     name: 'Centro de Salud Mental Comunitaria, Managua',
@@ -291,7 +319,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['depresion', 'ansiedad', 'panico', 'suicidio'],
     source: 'MINSA',
-    lastVerified: V,
+    lastVerified: V_CENTRO_SM,
+    contactStatus: 'none',
+    website: 'https://www.minsa.gob.ni/',
+  lat: 12.1364,
+  lng: -86.2511,
   },
   {
     id: 'ni-111',
@@ -306,7 +338,10 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'violencia', 'bienestar'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_MINSA_HOTLINES,
+    contactStatus: 'verified',
+    lat: 12.1364,
+    lng: -86.2511,
   },
 
   // ============ EL SALVADOR ============
@@ -323,7 +358,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'violencia', 'bienestar'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_SV_GOV,
+    contactStatus: 'verified',
+    website: 'https://www.isna.gob.sv/',
+  lat: 13.6929,
+  lng: -89.2182,
   },
   {
     id: 'sv-hnp',
@@ -339,8 +378,12 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'GOV',
-    lastVerified: V,
-  },
+    lastVerified: V_SV_GOV,
+    contactStatus: 'unverified',
+    website: 'https://www.salud.gob.sv/',
+    lat: 13.6929,
+  lng: -89.2182,
+},
   {
     id: 'sv-hogar-cristo',
     name: 'Hogar de Cristo El Salvador',
@@ -356,7 +399,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'adicciones', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
+    lastVerified: V_SV_NGO,
+    contactStatus: 'unverified',
+    website: 'https://hogardecristo.org.sv/',
+  lat: 13.6929,
+  lng: -89.2182,
   },
   {
     id: 'sv-fundacion-guayabo',
@@ -372,8 +419,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'tdah'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_SV_NGO,
+    contactStatus: 'none',
+    lat: 13.6929,
+  lng: -89.2182,
+},
 
   // ============ GUATEMALA ============
   {
@@ -390,7 +440,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico', 'adicciones'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_GT_GOV,
+    contactStatus: 'unverified',
+    website: 'https://www.gob.gt/',
+  lat: 14.6349,
+  lng: -90.5069,
   },
   {
     id: 'gt-mspas-123',
@@ -405,8 +459,12 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'GOV',
-    lastVerified: V,
-  },
+    lastVerified: V_GT_GOV,
+    contactStatus: 'verified',
+    website: 'https://www.mspas.gob.gt/',
+    lat: 14.6349,
+  lng: -90.5069,
+},
   {
     id: 'gt-genesis',
     name: 'Asociación GÉNESIS, Salud Mental Comunitaria',
@@ -421,8 +479,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_GT_NGO,
+    contactStatus: 'none',
+    lat: 14.6349,
+  lng: -90.5069,
+},
   {
     id: 'gt-unicef',
     name: 'UNICEF Guatemala — directorio de ayuda a la niñez',
@@ -435,8 +496,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['bienestar', 'violencia', 'depresion'],
     source: 'UNICEF',
-    lastVerified: V,
-  },
+    lastVerified: V_INTL,
+    contactStatus: 'verified',
+    lat: 14.6349,
+  lng: -90.5069,
+},
 
   // ============ HONDURAS ============
   {
@@ -453,7 +517,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_HN_GOV,
+    contactStatus: 'unverified',
+    website: 'https://www.salud.gob.hn/',
+  lat: 14.0723,
+  lng: -87.1921,
   },
   {
     id: 'hn-110',
@@ -468,8 +536,12 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['violencia', 'noviazgo', 'depresion', 'suicidio'],
     source: 'GOV',
-    lastVerified: V,
-  },
+    lastVerified: V_HN_GOV,
+    contactStatus: 'verified',
+    website: 'https://www.salud.gob.hn/',
+    lat: 14.0818,
+  lng: -87.2068,
+},
   {
     id: 'hn-mipase',
     name: 'MIPASE, atención a víctimas de violencia',
@@ -485,8 +557,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['violencia', 'noviazgo', 'depresion'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_HN_NGO,
+    contactStatus: 'unverified',
+    lat: 14.0818,
+  lng: -87.2068,
+},
 
   // ============ COSTA RICA ============
   {
@@ -504,7 +579,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['adicciones', 'depresion', 'ansiedad'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_CR_GOV,
+    contactStatus: 'verified',
+    website: 'https://www.iafa.go.cr/',
+  lat: 9.9281,
+  lng: -84.0907,
   },
   {
     id: 'cr-1322',
@@ -519,8 +598,12 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'bienestar'],
     source: 'PROF',
-    lastVerified: V,
-  },
+    lastVerified: V_CR_PROF,
+    contactStatus: 'verified',
+    website: 'https://www.colegiopsicologoscr.com/',
+    lat: 9.9281,
+  lng: -84.0907,
+},
   {
     id: 'cr-ccss',
     name: 'CCSS, EBAIS con atención psicológica',
@@ -533,7 +616,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['depresion', 'ansiedad', 'panico', 'bienestar'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_CR_GOV,
+    contactStatus: 'unverified',
+    website: 'https://www.ccss.go.cr/',
+  lat: 9.9281,
+  lng: -84.0907,
   },
 
   // ============ PANAMÁ ============
@@ -551,8 +638,12 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: false,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
     source: 'GOV',
-    lastVerified: V,
-  },
+    lastVerified: V_PA_GOV,
+    contactStatus: 'unverified',
+    website: 'https://www.css.gob.pa/',
+    lat: 9.9281,
+  lng: -84.0907,
+},
   {
     id: 'pa-mides-147',
     name: 'MIDES, Línea de atención 147',
@@ -566,7 +657,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['violencia', 'depresion', 'bienestar'],
     source: 'GOV',
-    lastVerified: V,
+    lastVerified: V_PA_GOV,
+    contactStatus: 'verified',
+    website: 'https://www.mides.gob.pa/',
+  lat: 8.9824,
+  lng: -79.5199,
   },
   {
     id: 'pa-ancofap',
@@ -582,8 +677,12 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['depresion', 'ansiedad', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_PA_NGO,
+    contactStatus: 'none',
+    website: 'https://ancofap.org/',
+    lat: 8.9824,
+  lng: -79.5199,
+},
 
   // ============ INTERNACIONAL (≥ 3) ============
   {
@@ -598,8 +697,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_INTL,
+    contactStatus: 'verified',
+    lat: 12.1364,
+  lng: -86.2511,
+},
   {
     id: 'intl-iasp',
     name: 'IASP — International Association for Suicide Prevention (centros de crisis)',
@@ -612,8 +714,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['suicidio', 'depresion', 'ansiedad'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_INTL,
+    contactStatus: 'verified',
+    lat: 12.1364,
+  lng: -86.2511,
+},
   {
     id: 'intl-findahelpline',
     name: 'Find A Helpline — directorio de líneas por país',
@@ -626,8 +731,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_INTL,
+    contactStatus: 'verified',
+    lat: 12.1364,
+  lng: -86.2511,
+},
   {
     id: 'intl-samaritans',
     name: 'Samaritans (Reino Unido) — apoyo emocional 24/7',
@@ -642,8 +750,11 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     virtual: true,
     specialties: ['suicidio', 'depresion', 'ansiedad', 'bienestar'],
     source: 'NGO',
-    lastVerified: V,
-  },
+    lastVerified: V_INTL,
+    contactStatus: 'verified',
+    lat: 51.5074,
+  lng: -0.1278,
+},
 ];
 
 export const CRISIS_COUNTRIES: CrisisCountryEntry[] = [
@@ -837,10 +948,14 @@ export function getVerifiedSince(date: string): OfficialResource[] {
 }
 
 export function resourceHasContact(r: OfficialResource): boolean {
+  // Solo contactos verificados o no verificados (con dato); 'none' no tiene botón
+  if (r.contactStatus === 'none') return false;
   return !!(r.phone || r.whatsapp || r.email || r.website);
 }
 
 export function contactHref(r: OfficialResource, kind: 'call' | 'sms' | 'wa' | 'web'): string | null {
+  // No generar enlaces para contactStatus 'none'
+  if (r.contactStatus === 'none') return null;
   switch (kind) {
     case 'call':
       return r.phone ? `tel:${r.phone}` : null;
@@ -853,6 +968,32 @@ export function contactHref(r: OfficialResource, kind: 'call' | 'sms' | 'wa' | '
     default:
       return null;
   }
+}
+
+/** Calcula distancia haversine en km entre dos puntos lat/lng. */
+export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // radio Tierra en km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/** Devuelve recursos con coordenadas ordenados por distancia al punto dado (más cerca primero). */
+export function sortResourcesByDistance(
+  resources: OfficialResource[],
+  userLat: number,
+  userLng: number
+): (OfficialResource & { distanceKm: number })[] {
+  return resources
+    .filter((r) => typeof r.lat === 'number' && typeof r.lng === 'number')
+    .map((r) => ({
+      ...r,
+      distanceKm: haversineKm(userLat, userLng, r.lat!, r.lng!),
+    }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
 }
 
 export function saveResourceFavorite(id: string): void {
@@ -918,7 +1059,16 @@ export function resourceCardTitle(r: OfficialResource): string {
   return `${badge} · ${r.name}`;
 }
 
-export async function detectUserCountry(): Promise<OfficialResourceCountry> {
+/** Resultado de detectUserCountryWithCoords — país detectado + coordenadas si se obtuvo GPS. */
+export interface GeoDetectionResult {
+  country: OfficialResourceCountry;
+  latitude?: number;
+  longitude?: number;
+  method: 'gps' | 'locale' | 'ip' | 'default';
+}
+
+/** Detecta país del usuario y devuelve coordenadas si usó GPS (para ordenar por distancia). */
+export async function detectUserCountryWithCoords(): Promise<GeoDetectionResult> {
   // 1) Geolocalización con geocerca (requiere permiso).
   try {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -926,26 +1076,35 @@ export async function detectUserCountry(): Promise<OfficialResourceCountry> {
         navigator.geolocation.getCurrentPosition(
           (p) => resolve(p),
           () => resolve(undefined),
-          { enableHighAccuracy: false, timeout: 10000 }
+          { enableHighAccuracy: true, timeout: 10000 }
         );
       });
-      if (pos?.coords?.latitude !== 0 || pos?.coords?.longitude !== 0) {
+      if (pos?.coords?.latitude && pos?.coords?.longitude) {
+        const { latitude, longitude } = pos.coords;
         const hits = CRISIS_COUNTRIES.filter(
           (c) =>
             c.minLat &&
             c.maxLat &&
             c.minLng &&
             c.maxLng &&
-            pos!.coords.latitude >= c.minLat &&
-            pos!.coords.latitude <= c.maxLat &&
-            pos!.coords.longitude >= c.minLng &&
-            pos!.coords.longitude <= c.maxLng
+            latitude >= c.minLat &&
+            latitude <= c.maxLat &&
+            longitude >= c.minLng &&
+            longitude <= c.maxLng
         );
-        if (hits.length === 1) return hits[0].country as OfficialResourceCountry;
-        if (hits.length > 1) {
-          hits.sort((a, b) => (a.minLat ?? 0) - (b.minLat ?? 0));
-          return hits[0].country as OfficialResourceCountry;
+        let country: OfficialResourceCountry = 'NI';
+        if (hits.length === 1) {
+          country = hits[0].country as OfficialResourceCountry;
+        } else if (hits.length > 1) {
+          // Desambiguar: elegir el país cuyo bounding box contiene el punto con mayor precisión
+          hits.sort((a, b) => {
+            const areaA = (a.maxLat! - a.minLat!) * (a.maxLng! - a.minLng!);
+            const areaB = (b.maxLat! - b.minLat!) * (b.maxLng! - b.minLng!);
+            return areaA - areaB; // bounding box más pequeño = más preciso
+          });
+          country = hits[0].country as OfficialResourceCountry;
         }
+        return { country, latitude, longitude, method: 'gps' };
       }
     }
   } catch {
@@ -959,7 +1118,7 @@ export async function detectUserCountry(): Promise<OfficialResourceCountry> {
       : 'es-NI';
   const code = locale.split('-')[0];
   const mapped = COUNTRY_MAP[locale] ?? COUNTRY_MAP[code];
-  if (mapped) return mapped;
+  if (mapped) return { country: mapped, method: 'locale' };
 
   // 3) IP (fallback suave).
   try {
@@ -968,13 +1127,19 @@ export async function detectUserCountry(): Promise<OfficialResourceCountry> {
     const data = (await res.json()) as { country_code?: string };
     const ipMapped =
       data.country_code && COUNTRY_MAP[data.country_code.toLowerCase()];
-    if (ipMapped) return ipMapped;
+    if (ipMapped) return { country: ipMapped, method: 'ip' };
   } catch {
     /* noop */
   }
 
   // 4) Default regional.
-  return 'NI';
+  return { country: 'NI', method: 'default' };
+}
+
+/** Mantiene compatibilidad: solo devuelve el país. */
+export async function detectUserCountry(): Promise<OfficialResourceCountry> {
+  const result = await detectUserCountryWithCoords();
+  return result.country;
 }
 
 export function supportsGeolocation(): boolean {
