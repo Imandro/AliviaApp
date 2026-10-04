@@ -918,6 +918,82 @@ export function resourceCardTitle(r: OfficialResource): string {
   return `${badge} · ${r.name}`;
 }
 
+export interface GeoDetectionResult {
+  country: OfficialResourceCountry;
+  latitude?: number;
+  longitude?: number;
+  method: 'gps' | 'locale' | 'ip' | 'default';
+}
+
+/** Detecta país del usuario y devuelve coordenadas si usó GPS (para ordenar por distancia). */
+export async function detectUserCountryWithCoords(): Promise<GeoDetectionResult> {
+  // 1) Geolocalización con geocerca (requiere permiso).
+  try {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      const pos = await new Promise<GeolocationPosition | undefined>((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          (p) => resolve(p),
+          () => resolve(undefined),
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      });
+      if (pos?.coords?.latitude && pos?.coords?.longitude) {
+        const { latitude, longitude } = pos.coords;
+        const hits = CRISIS_COUNTRIES.filter(
+          (c) =>
+            c.minLat &&
+            c.maxLat &&
+            c.minLng &&
+            c.maxLng &&
+            latitude >= c.minLat &&
+            latitude <= c.maxLat &&
+            longitude >= c.minLng &&
+            longitude <= c.maxLng
+        );
+        let country: OfficialResourceCountry = 'NI';
+        if (hits.length === 1) {
+          country = hits[0].country as OfficialResourceCountry;
+        } else if (hits.length > 1) {
+          hits.sort((a, b) => {
+            const areaA = (a.maxLat! - a.minLat!) * (a.maxLng! - a.minLng!);
+            const areaB = (b.maxLat! - b.minLat!) * (b.maxLng! - b.minLng!);
+            return areaA - areaB;
+          });
+          country = hits[0].country as OfficialResourceCountry;
+        }
+        return { country, latitude, longitude, method: 'gps' };
+      }
+    }
+  } catch {
+    /* ignorar */
+  }
+
+  // 2) Idioma del navegador.
+  const locale =
+    typeof navigator !== 'undefined'
+      ? navigator.language?.toLowerCase()
+      : 'es-NI';
+  const code = locale.split('-')[0];
+  const mapped = COUNTRY_MAP[locale] ?? COUNTRY_MAP[code];
+  if (mapped) return { country: mapped, method: 'locale' };
+
+  // 3) IP (fallback suave).
+  try {
+    const signal = AbortSignal.timeout(5000);
+    const res = await fetch('https://ipapi.co/json/', { signal });
+    const data = (await res.json()) as { country_code?: string };
+    const ipMapped =
+      data.country_code && COUNTRY_MAP[data.country_code.toLowerCase()];
+    if (ipMapped) return { country: ipMapped, method: 'ip' };
+  } catch {
+    /* noop */
+  }
+
+  // 4) Default regional.
+  return { country: 'NI', method: 'default' };
+}
+
+/** Mantiene compatibilidad: solo devuelve el país. */
 export async function detectUserCountry(): Promise<OfficialResourceCountry> {
   // 1) Geolocalización con geocerca (requiere permiso).
   try {

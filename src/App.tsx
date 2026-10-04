@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { InstallPrompt } from './components/InstallPrompt';
+import { UrgentHelpFAB } from './components/UrgentHelpFAB';
 import { Dashboard } from './views/Dashboard';
 import { HomeCompanion } from './components/HomeCompanion';
 
@@ -165,6 +166,7 @@ function AppShell({
           </ErrorBoundary>
         </main>
 
+        <UrgentHelpFAB />
         <Navigation activeTab={activeView} setActiveTab={handleTabChange} />
       </div>
 

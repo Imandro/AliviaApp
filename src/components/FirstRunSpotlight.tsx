@@ -30,9 +30,14 @@ const STEPS: TourStep[] = [
     body: 'Si un día la pasas mal de verdad, está a un toque. No es para cuando la pases bien.',
   },
   {
+    selector: '[data-tour="ayuda"]',
+    title: 'Ayuda — Recursos Oficiales',
+    body: 'Aquí tienes hospitales, líneas de crisis y centros verificados cerca de ti. Con distancia, teléfono real y portal web. 34 recursos actualizados.',
+  },
+  {
     selector: '[data-tour="breathe"]',
     title: 'La barra inferior',
-    body: 'Respirar, desahogarse, apoyo, retos y explorar. Todo desde aquí, sin buscar nada.',
+    body: 'Respirar, desahogarse, apoyo, retos, explorar y ayuda. Todo desde aquí, sin buscar nada.',
   },
 ];
 
