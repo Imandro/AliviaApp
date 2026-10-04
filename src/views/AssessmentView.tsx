@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCrisisContext } from '../hooks/useCrisisContext';
 import {
   Sparkles,
   ShieldAlert,
@@ -65,6 +66,15 @@ export const AssessmentView: React.FC = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [contactCountry, setContactCountry] = useState<CrisisCountry>('NI');
   const [toast, setToast] = useState('');
+
+  // Crisis detection based on assessment results
+  useCrisisContext({ 
+    assessmentScore: screen === 'results' && lastResult ? 
+      (lastResult.stress + lastResult.anxiety + lastResult.depression) * 100 / 45 : // normalize to 0-100
+      undefined, 
+    pathname: typeof window !== 'undefined' ? window.location.pathname : undefined,
+    enabled: !loading 
+  });
 
   useEffect(() => {
     getMyAssessments().then((a) => {

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCrisisContext } from '../hooks/useCrisisContext';
 import { Send, Phone, ShieldAlert, ShieldCheck, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
 import { getNavigationIntent } from '../utils/empatheticAI';
 import { ViaAvatar } from '../components/ViaAvatar';
@@ -117,6 +118,9 @@ export const ChatView: React.FC = () => {
   const pendingNavRef = useRef<{ path: string; label: string } | null>(null);
   messagesRef.current = messages;
   crisisRef.current = crisisMode;
+
+  // Crisis detection from user messages
+  useCrisisContext({ lastUserMessage: messages[messages.length - 1]?.text });
 
   const isAIActive = isTyping || streamingText.length > 0;
 

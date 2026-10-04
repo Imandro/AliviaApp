@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { HomeCompanionStreak } from '../components/HomeCompanionContext';
 import { getHomeMoodStreak } from '../utils/homeCompanion';
 import { useNavigate } from 'react-router-dom';
+import { useCrisisContext } from '../hooks/useCrisisContext';
 import {
   Sparkles,
   Shield,
@@ -156,6 +157,9 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
   useEffect(() => {
     if (!loading && !savingMood) reportStreak({ days: companionDays, activationKey, challengeDone: challengeDoneToday });
   }, [loading, savingMood, companionDays, activationKey, challengeDoneToday, reportStreak]);
+
+  // Crisis detection based on mood
+  useCrisisContext({ mood: todayScore ?? undefined, enabled: !loading });
 
   if (loading) {
     return (
