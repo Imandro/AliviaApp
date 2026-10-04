@@ -166,7 +166,13 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync dist/ "s3://${{ secrets.FRONTEND_BUCKET_NAME }}" --delete
+          # --exclude "releases/*" no es opcional: el APK se sube a mano con
+          # `npm run release:apk` y no vive en dist/. Sin el exclude, cada
+          # despliegue de la web lo borraba por el --delete y la pagina de
+          # descarga se rompia en silencio (CloudFront respondia el index.html
+          # de la SPA con 200 en lugar de un 404).
+          aws s3 sync dist/ "s3://${{ secrets.FRONTEND_BUCKET_NAME }}" \
+            --delete --exclude "releases/*"
           # Los assets con hash nunca cambian: cache largo e inmutable.
           aws s3 sync dist/assets/ "s3://${{ secrets.FRONTEND_BUCKET_NAME }}/assets" \
             --delete --cache-control "public,max-age=31536000,immutable"
