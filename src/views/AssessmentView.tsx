@@ -190,7 +190,9 @@ export const AssessmentView: React.FC = () => {
   };
 
   const handleVia = () => {
-    logCrisisContact(lastResult?.id ?? null, 'via', 'Abrir chat VIA desde resultados del chequeo');
+    // El canal 'via' es un valor de telemetria que valida la API: no se renombra
+    // aunque la mascota ya se llame Livi.
+    logCrisisContact(lastResult?.id ?? null, 'via', 'Abrir chat con Livi desde resultados del chequeo');
     navigate('/chat');
   };
 
@@ -403,7 +405,7 @@ export const AssessmentView: React.FC = () => {
             </div>
             <p className="body-standard" style={{ fontSize: '12px', lineHeight: 1.5, opacity: 0.85 }}>
               Cuando una señal sube así, el apoyo humano real es lo que más ayuda. No estás exagerando:
-              es un buen momento para hablar con alguien. Elige tu país y llama a una línea gratuita, o conversa con VIA ahora.
+              es un buen momento para hablar con alguien. Elige tu país y llama a una línea gratuita, o conversa con Livi ahora.
             </p>
 
             <div style={styles.countryRow}>
@@ -445,7 +447,7 @@ export const AssessmentView: React.FC = () => {
             </a>
 
             <button onClick={handleVia} className="btn-primary" style={styles.viaBtn}>
-              <Bot size={15} /> Hablar ahora con VIA
+              <Bot size={15} /> Hablar ahora con Livi
             </button>
           </div>
         )}
@@ -501,7 +503,7 @@ export const AssessmentView: React.FC = () => {
           <div className="glass-card flex flex-col gap-2" style={styles.aiCard}>
             <div style={styles.aiHeader}>
               <span style={styles.aiIcon}><Bot size={13} color="#0c1810" /></span>
-              <span style={styles.aiLabel}>VIA TE ACOMPAÑA</span>
+              <span style={styles.aiLabel}>Livi te acompaña</span>
               {aiLoading && <span style={{ fontSize: '10px', opacity: 0.5 }}>…</span>}
             </div>
             <p className="body-standard" style={{ fontSize: '12.5px', lineHeight: 1.55, opacity: 0.9 }}>{res.ai_advice}</p>

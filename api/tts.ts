@@ -8,7 +8,7 @@ const EDGE_OUTPUT = 'audio-24khz-96kbitrate-mono-mp3';
 const MAX_TEXT = 800;
 
 // ---------- ElevenLabs (motor principal) ----------
-// La voz de VIA sale de ElevenLabs cuando hay clave configurada. Es un servicio
+// La voz de Livi sale de ElevenLabs cuando hay clave configurada. Es un servicio
 // de pago con cupo de caracteres, asi que:
 //   - la clave va en Secrets Manager, nunca en el bundle ni en el repo;
 //   - hay cache en memoria: el TTS de la app repite mucho las frases cortas.
@@ -237,8 +237,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     let audio: Buffer | null = null;
     let engine = 'ninguno';
 
-    // Prioridad: ElevenLabs (la voz que define a VIA) > Edge > Google.
-    // Los de respaldo existen para que un corte de ElevenLabs no deje a VIA muda.
+    // Prioridad: ElevenLabs (la voz que define a Livi) > Edge > Google.
+    // Los de respaldo existen para que un corte de ElevenLabs no deje a Livi muda.
     if (elevenKey) {
       try {
         audio = await synthesizeElevenLabs(text);

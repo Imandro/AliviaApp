@@ -71,7 +71,7 @@ export function NotFoundView() {
         <p className="not-found-code">ERROR 404</p>
         <h1 id="not-found-title">Esta página se perdió en el camino</h1>
         <p className="not-found-message">
-          Parece que tomamos un desvío. VIA ya encontró el camino de vuelta y te acompaña
+          Parece que tomamos un desvío. Livi ya encontró el camino de vuelta y te acompaña
           a un lugar conocido.
         </p>
         <Link className="btn-primary not-found-home" to="/">

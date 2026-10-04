@@ -172,9 +172,9 @@ export const looksLikeEcho = (reply: string, userMsg: string): boolean => {
   return shared / tb.length >= 0.7;
 };
 
-/** Quita el prefijo que algunos modelos Anteponen ("VIA:", "Respuesta:"). */
+/** Quita el prefijo que algunos modelos Anteponen ("Livi:", "Respuesta:"). */
 const stripPreamble = (text: string): string =>
-  text.replace(/^\s*(via|respuesta|assistant|ia)\s*[:\-—]\s*/i, '');
+  text.replace(/^\s*(livi|via|respuesta|assistant|ia)\s*[:\-—]\s*/i, '');
 
 /**
  * Red de seguridad del modo crisis: si la respuesta no menciona ninguna salida

@@ -136,7 +136,7 @@ describe('configuracion', () => {
 
   it('el 429 de Gemini se trata como demanda puntual y prueba otro modelo', async () => {
     // Es la diferencia clave con OpenAI y Groq: en Google el 429 es "high
-    // demand" transitorio, no cuota agotada. Si se cortara con 429, VIA se
+    // demand" transitorio, no cuota agotada. Si se cortara con 429, Livi se
     // quedaria muda justo cuando el modelo esta saturado.
     const pedidos: string[] = [];
     globalThis.fetch = (async (_u: string, init?: RequestInit) => {
@@ -195,7 +195,7 @@ describe('configuracion', () => {
 
   it('"rate limit reached" de Groq SI se reintenta con otro modelo', async () => {
     // Es limite por modelo, no de la cuenta: el siguiente puede funcionar, y
-    // cortar ahi dejaria a VIA muda.
+    // cortar ahi dejaria a Livi muda.
     //
     // La cadena real con esta cuenta seria gemini -> openai -> groq, pero para
     // aislar el comportamiento de Groq se dejan solo su clave. El primer modelo
@@ -399,7 +399,7 @@ describe('fallo hacia Groq', () => {
     // Antes este test afirmaba que un 429 cortaba en seco con n=1. Con la regla
     // nueva solo cortamos si el mensaje dice que el limite es de la cuenta
     // ("no credits", "quota"); si no lo dice, se prueban los otros modelos, que
-    // es lo que evita que VIA se quede muda por un error poco claro del
+    // es lo que evita que Livi se quede muda por un error poco claro del
     // proveedor. El cliente recibe 429 al final, que es lo que le permite caer a
     // sus reglas locales.
     delete process.env.GEMINI_API_KEY;
