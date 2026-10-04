@@ -33,9 +33,8 @@ describe('resourceApi — cliente offline-first de recursos', () => {
   it('loadOfficialResources devuelve el set verificado estatico', async () => {
     const resources = await loadOfficialResources();
     expect(resources).toEqual(OFFICIAL_RESOURCES);
-    // El número se toma de la fuente en vez de fijarse a mano: con UCA
-    // retirado el conjunto quedó en 33 y un literal aquí fue lo que dejó el CI
-    // en rojo. Si se añade o quita un recurso, este test sigue siendo cierto.
+    // El número se toma de la fuente en vez de fijarse a mano: un literal
+    // desfasado fue lo que dejó el CI en rojo al cambiar el catálogo.
     expect(resources.length).toBe(OFFICIAL_RESOURCES.length);
   });
 
@@ -81,10 +80,46 @@ describe('resourceApi — cliente offline-first de recursos', () => {
     expect(resources.length).toBeGreaterThan(0);
   });
 
+  it('descarta la cache de un dispositivo que ya tiene el catalogo anterior', () => {
+    // Regresión: un cliente instalado guardaba la lista vieja en localStorage
+    // con TTL de 7 días, así que seguía viendo recursos ya retirados de la
+    // fuente aunque la app se actualizara. La versión del catálogo obliga a
+    // recargar cuando el contenido cambia.
+    const retirado = { ...OFFICIAL_RESOURCES[0], id: 'ni-obsoleto' };
+    localStorage.setItem(
+      'alivia_resources_cache',
+      JSON.stringify({ resources: [retirado], filters: { country: 'ALL' }, ts: Date.now() })
+    );
+
+    const ni = getReadyResources({ country: 'NI' });
+    expect(ni.some((r) => r.id === 'ni-obsoleto')).toBe(false);
+    expect(ni.length).toBe(OFFICIAL_RESOURCES.filter((r) => r.country === 'NI').length);
+  });
+
+  it('descarta la cache cuando la version guardada es anterior a la actual', () => {
+    localStorage.setItem(
+      'alivia_resources_cache',
+      JSON.stringify({
+        version: 1,
+        resources: [{ ...OFFICIAL_RESOURCES[0], id: 'ni-obsoleto' }],
+        filters: { country: 'ALL' },
+        ts: Date.now(),
+      })
+    );
+
+    const ni = getReadyResources({ country: 'NI' });
+    expect(ni.some((r) => r.id === 'ni-obsoleto')).toBe(false);
+  });
+
+  it('la cache recien escrita si se reutiliza', () => {
+    const sample: OfficialResource[] = [{ ...OFFICIAL_RESOURCES[0] }];
+    setCachedResources(sample);
+    expect(getReadyResources({ country: 'NI' })).toEqual(sample);
+  });
+
   it('getReadyResources nunca lanza y filtra por pais', () => {
-    // Los conteos se derivan de la fuente en lugar de fijarse: cuando se
-    // retiró UCA el conjunto pasó a 33 y NI a 12, y los literales de aquí
-    // quedaron desfasados.
+    // Los conteos se derivan de la fuente en lugar de fijarse: un literal
+    // desfasado ya dejó el CI en rojo antes.
     const all = getReadyResources();
     expect(all.length).toBe(OFFICIAL_RESOURCES.length);
     const ni = getReadyResources({ country: 'NI' });

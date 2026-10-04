@@ -13,8 +13,15 @@ import type { OfficialResource, ResourceFilters } from './officialResources';
 
 const RESOURCE_CACHE_KEY = 'alivia_resources_cache';
 const RESOURCE_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 días
+/**
+ * Sube este número cuando cambie el catálogo para invalidar las listas
+ * cacheadas en dispositivos ya instalados (si no, un cliente puede seguir
+ * viendo durante 7 días un recurso que ya se retiró de la fuente).
+ */
+const RESOURCE_CACHE_VERSION = 2;
 
 interface CacheEntry {
+  version: number;
   resources: OfficialResource[];
   filters: ResourceFilters;
   ts: number;
@@ -63,6 +70,7 @@ export async function loadResourceById(id: string): Promise<OfficialResource> {
 export function setCachedResources(resources: OfficialResource[]): void {
   try {
     const entry: CacheEntry = {
+      version: RESOURCE_CACHE_VERSION,
       resources,
       filters: { country: 'ALL' },
       ts: Date.now(),
@@ -76,10 +84,16 @@ export function setCachedResources(resources: OfficialResource[]): void {
 /** Lee la caché mientras no haya expirado. */
 function getCachedResources(): OfficialResource[] | null {
   try {
-    const raw = localStorage.getItem(RESOURCE_CACHE_KEY);
+const raw = localStorage.getItem(RESOURCE_CACHE_KEY);
     if (!raw) return null;
-    const entry: CacheEntry = JSON.parse(raw);
-    if (Date.now() - entry.ts > RESOURCE_CACHE_TTL) return null;
+    const entry = JSON.parse(raw) as Partial<CacheEntry> | null;
+    if (!entry) return null;
+    // Sin versión (catálogo anterior) o versión vieja: se descarta y se recarga.
+    if (entry.version !== RESOURCE_CACHE_VERSION) {
+      localStorage.removeItem(RESOURCE_CACHE_KEY);
+      return null;
+    }
+    if (Date.now() - (entry.ts ?? 0) > RESOURCE_CACHE_TTL) return null;
     return entry.resources ?? null;
   } catch {
     return null;

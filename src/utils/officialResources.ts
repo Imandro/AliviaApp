@@ -91,7 +91,6 @@ const V_MINSA_HOTLINES = '2026-10-03';      // 128, 611, 111 confirmados en port
 const V_MINSA_PORTAL = '2026-10-03';         // portal MINSA verificado online
 const V_MINSA_HOSPITALS = '2025-12-15';      // directorio hospitales MINSA (fecha acceso)
 const V_UNAN = '2025-11-01';                 // UNAN-Managua portal ok; clínica sin teléfono confirmado
-const V_UCA = '2025-10-15';                  // UCA existe en OSM; servicio psicología SIN confirmar
 const V_FUNDAMUNI = '2025-09-20';            // 0800-FUNDAMUNI no válido; sin teléfono real
 const V_CASA_ALIANZA = '2025-09-20';         // 0800-CASA-ALIANZA no válido; sin teléfono real
 const V_CENTRO_SM = '2025-08-01';            // Centro Salud Mental sin contacto confirmado
@@ -240,7 +239,6 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     contactStatus: 'none',
     website: 'https://www.unan.edu.ni/',
   },
-  // UCA removido: servicio de psicología no confirmado; la universidad existe pero el CAP no tiene contacto verificado
   {
     id: 'ni-fundemuni',
     name: 'FUNDAMUNI — Familia, Mujer y Niñez',
