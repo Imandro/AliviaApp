@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { GameIcon } from '../utils/gameIcons';
 import { GameBar } from '../components/GameBar';
+import { SosButton } from '../components/SosButton';
 import { CoinPolish } from '../games/CoinPolish';
 import { BlockStack } from '../games/BlockStack';
 import { Marimba } from '../games/Marimba';
@@ -30,6 +31,9 @@ export const GameView: React.FC = () => {
   const Game = GAME_COMPONENTS[id];
 
   if (!game || !Game) {
+    // En /games/:id el Header y la navbar se retiran, asi que esta pantalla de
+    // error tampoco tiene barra de juego. Sin el SOS aqui, una URL de juego
+    // invalida dejaria al usuario sin acceso a las lineas de crisis.
     return (
       <div className="glass-card fade-in" style={{ padding: '30px 20px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
         <GameIcon name="target" size={40} color="var(--accent-lavender)" />
@@ -37,6 +41,9 @@ export const GameView: React.FC = () => {
         <button className="cm-press" style={{ padding: '12px 22px', borderRadius: '999px', border: 'none', background: 'linear-gradient(135deg, var(--accent-gold), var(--accent-sage))', color: '#0c1810', fontFamily: 'var(--font-title)', fontWeight: 800, cursor: 'pointer' }} onClick={() => navigate('/games')}>
           Ver todos los juegos
         </button>
+        <div style={{ marginTop: '4px' }}>
+          <SosButton onClick={() => navigate('/sos')} />
+        </div>
       </div>
     );
   }
