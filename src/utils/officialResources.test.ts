@@ -8,6 +8,7 @@ import {
   contactHref,
   detectCountryFromLocale,
   detectUserCountry,
+  detectUserCountryWithCoords,
   formatHours,
   getCountryInfo,
   getEmergencyNumber,
@@ -19,8 +20,12 @@ import {
   shareResource,
   supportsGeolocation,
   clearGeoCache,
+  resourceHasContact,
+  sortResourcesByDistance,
+  haversineKm,
   type OfficialResource,
   type ProblemArea,
+  type ContactStatus,
 } from './officialResources';
 
 describe('officialResources — recursos oficiales verificados', () => {
@@ -35,13 +40,13 @@ describe('officialResources — recursos oficiales verificados', () => {
   });
 
   describe('OFFICIAL_RESOURCES — conjunto verificado', () => {
-    it('contiene 35 recursos totales', () => {
-      expect(OFFICIAL_RESOURCES.length).toBe(35);
+    it('contiene 34 recursos totales (UCA removido por no tener contacto verificado)', () => {
+      expect(OFFICIAL_RESOURCES.length).toBe(34);
     });
 
     it('tiene recursos para los 6 países + INTL', () => {
       const counts = {
-        NI: 14,
+        NI: 13,
         SV: 4,
         GT: 4,
         HN: 3,
@@ -55,7 +60,7 @@ describe('officialResources — recursos oficiales verificados', () => {
       }
     });
 
-    it('cada recurso tiene campos obligatorios', () => {
+    it('cada recurso tiene campos obligatorios incluyendo contactStatus', () => {
       for (const r of OFFICIAL_RESOURCES) {
         expect(r.id).toBeDefined();
         expect(r.name).toBeDefined();
@@ -69,6 +74,8 @@ describe('officialResources — recursos oficiales verificados', () => {
         expect(r.specialties.length).toBeGreaterThan(0);
         expect(r.source).toBeDefined();
         expect(r.lastVerified).toBeDefined();
+        expect(r.contactStatus).toBeDefined();
+        expect(['verified', 'unverified', 'none']).toContain(r.contactStatus);
       }
     });
 
@@ -99,6 +106,13 @@ describe('officialResources — recursos oficiales verificados', () => {
       }
     });
 
+    it('contactStatus es válido', () => {
+      const validStatus: ContactStatus[] = ['verified', 'unverified', 'none'];
+      for (const r of OFFICIAL_RESOURCES) {
+        expect(validStatus).toContain(r.contactStatus);
+      }
+    });
+
     it('COUNTRY_MAP mapea códigos de país', () => {
       expect(COUNTRY_MAP['ni']).toBe('NI');
       expect(COUNTRY_MAP['sv']).toBe('SV');
@@ -106,6 +120,10 @@ describe('officialResources — recursos oficiales verificados', () => {
       expect(COUNTRY_MAP['hn']).toBe('HN');
       expect(COUNTRY_MAP['cr']).toBe('CR');
       expect(COUNTRY_MAP['pa']).toBe('PA');
+    });
+
+    it('UCA removido: no existe recurso con id ni-uca', () => {
+      expect(OFFICIAL_RESOURCES.find((r) => r.id === 'ni-uca')).toBeUndefined();
     });
   });
 
@@ -229,6 +247,7 @@ describe('officialResources — recursos oficiales verificados', () => {
       specialties: ['suicidio'],
       source: 'GOV',
       lastVerified: '2024-01-01',
+      contactStatus: 'verified',
     };
     it('formatea 24/7 correctamente', () => {
       expect(formatHours({ ...base, hours: '24/7' })).toBe('24/7');
@@ -258,6 +277,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       const title = resourceCardTitle(r);
       expect(title).toContain('Recurso oficial');
@@ -280,6 +300,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       expect(contactHref(r, 'call')).toBe('tel:128');
     });
@@ -298,6 +319,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       expect(contactHref(r, 'wa')).toBe('https://wa.me/50512345678');
     });
@@ -316,6 +338,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['bienestar'],
         source: 'NGO',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       expect(contactHref(r, 'web')).toBe('https://example.org');
     });
@@ -333,6 +356,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       expect(contactHref(r, 'wa')).toBeNull();
     });
@@ -355,6 +379,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       await shareResource(r);
       expect(shareMock).toHaveBeenCalledWith(
@@ -381,6 +406,7 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       await shareResource(r);
       expect(writeText).toHaveBeenCalledWith(expect.stringContaining('Test'));
@@ -417,9 +443,10 @@ describe('officialResources — recursos oficiales verificados', () => {
         specialties: ['suicidio', 'depresion'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       };
       expect(resourcesMatchProblem('suicidio').find((r) => r.id === 'ni-minsa-l128')).toBeDefined();
-      expect(resourcesMatchProblem('depresion').find((r) => r.id === 'ni-fonseca')).toBeDefined();
+      expect(resourcesMatchProblem('depresion').find((r) => r.id === 'ni-esteli')).toBeDefined();
     });
 
     it('false si el recurso no cubre el problema', () => {
@@ -427,6 +454,172 @@ describe('officialResources — recursos oficiales verificados', () => {
       expect(resourcesMatchProblem('noviazgo').find((x) => x.id === 'ni-minsa-l128')).toBeUndefined();
       // y el problema sí tiene cobertura en el directorio
       expect(resourcesMatchProblem('noviazgo').length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('resourceHasContact', () => {
+    it('true para contactStatus verified con teléfono', () => {
+      const r: OfficialResource = {
+        id: 'test',
+        name: 'Test',
+        country: 'NI',
+        type: 'hotline',
+        phone: '128',
+        free: true,
+        youthFriendly: true,
+        inPerson: false,
+        virtual: true,
+        specialties: ['suicidio'],
+        source: 'GOV',
+        lastVerified: '2024-01-01',
+        contactStatus: 'verified',
+      };
+      expect(resourceHasContact(r)).toBe(true);
+    });
+
+    it('true para contactStatus unverified con website', () => {
+      const r: OfficialResource = {
+        id: 'test',
+        name: 'Test',
+        country: 'NI',
+        type: 'hospital',
+        website: 'https://example.org',
+        free: true,
+        youthFriendly: true,
+        inPerson: true,
+        virtual: false,
+        specialties: ['suicidio'],
+        source: 'GOV',
+        lastVerified: '2024-01-01',
+        contactStatus: 'unverified',
+      };
+      expect(resourceHasContact(r)).toBe(true);
+    });
+
+    it('false para contactStatus none aunque tenga dirección', () => {
+      const r: OfficialResource = {
+        id: 'test',
+        name: 'Test',
+        country: 'NI',
+        type: 'hospital',
+        address: 'Managua',
+        free: true,
+        youthFriendly: true,
+        inPerson: true,
+        virtual: false,
+        specialties: ['suicidio'],
+        source: 'GOV',
+        lastVerified: '2024-01-01',
+        contactStatus: 'none',
+      };
+      expect(resourceHasContact(r)).toBe(false);
+    });
+  });
+
+  describe('contactHref con contactStatus', () => {
+    it('devuelve null para contactStatus none aunque haya phone', () => {
+      const r: OfficialResource = {
+        id: 'test',
+        name: 'Test',
+        country: 'NI',
+        type: 'hotline',
+        phone: '128',
+        free: true,
+        youthFriendly: true,
+        inPerson: false,
+        virtual: true,
+        specialties: ['suicidio'],
+        source: 'GOV',
+        lastVerified: '2024-01-01',
+        contactStatus: 'none',
+      };
+      expect(contactHref(r, 'call')).toBeNull();
+    });
+
+    it('devuelve tel: para contactStatus verified con phone', () => {
+      const r: OfficialResource = {
+        id: 'test',
+        name: 'Test',
+        country: 'NI',
+        type: 'hotline',
+        phone: '128',
+        free: true,
+        youthFriendly: true,
+        inPerson: false,
+        virtual: true,
+        specialties: ['suicidio'],
+        source: 'GOV',
+        lastVerified: '2024-01-01',
+        contactStatus: 'verified',
+      };
+      expect(contactHref(r, 'call')).toBe('tel:128');
+    });
+  });
+
+  describe('haversineKm', () => {
+    it('calcula distancia cero para el mismo punto', () => {
+      expect(haversineKm(12.1, -86.2, 12.1, -86.2)).toBe(0);
+    });
+
+    it('calcula distancia aproximada Managua-León (~75 km)', () => {
+      // Managua: 12.1364, -86.2511; León: 12.4354, -86.8781
+      const d = haversineKm(12.1364, -86.2511, 12.4354, -86.8781);
+      expect(d).toBeGreaterThan(70);
+      expect(d).toBeLessThan(85);
+    });
+  });
+
+  describe('sortResourcesByDistance', () => {
+    it('ordena por distancia y añade distanceKm', () => {
+      const r1: OfficialResource = {
+        id: 'r1', name: 'Cerca', country: 'NI', type: 'hospital',
+        lat: 12.14, lng: -86.25, free: true, youthFriendly: true,
+        inPerson: true, virtual: false, specialties: ['suicidio'],
+        source: 'GOV', lastVerified: '2024-01-01', contactStatus: 'verified',
+      };
+      const r2: OfficialResource = {
+        id: 'r2', name: 'Lejos', country: 'NI', type: 'hospital',
+        lat: 12.5, lng: -87.0, free: true, youthFriendly: true,
+        inPerson: true, virtual: false, specialties: ['suicidio'],
+        source: 'GOV', lastVerified: '2024-01-01', contactStatus: 'verified',
+      };
+      const r3: OfficialResource = {
+        id: 'r3', name: 'Sin coords', country: 'NI', type: 'hospital',
+        free: true, youthFriendly: true, inPerson: true, virtual: false,
+        specialties: ['suicidio'], source: 'GOV', lastVerified: '2024-01-01', contactStatus: 'verified',
+      };
+      const sorted = sortResourcesByDistance([r3, r2, r1], 12.14, -86.25);
+      expect(sorted.length).toBe(2); // r3 filtrado por no tener coords
+      expect(sorted[0].id).toBe('r1');
+      expect(sorted[0].distanceKm).toBeLessThan(5);
+      expect(sorted[1].id).toBe('r2');
+      expect(sorted[1].distanceKm).toBeGreaterThan(50);
+    });
+  });
+
+  describe('detectUserCountryWithCoords', () => {
+    it('devuelve país y coordenadas cuando GPS disponible', async () => {
+      const mockPos = { coords: { latitude: 12.5, longitude: -85.0 } };
+      vi.stubGlobal('navigator', {
+        geolocation: { getCurrentPosition: (cb: (p: any) => void) => cb(mockPos) },
+        language: 'es-NI',
+      });
+      const result = await detectUserCountryWithCoords();
+      expect(result.country).toBe('NI');
+      expect(result.latitude).toBe(12.5);
+      expect(result.longitude).toBe(-85.0);
+      expect(result.method).toBe('gps');
+    });
+
+    it('fallback a locale si GPS denegado', async () => {
+      vi.stubGlobal('navigator', {
+        geolocation: { getCurrentPosition: (_s: any, err: (e: any) => void) => err(new Error('denied')) },
+        language: 'es-CR',
+      });
+      vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
+      const result = await detectUserCountryWithCoords();
+      expect(result.country).toBe('CR');
+      expect(result.method).toBe('locale');
     });
   });
 
