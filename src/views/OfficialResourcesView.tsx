@@ -3,6 +3,7 @@
    País auto_detectado, buscador, filtros y tarjetas de
    líneas de crisis, hospitales, ONGs y directorios.
    Botones "Llamar", WhatsApp, Web, Guardar y Compartir.
+   Orden por distancia (cuando hay GPS) y badges de verificación.
    ---------------------------------------------------- */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
@@ -19,6 +20,9 @@ import {
   Check,
   UserCheck,
   Info,
+  ShieldCheck,
+  AlertCircle,
+  Navigation,
 } from 'lucide-react';
 import {
   OFFICIAL_RESOURCES,
@@ -34,10 +38,13 @@ import {
   isResourceFavorite,
   shareResource,
   detectCountryFromLocale,
-  detectUserCountry,
+  detectUserCountryWithCoords,
+  resourceHasContact,
+  sortResourcesByDistance,
   type OfficialResource,
   type OfficialResourceCountry,
   type ProblemArea,
+  type ContactStatus,
 } from '../utils/officialResources';
 import { CrisisModeBanner, type CrisisBannerVariant } from './CrisisModeBanner';
 
@@ -93,9 +100,13 @@ export const OfficialResourcesView: React.FC = () => {
   const [selectedProblem, setSelectedProblem] = useState<ProblemArea | 'ALL'>('ALL');
   const [freeOnly, setFreeOnly] = useState(false);
   const [youthOnly, setYouthOnly] = useState(false);
+  const [contactFilter, setContactFilter] = useState<ContactStatus | 'ALL'>('ALL');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [favorites, setFavorites] = useState(() => loadResourceFavorites());
   const [geoLoading, setGeoLoading] = useState(false);
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLng, setUserLng] = useState<number | null>(null);
+  const [geoMethod, setGeoMethod] = useState<'gps' | 'locale' | 'ip' | 'default' | null>(null);
 
   const countryInfo = getCountryInfo(country);
   const emergency = getEmergencyNumber(country);
@@ -120,9 +131,14 @@ export const OfficialResourcesView: React.FC = () => {
   const handleGeoClick = useCallback(async () => {
     setGeoLoading(true);
     try {
-      const detected = await detectUserCountry();
-      if (detected !== country) {
-        setCountry(detected);
+      const detected = await detectUserCountryWithCoords();
+      if (detected.country !== country) {
+        setCountry(detected.country);
+      }
+      if (detected.latitude && detected.longitude) {
+        setUserLat(detected.latitude);
+        setUserLng(detected.longitude);
+        setGeoMethod(detected.method);
       }
     } finally {
       setGeoLoading(false);
@@ -132,9 +148,14 @@ export const OfficialResourcesView: React.FC = () => {
   useEffect(() => {
     let mounted = true;
     const init = async () => {
-      const detected = await detectUserCountry();
-      if (mounted && detected !== country) {
-        setCountry(detected);
+      const detected = await detectUserCountryWithCoords();
+      if (mounted && detected.country !== country) {
+        setCountry(detected.country);
+      }
+      if (mounted && detected.latitude && detected.longitude) {
+        setUserLat(detected.latitude);
+        setUserLng(detected.longitude);
+        setGeoMethod(detected.method);
       }
     };
     init();
@@ -149,11 +170,12 @@ export const OfficialResourcesView: React.FC = () => {
   ];
 
   const filtered = useMemo(() => {
-    const res = OFFICIAL_RESOURCES.filter((r) => {
+    let res = OFFICIAL_RESOURCES.filter((r) => {
       if (!isINTL && r.country !== country) return false;
       if (selectedProblem !== 'ALL' && !r.specialties.includes(selectedProblem)) return false;
       if (freeOnly && !r.free) return false;
       if (youthOnly && !r.youthFriendly) return false;
+      if (contactFilter !== 'ALL' && r.contactStatus !== contactFilter) return false;
       if (search) {
         const q = search.toLowerCase();
         if (
@@ -166,19 +188,33 @@ export const OfficialResourcesView: React.FC = () => {
       }
       return true;
     });
-    const order = ['NI', 'SV', 'GT', 'HN', 'CR', 'PA', 'INTL'];
-    return res.sort((a, b) => {
-      const ia = order.indexOf(a.country);
-      const ib = order.indexOf(b.country);
-      if (ia !== ib) return ia - ib;
-      const fa = favorites.includes(a.id) ? 1 : 0;
-      const fb = favorites.includes(b.id) ? 1 : 0;
-      if (fa !== fb) return fb - fa;
-      return a.name.localeCompare(b.name);
-    });
-  }, [country, isINTL, selectedProblem, freeOnly, youthOnly, search, favorites]);
+
+    // Si tenemos coordenadas del usuario, ordenar por distancia
+    if (userLat !== null && userLng !== null) {
+      res = sortResourcesByDistance(res, userLat, userLng);
+    } else {
+      const order = ['NI', 'SV', 'GT', 'HN', 'CR', 'PA', 'INTL'];
+      res = res.sort((a, b) => {
+        const ia = order.indexOf(a.country);
+        const ib = order.indexOf(b.country);
+        if (ia !== ib) return ia - ib;
+        const fa = favorites.includes(a.id) ? 1 : 0;
+        const fb = favorites.includes(b.id) ? 1 : 0;
+        if (fa !== fb) return fb - fa;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    return res;
+  }, [country, isINTL, selectedProblem, freeOnly, youthOnly, contactFilter, search, favorites, userLat, userLng]);
 
   const shown = filtered.slice(0, 40);
+
+  const CONTACT_STATUS_LABEL: Record<ContactStatus, { label: string; color: string; icon: React.ElementType }> = {
+    verified: { label: 'Verificado', color: 'var(--accent-sage)', icon: ShieldCheck },
+    unverified: { label: 'Por confirmar', color: 'var(--accent-amber)', icon: AlertCircle },
+    none: { label: 'Sin contacto', color: 'var(--text-muted)', icon: AlertCircle },
+  };
 
   return (
     <div className="fade-in" style={{ paddingBottom: '110px' }}>
@@ -248,7 +284,7 @@ export const OfficialResourcesView: React.FC = () => {
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-primary)' }}>
               <input type="checkbox" checked={freeOnly} onChange={(e) => setFreeOnly(e.target.checked)} />
               Gratis
@@ -257,6 +293,26 @@ export const OfficialResourcesView: React.FC = () => {
               <input type="checkbox" checked={youthOnly} onChange={(e) => setYouthOnly(e.target.checked)} />
               Amigable con jóvenes
             </label>
+          </div>
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-title)', color: 'var(--text-muted)', marginBottom: '6px' }}>ESTADO DE CONTACTO</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {(['ALL', 'verified', 'unverified', 'none'] as const).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setContactFilter(key)}
+                  style={{
+                    padding: '6px 12px', borderRadius: '12px', fontSize: '11.5px',
+                    background: contactFilter === key ? 'var(--accent-sage)' : 'rgba(0,0,0,0.18)',
+                    color: contactFilter === key ? '#0c1810' : 'var(--text-primary)',
+                    border: '1px solid var(--border-color)', fontFamily: 'var(--font-title)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {key === 'ALL' ? 'Todos' : CONTACT_STATUS_LABEL[key as ContactStatus].label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -283,7 +339,7 @@ export const OfficialResourcesView: React.FC = () => {
           />
         </div>
         <button
-          onClick={() => { setFiltersOpen(false); setCountry(isINTL ? 'NI' : (CRISIS_COUNTRIES[0].country as OfficialResourceCountry)); setSearch(''); setSelectedProblem('ALL'); setFreeOnly(false); setYouthOnly(false); }}
+          onClick={() => { setFiltersOpen(false); setCountry(isINTL ? 'NI' : (CRISIS_COUNTRIES[0].country as OfficialResourceCountry)); setSearch(''); setSelectedProblem('ALL'); setFreeOnly(false); setYouthOnly(false); setContactFilter('ALL'); }}
           style={{
             padding: '0 14px', borderRadius: '14px', fontSize: '13px', fontFamily: 'var(--font-title)',
             background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-color)',
@@ -301,7 +357,7 @@ export const OfficialResourcesView: React.FC = () => {
           <p className="body-standard" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
             No encontramos recursos con estos filtros.
             {' '}
-            <button onClick={() => { setSearch(''); setFreeOnly(false); setYouthOnly(false); setSelectedProblem('ALL'); }} style={{ color: 'var(--accent-sage)', fontWeight: 600, border: 'none', background: 'none', cursor: 'pointer', fontSize: '12.5px' }}>
+            <button onClick={() => { setSearch(''); setFreeOnly(false); setYouthOnly(false); setSelectedProblem('ALL'); setContactFilter('ALL'); }} style={{ color: 'var(--accent-sage)', fontWeight: 600, border: 'none', background: 'none', cursor: 'pointer', fontSize: '12.5px' }}>
               Ver todos
             </button>
           </p>
@@ -310,6 +366,8 @@ export const OfficialResourcesView: React.FC = () => {
         shown.map((r) => {
           const isFav = favorites.includes(r.id);
           const Icon = TYPE_ICON[r.type];
+          const contactStatusInfo = CONTACT_STATUS_LABEL[r.contactStatus];
+          const distanceKm = (r as any).distanceKm as number | undefined;
           return (
             <div key={r.id} className="glass-card fade-in" style={{ padding: '14px 12px', marginBottom: '10px' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
@@ -321,8 +379,32 @@ export const OfficialResourcesView: React.FC = () => {
                   {r.type === 'ngo' && isFav ? <Heart size={17} fill="var(--accent-gold)" color="var(--accent-gold)" /> : <Icon size={17} color={r.type === 'ngo' ? 'var(--accent-gold)' : 'var(--text-primary)'} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '9.5px', fontFamily: 'var(--font-title)', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '3px' }}>
-                    {resourceCardTitle(r)} · {formatHours(r)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                    <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-title)', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      {resourceCardTitle(r)} · {formatHours(r)}
+                    </span>
+                    <span style={{
+                      fontSize: '9px', fontFamily: 'var(--font-title)', fontWeight: 600,
+                      padding: '2px 8px', borderRadius: '8px',
+                      background: `${contactStatusInfo.color}20`,
+                      color: contactStatusInfo.color,
+                      border: `1px solid ${contactStatusInfo.color}`,
+                    }}>
+                      <contactStatusInfo.icon size={10} style={{ marginRight: '3px', verticalAlign: 'middle' }} />
+                      {contactStatusInfo.label}
+                    </span>
+                    {distanceKm !== undefined && (
+                      <span style={{
+                        fontSize: '9px', fontFamily: 'var(--font-title)', fontWeight: 600,
+                        padding: '2px 8px', borderRadius: '8px',
+                        background: 'rgba(140,176,141,0.15)',
+                        color: 'var(--accent-sage)',
+                        border: '1px solid var(--accent-sage)',
+                      }}>
+                        <Navigation size={10} style={{ marginRight: '3px', verticalAlign: 'middle' }} />
+                        {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}
+                      </span>
+                    )}
                   </div>
                   <h4 style={{ fontFamily: 'var(--font-title)', fontWeight: 600, fontSize: '13.5px', color: 'var(--text-primary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.name}
@@ -364,17 +446,17 @@ export const OfficialResourcesView: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
-                {r.phone && (
+                {resourceHasContact(r) && r.phone && (
                   <a href={contactHref(r, 'call')!} className="btn-primary" style={{ padding: '9px 15px', borderRadius: '12px', fontSize: '12px', background: 'var(--accent-sage)', color: '#0c1810' }}>
                     <Phone size={14} style={{ marginRight: '4px' }} /> Llamar
                   </a>
                 )}
-                {r.whatsapp && (
+                {resourceHasContact(r) && r.whatsapp && (
                   <a href={contactHref(r, 'wa')!} className="btn-secondary" style={{ padding: '9px 15px', borderRadius: '12px', fontSize: '12px' }}>
                     <MessageCircle size={14} style={{ marginRight: '4px' }} /> WhatsApp
                   </a>
                 )}
-                {r.website && (
+                {resourceHasContact(r) && r.website && (
                   <a href={contactHref(r, 'web')!} target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '9px 15px', borderRadius: '12px', fontSize: '12px' }}>
                     <Globe size={14} style={{ marginRight: '4px' }} /> Web
                   </a>
@@ -401,7 +483,7 @@ export const OfficialResourcesView: React.FC = () => {
         }}
       >
         <MapPin size={16} />
-        {geoLoading ? 'Detectando...' : 'Ayuda cerca de mí'}
+        {geoLoading ? 'Detectando...' : userLat ? `Ubicación: GPS ✓` : geoMethod ? `País: ${geoMethod.toUpperCase()}` : 'Ayuda cerca de mí'}
       </button>
     </div>
   );
