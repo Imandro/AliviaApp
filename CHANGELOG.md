@@ -7,6 +7,17 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Cambiado
 
+- **La mascota se llama Livi.** El rename venía a medias y el prompt de sistema
+  decía `Eres "Livi"` seguido de `TE LLAMAS VIA` en la misma frase, así que el
+  modelo se presentaba con el nombre viejo. Ahora la identidad está unificada en
+  el prompt, en `MODEL_LABELS` y en todos los textos visibles (chat, diario de
+  desahogo, chequeo de bienestar, spotlight, 404, banner del dashboard, etiquetas
+  de accesibilidad). `stripPreamble` también limpia el prefijo `Livi:` que ahora
+  anteponen los modelos, y `PROMPT_VERSION` sube a `2026-10-04.1` para poder
+  atribuir el cambio en telemetría. No se renombran el canal de telemetría `via` ni
+  el id `via-chat`: el primero lo valida la API y el segundo está persistido en las
+  preferencias de cada usuario.
+
 - **La página de descarga se rehace desde cero** (`public/descarga.html`). El
   argumento pasa de "te baja revoluciones" a privacidad y autonomía, con la
   tabla "lo que sale de tu teléfono es exactamente nada" como sección central:
@@ -59,6 +70,21 @@ versionado con [SemVer](https://semver.org/lang/es/).
 - **Espacio colgante en la salida de crisis** (`aiProvider.ts`): la interpolación
   condicional dentro de la frase producía "eso,  y que te cueste menos" cuando el
   valor era falso. Ahora la frase se arma por partes y se une con espacios.
+- **El SOS desaparece en la pantalla de "juego no encontrado".** Al retirar el
+  Header y la navbar en `/games/:id` para que el escenario no se desplace, la
+  rama de error de `GameView` —que no renderiza la barra de juego— se quedó sin
+  ningún acceso a las líneas de crisis: el único control era "Ver todos los
+  juegos". Ahora lleva el mismo `SosButton` que la barra. En una app de salud
+  mental la salida a crisis no puede depender de que la ruta sea válida.
+- **Una PWA instalada se quedaba en el bundle viejo para siempre.** El service
+  worker llamaba `skipWaiting()` pero no `clientsClaim()`: se actualizaba en
+  segundo plano y el tab ya abierto seguía con el contenido anterior hasta que
+  alguien recargaba a mano. Con `clientsClaim` el tab cambia solo.
+- **La caché local del catálogo de recursos no se invalidaba al cambiar la
+  fuente.** `resourceApi` guardaba la lista en `localStorage` con TTL de 7 días,
+  así que un recurso retirado seguía visible en dispositivos ya instalados
+  durante una semana. La entrada lleva ahora número de versión y las versiones
+  antigas se descartan.
 
 ### Añadido
 
