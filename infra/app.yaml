@@ -284,7 +284,10 @@ Resources:
       # es el que se dispara con el cron cada minuto (43 200 invocaciones/mes).
       # Los recordatorios son por franja horaria, asi que 15 min ya es de sobra
       # y reduce el costo 15x en Lambda y en conexiones a Postgres.
-      Description: Cada 15 minutos (antes: cada minuto, que quemaba budget)
+      # Las comillas son obligatorias: el texto lleva ": " ("antes: cada
+      # minuto") y sin ellas YAML lo lee como un mapa anidado y el template deja
+      # de parsear. Asi fue como este archivo dejo de validar en un PR.
+      Description: 'Cada 15 minutos (antes: cada minuto, que quemaba budget)'
       ScheduleExpression: rate(15 minutes)
       State: ENABLED
       Targets:

@@ -40,13 +40,16 @@ describe('officialResources — recursos oficiales verificados', () => {
   });
 
   describe('OFFICIAL_RESOURCES — conjunto verificado', () => {
-    it('contiene 34 recursos totales (UCA removido por no tener contacto verificado)', () => {
-      expect(OFFICIAL_RESOURCES.length).toBe(34);
+    it('contiene 33 recursos totales (UCA fuera por no tener contacto verificado)', () => {
+      // UCA (ni-uca, Centro de Atención Psicológica) se retiró del conjunto: no
+      // había forma de verificar que el contacto siguiera vigente. Al quitarlo,
+      // NI baja de 13 a 12 y el total de 34 a 33.
+      expect(OFFICIAL_RESOURCES.length).toBe(33);
     });
 
     it('tiene recursos para los 6 países + INTL', () => {
       const counts = {
-        NI: 13,
+        NI: 12,
         SV: 4,
         GT: 4,
         HN: 3,
