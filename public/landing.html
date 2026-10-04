@@ -27,6 +27,70 @@
 <meta name="twitter:description" content="Respiración guiada, diario que se disuelve, SOS en crisis y comunidad segura.">
 <meta name="twitter:image" content="https://alivia.lat/icon-512.png">
 
+<!-- Datos estructurados. El FAQPage solo es valido porque esas preguntas y
+     respuestas estan escritas mas abajo en la pagina: Google penaliza el
+     marcado que no corresponde a contenido visible. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "ALIVIA",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Android, iOS, Web",
+      "url": "https://alivia.lat/landing.html",
+      "description": "Espacio de bienestar emocional para adolescentes y jovenes: respiracion guiada, diario que se disuelve, apoyo inmediato en crisis y comunidad anonima. Funciona sin conexion.",
+      "inLanguage": "es",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Respiracion guiada",
+        "Diario que se disuelve",
+        "SOS con lineas de crisis verificadas",
+        "Guias de bienestar emocional",
+        "Juegos sin meta",
+        "Funciona sin conexion"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿ALIVIA funciona sin internet?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. Es una app offline-first: la primera visita descarga lo necesario y a partir de ahí la respiración, el diario, los juegos y las guías funcionan sin conexión. Solo el chat con IA y el inicio de sesión necesitan red." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuánto cuesta?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Nada. Sin anuncios, sin rastreo y sin vendita de datos." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Funciona en Android?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí, también como app instalable: hay un APK verificable con su SHA-256. Y en iPhone se instala desde el navegador como PWA." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué hago si estoy en una crisis?",
+          "acceptedAnswer": { "@type": "Answer", "text": "El botón SOS está siempre visible y da acceso directo a líneas de crisis públicas y verificadas, con teléfono, horario y web, filtradas por el país desde el que te conectas." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Lo que escribo en el diario queda en mi teléfono?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. El diario se guarda en el dispositivo y está diseñado para que puedas borrarlo. El botón SOS y las líneas de crisis funcionan incluso sin cuenta." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Esto reemplaza a un psicólogo o a un psiquiatra?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. ALIVIA es un espacio de apoyo para el día a día: herramientas, guías y compañía. No diagnostica ni trata." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
 <!-- Fuentes propias de ALIVIA (auto-hospedadas) -->
 <style>
 @font-face{font-family:'Lato';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/lato-300.woff2') format('woff2')}
@@ -270,6 +334,37 @@ a{color:inherit}
 
 /* Offline-first */
 .offline{padding:clamp(3rem,7vw,5.5rem) 0}
+
+/* Bloque de enlaces internos hacia las paginas de SEO. */
+.recursos{padding:clamp(3rem,7vw,5.5rem) 0; border-top:1px solid var(--linea)}
+.recursos__grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem; margin-top:1.8rem}
+.recursos__card{
+  display:block; text-decoration:none; color:inherit;
+  background:rgba(255,255,255,.035); border:1px solid var(--linea);
+  border-radius:18px; padding:1.6rem 1.7rem;
+  transition:border-color .18s, transform .18s;
+}
+.recursos__card:hover{border-color:rgba(233,200,107,.42); transform:translateY(-2px)}
+.recursos__card h3{font-family:"Quicksand",sans-serif; font-size:1.25rem; margin:0 0 .5rem}
+.recursos__card p{margin:0; color:var(--texto-2); font-size:.97rem; line-height:1.65}
+.recursos__card--coral{border-color:rgba(229,115,115,.32); background:rgba(229,115,115,.07)}
+.recursos__card--coral:hover{border-color:rgba(229,115,115,.6)}
+
+/* FAQ: <details> nativo, sin JS. Se cierra al abrir otra para que la pagina
+   no crezca sin limite en movil. */
+.faq{padding:clamp(3rem,7vw,5.5rem) 0; border-top:1px solid var(--linea)}
+.faq__item{border-bottom:1px solid var(--linea)}
+.faq__item summary{
+  cursor:pointer; list-style:none; padding:1.25rem 2.2rem 1.25rem 0;
+  font-family:"Quicksand",sans-serif; font-size:1.08rem; font-weight:600; position:relative;
+}
+.faq__item summary::-webkit-details-marker{display:none}
+.faq__item summary::after{
+  content:"+"; position:absolute; right:0; top:50%; transform:translateY(-50%);
+  font-size:1.5rem; color:var(--oro); transition:transform .2s;
+}
+.faq__item[open] summary::after{content:"\2013"}
+.faq__item p{margin:0 0 1.35rem; color:var(--texto-2); max-width:62ch}
 .offline__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(2rem,5vw,4rem); align-items:center}
 .pasos-off{list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:1rem}
 .pasos-off li{
@@ -714,6 +809,61 @@ a{color:inherit}
         <p>Ocho tareas aburridas a propósito —monedas, bloques, marimba, dardos, papel— para distraerte sin nada que ganar.</p>
       </article>
     </div>
+  </div>
+</section>
+
+<!-- Enlaces internos hacia el contenido que si es indexable. Sin esto las guias
+     y las lineas de crisis existen para un crawler pero nada las enlaza desde
+     dentro del sitio, y Google las trata como paginas huerfanas. Tambien les
+     sirve a quien llega buscando justo eso y no quiere un pitch. -->
+<section class="recursos">
+  <div class="wrap">
+    <p class="kicker">Para leer ahora</p>
+    <h2 style="font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:22ch">No hace falta instalar nada para empezar.</h2>
+    <div class="recursos__grid">
+      <a class="recursos__card recursos__card--coral" href="/seo/lineas-de-crisis.html">
+        <h3>Líneas de crisis por país</h3>
+        <p>33 números públicos y verificados en Nicaragua, El Salvador, Guatemala, Honduras, Costa Rica y Panamá. Gratis, sin registro y con la fecha en que se confirmó cada uno.</p>
+      </a>
+      <a class="recursos__card" href="/seo/guias.html">
+        <h3>33 guías de bienestar emocional</h3>
+        <p>Ansiedad, depresión, amistades que drenan, noviazgo, familia y dinero. De tres a cinco minutos cada una, escritas para leerse enteras.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- La FAQ existe en la pagina a proposito: Google exige que los datos
+     estructurados correspondan a contenido visible. Un FAQPage JSON-LD sin
+     estas preguntas debajo es una infraccion, no una optimizacion. -->
+<section class="faq">
+  <div class="wrap">
+    <p class="kicker">Preguntas frecuentes</p>
+    <h2 style="font-size:clamp(1.7rem,3.2vw,2.5rem); max-width:20ch">Lo que siempre preguntan.</h2>
+
+    <details class="faq__item"><summary>¿ALIVIA funciona sin internet?</summary>
+      <p>Sí. Es una app <em>offline-first</em>: la primera visita descarga lo necesario y a partir de ahí la respiración, el diario, los juegos y las guías funcionan sin conexión. Solo el chat con IA y el inicio de sesión necesitan red.</p>
+    </details>
+
+    <details class="faq__item"><summary>¿Cuánto cuesta?</summary>
+      <p>Nada. Sin anuncios, sin rastreo y sin vendita de datos. Puedes usar todo lo que hay sin crear nada.</p>
+    </details>
+
+    <details class="faq__item"><summary>¿Funciona en Android?</summary>
+      <p>Sí, también como app instalable: hay un APK de unos 4 MB que puedes verificar tú mismo con su SHA-256 antes de instalar. Y en iPhone se instala desde el navegador como PWA.</p>
+    </details>
+
+    <details class="faq__item"><summary>¿Qué hago si estoy en una crisis?</summary>
+      <p>El botón SOS está siempre visible, en todas las pantallas. Da acceso directo a líneas de crisis públicas y verificadas, con teléfono, horario y web de cada una, filtradas por el país desde el que te conectas.</p>
+    </details>
+
+    <details class="faq__item"><summary>¿Lo que escribo en el diario queda en mi teléfono?</summary>
+      <p>Sí. El diario se guarda en el dispositivo, y está diseñado para que puedas borrarlo. El botón SOS y las líneas de crisis funcionan incluso sin cuenta.</p>
+    </details>
+
+    <details class="faq__item"><summary>¿Esto reemplaza a un psicólogo o a un psiquiatra?</summary>
+      <p>No. ALIVIA es un espacio de apoyo para el día a día: herramientas, guías y compañía. No diagnostica ni trata. Si algo te desborda, las líneas de la página de <a href="/seo/lineas-de-crisis.html">crisis</a> son el siguiente paso, no esta app.</p>
+    </details>
   </div>
 </section>
 

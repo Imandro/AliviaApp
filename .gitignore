@@ -72,3 +72,11 @@ api/lambda/lambda-ai.zip
 # Secreto: contiene DatabasePassword en texto plano
 infra/samconfig.toml
 samconfig.toml
+
+# SEO generado por scripts/build-seo.mjs a partir de src/utils/*. No se versiona
+# porque es derivado: las 33 guias y el sitemap se reconstruyen en cada `npm run
+# build`, que es lo que ejecuta el deploy. Versionarlos solo anadiria 36
+# archivos al diff y, con el `lastmod` del sitemap, un cambio diario sin que
+# haya cambiado el contenido.
+public/seo/
+public/sitemap.xml

@@ -31,13 +31,22 @@ export default defineConfig(({ mode }) => ({
         // Las 3 imagenes de la mascota (511 KB) solo se usan en la pantalla 404,
         // un caso raro. Precachearlas obliga a descargarlas en la primera visita
         // sin aportar nada al arranque offline habitual.
-        globIgnores: [
+globIgnores: [
           'sw.js',
           'workbox-*.js',
           '**/ALIVIA-*.apk',
           '**/mascota-*.png',
+          // Las paginas de SEO (guias y lineas de crisis) son contenido para
+          // buscadores, no parte de la app. Precargarlas en el service worker
+          // las descarga en la primera visita de cada persona sin aportar nada
+          // al arranque offline habitual.
+          'seo/**',
+          // landing.html y descarga.html (56 KB + 90 KB) idem: son paginas de
+          // marketing para compartir enlaces, no pantallas de la app.
+          'landing.html',
+          'descarga.html',
           // El manifiesto de la release (version, bytes, sha256) cambia en cada
-          // publicacion del APK. Precacacheado, el service worker seguiria
+          // publicacion del APK. Precacheado, el service worker seguiria
           // sirviendo el hash y la URL de la version anterior a quien ya
           // visito la pagina, y la verificacion en navegador fallaria.
           // Case igual que la API: siempre a la red.
@@ -63,7 +72,7 @@ export default defineConfig(({ mode }) => ({
         // Las paginas estaticas de marketing van sueltas: sin esto el service
         // worker responderia /descarga.html con el index.html de la SPA y el
         // visitante veria la app en vez de la pagina de descarga.
-        navigateFallbackDenylist: [/^\/api\//, /^\/landing/, /^\/descarga/],
+        navigateFallbackDenylist: [/^\/api\//, /^\/landing/, /^\/descarga/, /^\/seo\//],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

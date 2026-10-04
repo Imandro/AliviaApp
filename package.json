@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:seo && tsc -b && vite build",
+    "build:seo": "node scripts/build-seo.mjs",
     "preview": "vite preview",
     "test": "vitest run",
       "build:lambda": "node scripts/build-lambda.mjs",
