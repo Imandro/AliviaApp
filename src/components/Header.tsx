@@ -45,12 +45,15 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
   const initial = (userName || 'A').trim().charAt(0).toUpperCase() || 'A';
 
   return (
-    <header style={styles.header}>
+    <header style={styles.header} role="banner">
       <div style={styles.logoArea}>
-        <img src={logoBanner} alt="ALIVIA" style={styles.logo} />
+        <img src={logoBanner} alt="" style={styles.logo} aria-hidden="true" />
+        <h1 style={{ position: 'absolute', width: '1px', height: '1px', padding: 0, margin: '-1px', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+          ALIVIA - Tu espacio de calma
+        </h1>
       </div>
 
-      <div style={styles.actions}>
+      <div style={styles.actions} role="navigation" aria-label="Acciones principales">
         <div ref={themeRef} style={styles.themeWrap}>
           <button
             onClick={() => setThemeOpen(v => !v)}
@@ -59,15 +62,15 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
             aria-haspopup="menu"
             aria-expanded={themeOpen}
             aria-label="Cambiar tema de la app"
-            title="Cambiar tema de la app"
+            aria-controls="theme-menu"
           >
             <div style={styles.iconInner}>
-              <Palette size={19} color="var(--text-secondary)" />
+              <Palette size={19} color="var(--text-secondary)" aria-hidden="true" />
             </div>
           </button>
 
           {themeOpen && (
-            <div className="theme-menu" role="menu" aria-label="Cambiar tema">
+            <div id="theme-menu" className="theme-menu" role="menu" aria-label="Cambiar tema">
               {THEME_ITEMS.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = theme === item.mode;
@@ -83,6 +86,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
                       setThemeOpen(false);
                     }}
                     style={isActive ? { borderColor: 'rgba(var(--accent-gold-rgb), 0.4)' } : undefined}
+                    tabIndex={themeOpen ? 0 : -1}
                   >
                     <span className="theme-chip" style={{ background: item.chip }} aria-hidden="true" />
                     <IconComponent size={17} color={isActive ? 'var(--accent-gold)' : 'var(--text-muted)'} aria-hidden="true" />
@@ -102,20 +106,19 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
           onClick={() => navigate('/profile')}
           style={styles.avatarBtn}
           className="hdr-btn"
-          title="Mi perfil"
           aria-label="Mi perfil"
         >
-          <div style={styles.avatarInner}>{initial}</div>
+          <div style={styles.avatarInner} aria-hidden="true">{initial}</div>
         </button>
 
         <button
           onClick={() => { hapticSos(); onSosClick(); }}
           style={styles.sosBtn}
-          title="Ayuda Inmediata (SOS)"
-          aria-label="Ayuda inmediata, líneas de crisis (SOS)"
+          aria-label="Ayuda inmediata - Líneas de crisis y recursos de emergencia (SOS)"
+          aria-pressed="false"
         >
-          <div style={styles.sosPulse} />
-          <div style={styles.sosPulse2} />
+          <div style={styles.sosPulse} aria-hidden="true" />
+          <div style={styles.sosPulse2} aria-hidden="true" />
           <Phone size={14} color="#fff" aria-hidden="true" />
           <span style={styles.sosText}>SOS</span>
         </button>

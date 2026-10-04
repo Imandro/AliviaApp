@@ -4,6 +4,8 @@ import { Header } from './components/Header';
 import { Navigation, type TabId } from './components/Navigation';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { InstallPrompt } from './components/InstallPrompt';
+import { SkipLink } from './components/SkipLink';
+import { LiveRegion } from './components/LiveRegion';
 import { Dashboard } from './views/Dashboard';
 import { HomeCompanion } from './components/HomeCompanion';
 
@@ -120,6 +122,8 @@ function AppShell({
 
   return (
     <div className="app-shell">
+      <SkipLink />
+      <LiveRegion />
       <div className="bg-blobs" aria-hidden="true">
         <div className="bg-blob bg-blob-1" />
         <div className="bg-blob bg-blob-2" />
@@ -129,7 +133,7 @@ function AppShell({
       <div className="app-container">
         <Header theme={theme} setTheme={setTheme} onSosClick={handleSosClick} userName={user.name} />
 
-        <main className="app-content" ref={containerRef}>
+        <main id="main-content" className="app-content" ref={containerRef} role="main" tabIndex={-1}>
           <ErrorBoundary>
             <Suspense fallback={<SplashScreen />}>
               <div className="page-enter" key={location.pathname}>

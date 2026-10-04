@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Home, Wind, PenTool, Compass, Trophy, LayoutGrid } from 'lucide-react';
 import { haptic } from '../utils/haptics';
 import { t, type DictKey } from '../i18n';
@@ -50,19 +50,57 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     }
   }, [activeTab]);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
+    let newIndex = index;
+    switch (e.key) {
+      case 'ArrowLeft':
+        newIndex = (index - 1 + TAB_ORDER.length) % TAB_ORDER.length;
+        break;
+      case 'ArrowRight':
+        newIndex = (index + 1) % TAB_ORDER.length;
+        break;
+      case 'Home':
+        newIndex = 0;
+        break;
+      case 'End':
+        newIndex = TAB_ORDER.length - 1;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    const newTab = TAB_ORDER[newIndex];
+    haptic();
+    setActiveTab(newTab);
+    // Focus the new button
+    const buttons = navRef.current?.querySelectorAll<HTMLButtonElement>('button');
+    buttons?.[newIndex]?.focus();
+  }, [setActiveTab]);
+
   return (
-    <nav style={styles.navContainer}>
+    <nav 
+      style={styles.navContainer} 
+      role="tablist" 
+      aria-label="Navegación principal"
+      aria-orientation="horizontal"
+    >
       <div style={styles.navBar} ref={navRef}>
-        <div style={{ ...styles.indicator, left: indicatorStyle.left, width: indicatorStyle.width }} />
-        {navItems.map((item) => {
+        <div style={{ ...styles.indicator, left: indicatorStyle.left, width: indicatorStyle.width }} aria-hidden="true" />
+        {navItems.map((item, index) => {
           const IconComponent = item.icon;
           const isActive = activeTab === item.id;
 
           return (
             <button
               key={item.id}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`panel-${item.id}`}
+              id={`tab-${item.id}`}
+              tabIndex={isActive ? 0 : -1}
               data-tour={item.id}
               onClick={() => { haptic(); setActiveTab(item.id); }}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               style={styles.navBtn}
               title={t(NAV_KEYS[item.id])}
             >
@@ -72,6 +110,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
                   color: isActive ? 'var(--accent-gold)' : 'var(--text-muted)',
                   transform: isActive ? 'translateY(-1px)' : 'none',
                 }}
+                aria-hidden="true"
               >
                 <IconComponent
                   size={20}
