@@ -3,6 +3,10 @@ name: Deploy to AWS
 on:
   push:
     branches: [main]
+  # Republicar sin necesidad de un commit vacio: util tras un release del APK o
+  # para revocar un despliegue. El comentario del job validate-infra ya prometia
+  # este disparador, pero no estaba declarado.
+  workflow_dispatch:
   # Los PR no despliegan: solo validan que la infra compila. Antes no havia
   # ningun trigger de pull_request, asi que un PR no mostraba ningun check de
   # AWS y no habia forma de saber si iba a romper antes de mergearlo.
