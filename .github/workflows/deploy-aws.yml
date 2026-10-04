@@ -3,14 +3,65 @@ name: Deploy to AWS
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  # Los PR no despliegan: solo validan que la infra compila. Antes no havia
+  # ningun trigger de pull_request, asi que un PR no mostraba ningun check de
+  # AWS y no habia forma de saber si iba a romper antes de mergearlo.
+  pull_request:
+    branches: [main]
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
+  # Valida el SAM en los PRs. No toca AWS: es `sam validate` + `sam build`, que
+  # corren en local. Sirve para que un PR que rompe la infraestructura (un YAML
+  # mal indentado, un CodeUri mal, una referencia dinamica rota) se vea en el
+  # PR y no despues de mergear.
+  #
+  # El despliegue sigue exclusivamente en el push a main y en dispatch manual.
+  validate-infra:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 22 por lo mismo que en ci.yml: es el runtime de las Lambdas y la
+          # version de npm que puede leer el package-lock.json del repo.
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build Lambdas
+        # sam build empaqueta ../api/lambda/dist*, asi que tiene que existir.
+        run: npm run build:lambda
+
+      - name: Validar templates SAM
+        run: |
+          for t in app web net database; do
+            echo "::group::infra/$t.yaml"
+            sam validate --template-file "infra/$t.yaml" --region us-east-1
+            echo "::endgroup::"
+          done
+
+      - name: Compilar los stacks
+        # sam build tambien resuelve los intrinsic. Un YAML invalido por
+        # indentacion pasa sam validate y revienta aqui, que es justo el fallo
+        # que se lleva por delante un deploy.
+        run: |
+          for t in app web; do
+            echo "::group::build/$t"
+            sam build --template-file "infra/$t.yaml" --build-dir ".aws-sam/validate-$t"
+            echo "::endgroup::"
+          done
+
   deploy-api:
+    # Solo en push a main o dispatch: nunca en un PR.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,6 +129,8 @@ jobs:
           aws lambda wait function-updated --function-name alivia-tts
 
   deploy-web:
+    # Igual que deploy-api: nada de desplegar desde un PR.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     needs: deploy-api
     steps:

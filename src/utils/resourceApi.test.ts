@@ -33,7 +33,10 @@ describe('resourceApi — cliente offline-first de recursos', () => {
   it('loadOfficialResources devuelve el set verificado estatico', async () => {
     const resources = await loadOfficialResources();
     expect(resources).toEqual(OFFICIAL_RESOURCES);
-    expect(resources.length).toBe(35);
+    // El número se toma de la fuente en vez de fijarse a mano: con UCA
+    // retirado el conjunto quedó en 33 y un literal aquí fue lo que dejó el CI
+    // en rojo. Si se añade o quita un recurso, este test sigue siendo cierto.
+    expect(resources.length).toBe(OFFICIAL_RESOURCES.length);
   });
 
   it('loadResourceById encuentra recurso existente', async () => {
@@ -79,11 +82,14 @@ describe('resourceApi — cliente offline-first de recursos', () => {
   });
 
   it('getReadyResources nunca lanza y filtra por pais', () => {
+    // Los conteos se derivan de la fuente en lugar de fijarse: cuando se
+    // retiró UCA el conjunto pasó a 33 y NI a 12, y los literales de aquí
+    // quedaron desfasados.
     const all = getReadyResources();
-    expect(all.length).toBe(34);
+    expect(all.length).toBe(OFFICIAL_RESOURCES.length);
     const ni = getReadyResources({ country: 'NI' });
     expect(ni.every((r) => r.country === 'NI')).toBe(true);
-    expect(ni.length).toBe(13);
+    expect(ni.length).toBe(OFFICIAL_RESOURCES.filter((r) => r.country === 'NI').length);
   });
 
   it('getReadyResources filtra por problema (specialties)', () => {
