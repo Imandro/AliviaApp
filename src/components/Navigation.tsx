@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Home, Wind, PenTool, Compass, Trophy, LayoutGrid } from 'lucide-react';
+import { Home, Wind, PenTool, Compass, Trophy, LayoutGrid, LifeBuoy } from 'lucide-react';
 import { haptic } from '../utils/haptics';
 import { t, type DictKey } from '../i18n';
 
-export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'retos' | 'explore';
+export type TabId = 'dashboard' | 'breathe' | 'journal' | 'coping' | 'retos' | 'explore' | 'ayuda';
 
 interface NavigationProps {
   activeTab: TabId;
@@ -16,10 +16,10 @@ interface NavItem {
   icon: React.ComponentType<any>;
 }
 
-const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping', 'retos', 'explore'];
+const TAB_ORDER: TabId[] = ['dashboard', 'breathe', 'journal', 'coping', 'retos', 'explore', 'ayuda'];
 
 const NAV_KEYS: Record<TabId, DictKey> = {
-  dashboard: 'nav_inicio', breathe: 'nav_respirar', journal: 'nav_desahogo', coping: 'nav_apoyo', retos: 'nav_retos', explore: 'nav_explorar',
+  dashboard: 'nav_inicio', breathe: 'nav_respirar', journal: 'nav_desahogo', coping: 'nav_apoyo', retos: 'nav_retos', explore: 'nav_explorar', ayuda: 'nav_ayuda',
 };
 
 const navItems: NavItem[] = [
@@ -29,6 +29,7 @@ const navItems: NavItem[] = [
     { id: 'coping', label: 'Apoyo', icon: Compass },
     { id: 'retos', label: 'Retos', icon: Trophy },
     { id: 'explore', label: 'Explorar', icon: LayoutGrid },
+    { id: 'ayuda', label: 'Ayuda', icon: LifeBuoy },
   ];
 
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {

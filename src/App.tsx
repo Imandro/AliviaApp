@@ -73,6 +73,7 @@ const ROUTE_MAP: Record<string, TabId> = {
   '/coping': 'coping',
   '/retos': 'retos',
   '/explore': 'explore',
+  '/resources': 'ayuda',
 };
 
 type AuthStatus = 'loading' | 'welcome' | 'onboarding' | 'app';
