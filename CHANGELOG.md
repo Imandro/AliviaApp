@@ -47,6 +47,12 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Corregido
 
+- **Los juegos ya se juegan sin desplazar.** En `/games/:id` el Header y la navbar se
+  retiran y el escenario queda centrado en la pantalla completa. Antes entre ambos
+  ocupaban 184 px, el escenario no cabía en un iPhone SE y había que arrastrar el dedo;
+  como la navbar va en `position: absolute` **con** `pointer-events` sobre el contenido,
+  al desplazar el escenario se quedaba debajo y la barra se comía los toques. Ahora la
+  barra del juego solo lleva volver, el nombre y el SOS, y el escenario no se mueve.
 - **`npm run release:apk -- --invalidate` fallaba siempre** con
   `InvalidArgument`. `execFileSync` no pasa por shell, así que los tres paths de
   CloudFront llegaban a la CLI como un único argumento con espacios en vez de tres.

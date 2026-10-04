@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Sun, Moon, Phone, Contrast, Palette } from 'lucide-react';
-import { hapticSos } from '../utils/haptics';
+import { Check, Sun, Moon, Contrast, Palette } from 'lucide-react';
+import { SosButton } from './SosButton';
 import logoBanner from '../assets/logo-banner.png';
 
 export type ThemeMode = 'light' | 'dark' | 'mono';
@@ -108,17 +108,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
           <div style={styles.avatarInner}>{initial}</div>
         </button>
 
-        <button
-          onClick={() => { hapticSos(); onSosClick(); }}
-          style={styles.sosBtn}
-          title="Ayuda Inmediata (SOS)"
-          aria-label="Ayuda inmediata, líneas de crisis (SOS)"
-        >
-          <div style={styles.sosPulse} />
-          <div style={styles.sosPulse2} />
-          <Phone size={14} color="#fff" aria-hidden="true" />
-          <span style={styles.sosText}>SOS</span>
-        </button>
+        <SosButton onClick={onSosClick} />
       </div>
     </header>
   );
@@ -215,52 +205,5 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '16px',
     color: 'var(--accent-gold)',
     lineHeight: 1,
-  },
-  sosBtn: {
-    position: 'relative',
-    height: '44px',
-    padding: '0 16px',
-    borderRadius: '22px',
-    border: 'none',
-    background: 'linear-gradient(135deg, #e57373 0%, #d32f2f 100%)',
-    boxShadow: '0 4px 15px rgba(211, 47, 47, 0.4)',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    overflow: 'hidden',
-    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-  },
-  sosText: {
-    color: '#fff',
-    fontFamily: 'var(--font-title)',
-    fontWeight: 700,
-    fontSize: '13px',
-    letterSpacing: '0.06em',
-  },
-  sosPulse: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    borderRadius: '22px',
-    border: '2px solid rgba(229, 115, 115, 0.5)',
-    animation: 'pulseSOS 2s infinite ease-out',
-    pointerEvents: 'none',
-    boxSizing: 'border-box',
-  },
-  sosPulse2: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    borderRadius: '22px',
-    border: '2px solid rgba(229, 115, 115, 0.3)',
-    animation: 'pulseSOS 2s infinite ease-out',
-    animationDelay: '0.6s',
-    pointerEvents: 'none',
-    boxSizing: 'border-box',
   },
 };
