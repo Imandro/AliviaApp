@@ -62,6 +62,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
         specialties: ['suicidio'],
         source: 'GOV',
         lastVerified: '2024-01-01',
+        contactStatus: 'verified',
       },
     ];
     setCachedResources(sample);
@@ -79,10 +80,10 @@ describe('resourceApi — cliente offline-first de recursos', () => {
 
   it('getReadyResources nunca lanza y filtra por pais', () => {
     const all = getReadyResources();
-    expect(all.length).toBe(35);
+    expect(all.length).toBe(34);
     const ni = getReadyResources({ country: 'NI' });
     expect(ni.every((r) => r.country === 'NI')).toBe(true);
-    expect(ni.length).toBe(14);
+    expect(ni.length).toBe(13);
   });
 
   it('getReadyResources filtra por problema (specialties)', () => {
@@ -133,6 +134,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       specialties: ['suicidio'],
       source: 'GOV',
       lastVerified: '2024-01-01',
+      contactStatus: 'verified',
     };
     expect(suggestContactKind(hotline)).toBe('call');
   });
@@ -152,6 +154,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       specialties: ['suicidio'],
       source: 'GOV',
       lastVerified: '2024-01-01',
+      contactStatus: 'verified',
     };
     expect(suggestContactKind(hotline)).toBe('wa');
   });
@@ -171,6 +174,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       specialties: ['suicidio'],
       source: 'GOV',
       lastVerified: '2024-01-01',
+      contactStatus: 'verified',
     };
     expect(suggestContactKind(hospital)).toBe('visit');
   });
@@ -189,6 +193,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       specialties: ['bienestar'],
       source: 'NGO',
       lastVerified: '2024-01-01',
+      contactStatus: 'verified',
     };
     expect(suggestContactKind(dir)).toBe('call');
   });
@@ -207,6 +212,7 @@ describe('resourceApi — cliente offline-first de recursos', () => {
       specialties: ['bienestar'],
       source: 'NGO',
       lastVerified: '2024-01-01',
+      contactStatus: 'verified',
     };
     // inPerson=true pero sin city -> cae al fallback website -> 'web'
     expect(suggestContactKind(clinic)).toBe('web');
