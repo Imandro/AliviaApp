@@ -103,6 +103,17 @@ function AppShell({
 
   const activeView: TabId = ROUTE_MAP[location.pathname] || 'dashboard';
 
+  /**
+   * Pantalla de juego: el Header y la navbar se retiran.
+   *
+   * No es una cuestión estética. Entre los dos ocupan 184px, empujan el
+   * escenario fuera de pantalla en teléfonos pequeños y obligan a desplazar; y
+   * la navbar va en position:absolute CON pointer-events sobre el contenido,
+   * así que al desplazar el escenario se queda debajo y los toques se los
+   * come la barra. El juego ya tiene su propio botón de salida.
+   */
+  const isGameMode = /^\/games\/[^/]+\/?$/.test(location.pathname);
+
   const handleTabChange = useCallback((tab: TabId) => {
     const path = tab === 'dashboard' ? '/' : `/${tab}`;
     navigate(path);
@@ -127,9 +138,11 @@ function AppShell({
       </div>
 
       <div className="app-container">
-        <Header theme={theme} setTheme={setTheme} onSosClick={handleSosClick} userName={user.name} />
+        {!isGameMode && (
+          <Header theme={theme} setTheme={setTheme} onSosClick={handleSosClick} userName={user.name} />
+        )}
 
-        <main className="app-content" ref={containerRef}>
+        <main className={`app-content${isGameMode ? ' game-mode' : ''}`} ref={containerRef}>
           <ErrorBoundary>
             <Suspense fallback={<SplashScreen />}>
               <div className="page-enter" key={location.pathname}>
@@ -164,7 +177,7 @@ function AppShell({
           </ErrorBoundary>
         </main>
 
-        <Navigation activeTab={activeView} setActiveTab={handleTabChange} />
+        {!isGameMode && <Navigation activeTab={activeView} setActiveTab={handleTabChange} />}
       </div>
 
       <InstallPrompt />
