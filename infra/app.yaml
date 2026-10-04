@@ -279,8 +279,13 @@ Resources:
     Type: AWS::Events::Rule
     Properties:
       Name: alivia-notification-dispatch
-      Description: Cada minuto, como hacia el cron de Vercel
-      ScheduleExpression: rate(1 minute)
+      # rate(15 minutes) en vez de rate(1 minute): cada disparo levanta la
+      # Lambda alivia-api y la obliga a abrir conexion a RDS. Ese coste de casa
+      # es el que se dispara con el cron cada minuto (43 200 invocaciones/mes).
+      # Los recordatorios son por franja horaria, asi que 15 min ya es de sobra
+      # y reduce el costo 15x en Lambda y en conexiones a Postgres.
+      Description: Cada 15 minutos (antes: cada minuto, que quemaba budget)
+      ScheduleExpression: rate(15 minutes)
       State: ENABLED
       Targets:
         - Id: dispatch
