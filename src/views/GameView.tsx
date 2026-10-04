@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, Info } from 'lucide-react';
-import { getGame } from '../utils/gamesCatalog';
 import { GameIcon } from '../utils/gameIcons';
+import { GameBar } from '../components/GameBar';
 import { CoinPolish } from '../games/CoinPolish';
 import { BlockStack } from '../games/BlockStack';
 import { Marimba } from '../games/Marimba';
@@ -11,6 +10,7 @@ import { Threading } from '../games/Threading';
 import { SweepDust } from '../games/SweepDust';
 import { PaperFold } from '../games/PaperFold';
 import { SortTokens } from '../games/SortTokens';
+import { getGame } from '../utils/gamesCatalog';
 
 const GAME_COMPONENTS: Record<string, React.FC<{ onExit: () => void }>> = {
   moneda: CoinPolish,
@@ -42,28 +42,12 @@ export const GameView: React.FC = () => {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-3" style={{ paddingBottom: '8px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button
-          className="cm-press"
-          style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-          onClick={() => navigate('/games')}
-          aria-label="Volver a juegos"
-        >
-          <ChevronLeft size={18} color="var(--text-secondary)" />
-        </button>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '9px' }}>
-          <GameIcon name={game.icon} size={19} color={game.accent} />
-          <h3 className="title-small" style={{ margin: 0 }}>{game.title}</h3>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 14px', borderRadius: '14px', background: 'rgba(var(--accent-gold-rgb), 0.07)', border: '1px solid rgba(var(--accent-gold-rgb), 0.15)' }}>
-        <Info size={13} color="var(--accent-gold)" style={{ marginTop: '2px', flexShrink: 0 }} />
-        <p className="body-standard" style={{ margin: 0, fontSize: '11px', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
-          {game.desc}
-        </p>
-      </div>
+    <div className="fade-in flex flex-col gap-3">
+      <GameBar
+        game={game}
+        onExit={() => navigate('/games')}
+        onSos={() => navigate('/sos')}
+      />
 
       <Game onExit={() => navigate('/games')} />
     </div>
