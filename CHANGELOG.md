@@ -5,8 +5,34 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ## [No publicado]
 
+### Añadido
+
+- **Contenido por fin indexable.** La app usa `HashRouter`, así que para un
+  buscador `/`, `/#/breathe` y `/#/journal` son la misma URL: las 33 guías de la
+  biblioteca y las 33 líneas de crisis verificadas existían, pero no existían
+  para Google. `scripts/build-seo.mjs` las genera como HTML plano desde la misma
+  fuente que consume la app (`GUIDES`, `LIBRARY`, `OFFICIAL_RESOURCES`), de modo
+  que no pueden quedar contando una versión vieja:
+  - `/seo/lineas-de-crisis.html`: los 33 números agrupados por país, con la fecha
+    en que se verificó cada uno. Es la página que captura "líneas de crisis en
+    Nicaragua" y equivalentes en los seis países.
+  - `/seo/guias.html` más una página por guía en `/seo/guia/<slug>.html`, con
+    enlaces cruzados por categoría.
+  - `sitemap.xml` regenerado: 38 URLs con `lastmod`, y sin `manifest.json`, que
+    estaba en la lista pese a ser un JSON de datos y no una página.
+  - `FAQPage` y `SoftwareApplication` en la landing y `descarga.html`. La FAQ
+    está escrita **visible** en la página a propósito: Google penaliza el marcado
+    estructurado que no corresponde a contenido visible.
+- **La página de descarga ya no miente en su título.** Decía "APK v1.2.0, 4,8 MB"
+  escrito a mano cuando ya era la 1.2.1 de 7,7 MB. El valor se inyecta ahora desde
+  `releases.json`, que es la fuente de verdad de versión, tamaño y hash.
+
 ### Corregido
 
+- **La app descargaba 146 KB que no usaba.** `landing.html` y `descarga.html`
+  estaban en el precache del service worker: se bajaban en la primera visita de
+  cada persona para páginas de marketing que no se usan sin conexión. También se
+  excluirán las de SEO. El precache baja de 2176 KB a 2031 KB.
 - **La descarga del APK estaba rota y no daba ninguna señal.** El deploy hacía
   `aws s3 sync dist/ --delete`, así que borraba las claves del APK —que se suben a
   mano con `npm run release:apk` y no viven en `dist/`— en cada despliegue de la
