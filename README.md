@@ -39,7 +39,7 @@
 
 ## Qué es ALIVIA
 
-**ALIVIA** es una aplicación de bienestar mental diseñada para adolescentes y jóvenes. Ofrece herramientas de primera línea — ejercicios de respiración, diario terapéutico, chequeos de bienestar, chat con IA empática (VIA), biblioteca de guías psicoeducativas, juegos de regulación emocional y botón SOS con líneas de crisis — **todo funcionando 100 % offline** y sincronizando cuando hay conexión. Una sola base de código React sirve Web (PWA), Android nativo (Capacitor) e iOS nativo (Swift/WKWebView).
+**ALIVIA** es una aplicación de bienestar mental diseñada para adolescentes y jóvenes. Ofrece herramientas de primera línea — ejercicios de respiración, diario terapéutico, chequeos de bienestar, chat con IA empática (Livi), biblioteca de guías psicoeducativas, juegos de regulación emocional y botón SOS con líneas de crisis — **todo funcionando 100 % offline** y sincronizando cuando hay conexión. Una sola base de código React sirve Web (PWA), Android nativo (Capacitor) e iOS nativo (Swift/WKWebView).
 
 ## Qué resuelve
 
@@ -48,7 +48,7 @@
 | **Ansiedad y pánico en el momento** | Respiración guiada (Box 4·4·4·4, 4-7-8, coherente 5·5), técnica Tierra 5-4-3-2-1 por voz, 4 ejercicios de afrontamiento paso a paso. |
 | **Falta de espacio para desahogarse** | *Burn Journal*: escribe y observa tus pensamientos disolverse en partículas; todo local, privado y exportable. |
 | **No saber cómo estás realmente** | Chequeo de bienestar cada 5 días (estrés, ansiedad, depresión) + **Radar de Bienestar** con gráficas de tendencia y rachas. |
-| **Soledad y falta de apoyo** | Chat **VIA** (IA empática que pregunta *por qué* antes de aconsejar y te lleva a la función correcta), **Conecta con alguien** (plantillas para pedir ayuda a persona de confianza), comunidad anónima por temas. |
+| **Soledad y falta de apoyo** | Chat **Livi** (IA empática que pregunta *por qué* antes de aconsejar y te lleva a la función correcta), **Conecta con alguien** (plantillas para pedir ayuda a persona de confianza), comunidad anónima por temas. |
 | **Crisis sin saber a quién llamar** | Botón **SOS** con líneas gratuitas de 6 países centroamericanos (NI, SV, GT, HN, CR, PA), contacto de emergencia configurable, detección de riesgo por niveles en el chat. |
 | **Falta de hábitos y motivación** | 8 minijuegos de regulación (30 s–4 min), **Planes y Retos** con metas por área de vida y rachas, 20 recordatorios locales + push, biblioteca de guías interactivas con quiz. |
 | **Privacidad y control de datos** | Bloqueo biométrico + cortina de privacidad, exportación JSON + HTML imprimible, i18n es/en, datos guardados primero en el dispositivo. |
@@ -101,11 +101,11 @@ El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantall
 
 | Módulo | Descripción |
 |---|---|
-| **VIA (chat IA)** | Compañero conversacional con cara propia (mascota animada). Pregunta *por qué* te sientes así antes de aconsejar y te lleva directo a la función correcta de la app. Responde token a token (SSE), acepta entrada por voz (Whisper) y detecta riesgo por **niveles**, no por lista de palabras: distingue "me siento solo" de "quiero morirme" y reconoce texto separado (`q u i e r o m o r i r`). En crisis baja la temperatura, pide ayuda humana de forma directa y ofrece SOS. Si la IA falla o se acaban los intentos, responde igual con reglas locales. |
+| **Livi (chat IA)** | Compañero conversacional con cara propia (mascota animada). Pregunta *por qué* te sientes así antes de aconsejar y te lleva directo a la función correcta de la app. Responde token a token (SSE), acepta entrada por voz (Whisper) y detecta riesgo por **niveles**, no por lista de palabras: distingue "me siento solo" de "quiero morirme" y reconoce texto separado (`q u i e r o m o r i r`). En crisis baja la temperatura, pide ayuda humana de forma directa y ofrece SOS. Si la IA falla o se acaban los intentos, responde igual con reglas locales. |
 | **Biblioteca Inteligente** | Guías cortas por tema (ansiedad, familia, adicciones, amistades…) con pasos, checklist, quiz y progreso. |
 | **Conecta con alguien** | Asistente en 5 pasos para preparar el mensaje a una persona de confianza: nombre, canal y plantillas listas para enviar. |
 | **Recordatorios** | 20 recordatorios locales configurables (respiración, chequeo, diario, sueño, descanso de pantalla…) vía notificaciones del dispositivo, más push web con VAPID para los mismos recordatorios cuando hay suscripción registrada. |
-| **Primera visita** | Onboarding de 5 pantallas (con qué luchas, qué estás viviendo, cómo quieres cuidarte, a quién contactar, qué quieres cambiar) y un tutorial en *spotlight* que señala VIA, SOS y la barra inferior sobre la interfaz real, una sola vez. |
+| **Primera visita** | Onboarding de 5 pantallas (con qué luchas, qué estás viviendo, cómo quieres cuidarte, a quién contactar, qué quieres cambiar) y un tutorial en *spotlight* que señala Livi, SOS y la barra inferior sobre la interfaz real, una sola vez. |
 
 ### Privacidad y control
 
@@ -138,7 +138,7 @@ flowchart LR
     DB[("RDS PostgreSQL 16")]
     OAI["OpenAI<br/>chat gpt-4.1-mini"]
     GROQ["Groq<br/>Whisper (voz)"]
-    ELEVEN["ElevenLabs<br/>voz de VIA"]
+    ELEVEN["ElevenLabs<br/>voz de Livi"]
 
     UI -- "online" --> API
     OUTBOX -.->|"reconexión automática"| API
@@ -269,7 +269,7 @@ open Alivia.xcodeproj
 | `OPENAI_MODELS` | Lambda `alivia-ai` | Lista de failover del chat. Por defecto `gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini`. |
 | `GROQ_API_KEY` | Lambda `alivia-ai` | Llave de Groq para la transcripción de voz (`alivia/groq-api-key`). **No va en el cliente.** |
 | `GROQ_MODELS` | Lambda `alivia-ai` | Modelos de respaldo si OpenAI no responde. Por defecto `openai/gpt-oss-20b,openai/gpt-oss-120b`. |
-| `ELEVENLABS_API_KEY` | Lambda `alivia-tts` | Voz principal de VIA (`alivia/elevenlabs-api-key`). Sin clave, la Lambda cae a Edge TTS y luego a Google. **No va en el cliente.** |
+| `ELEVENLABS_API_KEY` | Lambda `alivia-tts` | Voz principal de Livi (`alivia/elevenlabs-api-key`). Sin clave, la Lambda cae a Edge TTS y luego a Google. **No va en el cliente.** |
 | `ELEVENLABS_VOICE_ID` · `ELEVENLABS_MODEL` | Lambda `alivia-tts` | Voz y modelo (por defecto `EXAVITQu4vr4xnSDxMaL` / `eleven_multilingual_v2`). |
 | `CRON_SECRET` · `VAPID_*` | Lambda `alivia-api` | Secret `alivia/notification-secret`: secreto del cron y claves de push web. |
 | `VITE_API_URL` · `VITE_TTS_URL` | Build nativo (iOS/Android) | Orígenes absolutos para los shells nativos; en web no hacen falta (rutas relativas al mismo dominio). |
@@ -296,7 +296,7 @@ Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consu
 | `/api/notifications/subscriptions` | POST · DELETE | Suscripción y baja de push (endpoint web). |
 | `/api/notifications/test` · `/dispatch` | POST | Prueba manual y despacho del cron (este último autenticado con `CRON_SECRET`, no con sesión). |
 | `/api/tts` | GET | Síntesis de voz con triple motor: ElevenLabs → Edge TTS → Google (caché en memoria). |
-| `/api/ai/chat` | POST | Proxy de IA para VIA. Acepta `stream: true` y responde SSE token a token. |
+| `/api/ai/chat` | POST | Proxy de IA para Livi. Acepta `stream: true` y responde SSE token a token. |
 | `/api/ai/transcribe` | POST | Transcripción de voz (Whisper `large-v3-turbo`). |
 
 `/api/tts` y `/api/ai/*` los sirven `alivia-tts` y `alivia-ai`, Lambdas **fuera del VPC**
@@ -444,7 +444,7 @@ Convención de commits: `feat(área): …`, `fix(área): …`, `docs: …`, `cho
 ### Qué sale del dispositivo
 
 El historial del chat **sí** viaja a OpenAI (proveedor externo, con su propia política de
-retención) cuando el modo IA está activo: es lo que permite que VIA recuerde y responda en
+retención) cuando el modo IA está activo: es lo que permite que Livi recuerde y responda en
 contexto. Los mensajes antiguos donde la persona mencionó riesgo de suicidio o autolesión se
 sustituyen por un marcador antes de enviarse.
 
