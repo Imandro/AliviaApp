@@ -83,11 +83,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     await ensureSchema();
     webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
     const pool = getPool();
+    // Antes: todos los usuarios con preferencias (hasta 1000), aunque no tuvieran
+    // dispositivo registrado. Si no hay suscripción no hay aviso que despachar, y
+    // esos entraban igual al bucle y salian a la primera verificación. Ahora solo
+    // se traen los que sí tienen al menos un push_subscriptions activo, que es el
+    // conjunto que puede recibir algo. Ese JOIN reduce el SELECT y el trabajo
+    // inútil del dispatch, que antes se despertaba cada minuto por nada.
     const { rows: preferenceRows } = await pool.query(
-      `SELECT user_id, settings
-       FROM notification_preferences
-       WHERE settings IS NOT NULL
-       ORDER BY updated_at ASC
+      `SELECT p.user_id, (array_agg(p.settings ORDER BY p.updated_at ASC))[1] AS settings
+       FROM notification_preferences p
+       JOIN push_subscriptions s ON s.user_id = p.user_id
+       WHERE p.settings IS NOT NULL
+       GROUP BY p.user_id
+       ORDER BY MAX(p.updated_at) ASC
        LIMIT 1000`,
     );
 
