@@ -35,6 +35,13 @@
   ],
   "shortcuts": [
     {
+      "name": "Ayuda urgente - Recursos Oficiales",
+      "short_name": "Ayuda",
+      "description": "Hospitales, líneas de crisis y centros verificados cerca de ti",
+      "url": "/#/resources",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "SOS - Ayuda inmediata",
       "short_name": "SOS",
       "description": "Líneas de crisis gratuitas y contacto seguro",
