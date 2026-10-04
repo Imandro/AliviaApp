@@ -7,6 +7,13 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Corregido
 
+- **La descarga del APK estaba rota y no daba ninguna señal.** El deploy hacía
+  `aws s3 sync dist/ --delete`, así que borraba las claves del APK —que se suben a
+  mano con `npm run release:apk` y no viven en `dist/`— en cada despliegue de la
+  web. CloudFront pedía el paquete, no lo encontraba y la Function de fallback
+  devolvía `index.html`: la página recibía 99 KB de `text/html` con **200** en
+  lugar de un 404, y el hash no cuadraba sin que nada lo indicara. El sync ahora
+  lleva `--exclude "releases/*"`.
 - **El APK ya no venía con una build antigua.** El shell nativo empaqueta `dist` y
   lo sirve desde `file://`, así que es una foto fija: la v1.2.0 no tenía ni los
   recursos oficiales (le faltaba el chunk `OfficialResourcesView`) ni el nombre
