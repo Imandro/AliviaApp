@@ -20,6 +20,7 @@ import {
   Lock,
   Eye,
   Play,
+  MapPin,
 } from 'lucide-react';
 import {
   saveTodayMood,
@@ -354,6 +355,43 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           </>
         );
       })()}
+
+      {/* Recursos Oficiales / Ayuda cerca de mí — card prominente */}
+      <div
+        className="cm-card cm-press dash-span"
+        style={{
+          ...styles.resourcesCard,
+          background: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.14) 0%, rgba(var(--accent-gold-rgb), 0.08) 100%)',
+          border: '1px solid rgba(var(--accent-sage-rgb), 0.22)',
+        }}
+        onClick={() => navigate('/resources')}
+        role="button"
+        aria-label="Ver recursos oficiales de salud mental"
+      >
+        <div style={styles.resourcesCardTop}>
+          <div style={styles.resourcesIconWrap}>
+            <div style={{
+              ...styles.resourcesIcon,
+              background: 'rgba(var(--accent-sage-rgb), 0.18)',
+              border: '1px solid rgba(var(--accent-sage-rgb), 0.3)',
+            }}>
+              <Shield size={20} color="var(--accent-sage)" />
+            </div>
+            <span style={styles.resourcesBadge}>VERIFICADO</span>
+          </div>
+          <MapPin size={18} color="var(--accent-sage)" style={{ opacity: 0.8 }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={styles.resourcesLabel}>
+            <Sparkles size={10} color="var(--accent-sage)" /> RECURSOS OFICIALES
+          </p>
+          <h4 style={styles.resourcesTitle}>Hospitales, líneas y centros cerca de ti</h4>
+          <p style={styles.resourcesSub}>Con distancia, teléfono real y portal web. 34 recursos verificados.</p>
+        </div>
+        <div style={styles.resourcesArrow}>
+          <ChevronRight size={18} color="var(--accent-sage)" />
+        </div>
+      </div>
 
       {/* Aliento para hoy */}
       <div
@@ -1710,5 +1748,86 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '2px 0 0',
     fontSize: '12px',
     color: 'var(--text-muted)',
+  },
+
+  resourcesCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '18px 20px',
+    cursor: 'pointer',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  resourcesCardTop: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '72px',
+    flexShrink: 0,
+  },
+  resourcesIconWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  resourcesIcon: {
+    width: '46px',
+    height: '46px',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  resourcesBadge: {
+    position: 'absolute',
+    bottom: '-4px',
+    right: '-4px',
+    fontSize: '8px',
+    fontWeight: 800,
+    fontFamily: 'var(--font-title)',
+    color: 'var(--accent-sage)',
+    background: 'rgba(var(--accent-sage-rgb), 0.15)',
+    border: '1px solid rgba(var(--accent-sage-rgb), 0.3)',
+    padding: '1px 5px',
+    borderRadius: '999px',
+    letterSpacing: '0.04em',
+  },
+  resourcesLabel: {
+    margin: '0 0 4px',
+    fontSize: '9.5px',
+    fontFamily: 'var(--font-title)',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    color: 'var(--accent-sage)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+  },
+  resourcesTitle: {
+    margin: '0 0 3px',
+    fontSize: '15px',
+    fontWeight: 800,
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-display)',
+    lineHeight: 1.25,
+  },
+  resourcesSub: {
+    margin: 0,
+    fontSize: '11.5px',
+    color: 'var(--text-secondary)',
+    lineHeight: 1.4,
+  },
+  resourcesArrow: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '13px',
+    background: 'rgba(var(--accent-sage-rgb), 0.12)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
 };

@@ -8,10 +8,12 @@ import {
   Users,
   BookOpen,
   Handshake,
-CircleUser,
+  CircleUser,
   ChevronRight,
   HeartPulse,
   Gamepad2,
+  Shield,
+  MapPin,
 } from 'lucide-react';
 import type { SafeUser } from '../utils/auth';
 
@@ -70,6 +72,15 @@ const FEATURES: FeatureCard[] = [
     path: '/sos',
     gradient: 'linear-gradient(135deg, rgba(var(--accent-rose-rgb), 0.12) 0%, rgba(211, 47, 47, 0.06) 100%)',
     color: 'var(--accent-rose)',
+  },
+  {
+    id: 'resources',
+    title: 'Recursos Oficiales',
+    desc: 'Hospitales, líneas de crisis y centros verificados cerca de ti. Con distancia, teléfono y portal web.',
+    icon: Shield,
+    path: '/resources',
+    gradient: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.14) 0%, rgba(var(--accent-gold-rgb), 0.08) 100%)',
+    color: 'var(--accent-sage)',
   },
   {
     id: 'community',
