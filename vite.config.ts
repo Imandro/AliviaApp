@@ -55,6 +55,11 @@ export default defineConfig(({ mode }) => ({
           'kronox/favicon-hackathon.ico',
         ],
         navigateFallback: '/index.html',
+        // Sin esto, un service worker instalado se actualiza pero no toma
+        // control de la pestana que ya esta abierta: el visitante se queda
+        // con el bundle viejo (y su contenido obsoleto) hasta que recarga a
+        // mano. Con clientsClaim el tab abierto cambia solo.
+        clientsClaim: true,
         // Las paginas estaticas de marketing van sueltas: sin esto el service
         // worker responderia /descarga.html con el index.html de la SPA y el
         // visitante veria la app en vez de la pagina de descarga.
