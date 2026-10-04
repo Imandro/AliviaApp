@@ -5,6 +5,17 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ## [No publicado]
 
+### Corregido
+
+- **El APK ya no venía con una build antigua.** El shell nativo empaqueta `dist` y
+  lo sirve desde `file://`, así que es una foto fija: la v1.2.0 no tenía ni los
+  recursos oficiales (le faltaba el chunk `OfficialResourcesView`) ni el nombre
+  Livi. La v1.2.1 se reconstruye desde el código actual.
+- **`versionName` decía `1.0` mientras el manifiesto publicaba `1.2.0`.** Android
+  usa el `versionCode` para decidir si una instalación es una actualización, y el
+  `versionName` es lo que ve la persona en el móvil. Ahora ambos salen de la
+  release: `versionCode 2`, `versionName "1.2.1"`.
+
 ### Cambiado
 
 - **La mascota se llama Livi.** El rename venía a medias y el prompt de sistema
