@@ -47,7 +47,7 @@ export const REMINDER_CATALOG: ReminderDefinition[] = [
   { id: 'daily-challenge', title: 'Retos', body: 'Hay un reto breve disponible para ti.', path: '/retos', defaultTime: '12:00', group: 'Herramientas' },
   { id: 'wellbeing-game', title: 'Pausa aburrida', body: 'Haz una tarea sin importancia: frota una moneda o apila bloques.', path: '/games', defaultTime: '17:30', group: 'Herramientas' },
   { id: 'library', title: 'Biblioteca', body: 'Puedes explorar una lectura breve a tu ritmo.', path: '/library', defaultTime: '19:30', group: 'Herramientas' },
-  { id: 'via-chat', title: 'Conversar con VIA', body: 'VIA está disponible si quieres conversar.', path: '/chat', defaultTime: '18:30', group: 'Conexión' },
+  { id: 'via-chat', title: 'Conversar con Livi', body: 'Livi está disponible si quieres conversar.', path: '/chat', defaultTime: '18:30', group: 'Conexión' },
   { id: 'support-network', title: 'Red de apoyo', body: 'Si te ayuda, puedes contactar a alguien de confianza.', path: '/connect', defaultTime: '18:00', group: 'Conexión' },
   { id: 'mindfulness', title: 'Atención plena', body: 'Regálate un momento para notar tu respiración y el presente.', path: '/breathe', defaultTime: '13:00', group: 'Bienestar' },
   { id: 'coping-plan', title: 'Plan de afrontamiento', body: 'Revisa una estrategia que te ayude en este momento.', path: '/coping', defaultTime: '17:00', group: 'Herramientas' },

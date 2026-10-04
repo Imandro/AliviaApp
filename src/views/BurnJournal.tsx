@@ -9,11 +9,11 @@ interface BurnJournalProps {
 
 const VIA_COMFORT: Record<string, string> = {
   crisis: "Lo que escribiste es muy serio. Por favor, llévalo a alguien de confianza o a una línea de crisis hoy mismo; no tienes que enfrentarlo solo/a.",
-  ansiedad: "VIA notó que hoy te pesaba mucho la ansiedad. Lo quiero tener en cuenta para acompañarte mejor. Respira lento, estás segura/o aquí.",
-  tristeza: "VIA sabe que hoy fue una carga triste de soltar. Lo tendré presente para cuidarte. Tu pecho se vuelve más ligero ahora.",
-  enojo: "Ese enojo merecía salir. VIA lo tiene en cuenta y te acompaña para canalizarlo con calma, paso a paso.",
-  soledad: "VIA te escuchó en esa soledad y no estás solo/a que lo escribas. Estoy aquí contigo para que no lo cargues a solas.",
-  miedo: "Ese miedo era muy tuyo, te creo. VIA lo guarda con cuidado y te ayudará a sentirte más segura/o.",
+  ansiedad: "Livi notó que hoy te pesaba mucho la ansiedad. Lo quiero tener en cuenta para acompañarte mejor. Respira lento, estás segura/o aquí.",
+  tristeza: "Livi sabe que hoy fue una carga triste de soltar. Lo tendré presente para cuidarte. Tu pecho se vuelve más ligero ahora.",
+  enojo: "Ese enojo merecía salir. Livi lo tiene en cuenta y te acompaña para canalizarlo con calma, paso a paso.",
+  soledad: "Livi te escuchó en esa soledad y no estás solo/a que lo escribas. Estoy aquí contigo para que no lo cargues a solas.",
+  miedo: "Ese miedo era muy tuyo, te creo. Livi lo guarda con cuidado y te ayudará a sentirte más segura/o.",
   crisis_valor: "",
 };
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import './ViaAvatar.css';
 
 /* ----------------------------------------------------
-   ALIVIA - AVATAR DE VIA EN EL CHAT
+   ALIVIA - AVATAR DE Livi EN EL CHAT
    La mascota ya existe como ilustracion de cuerpo entero
    (mascota-inicio-*.webp). Para un globo de 28px esas
    figuras no se leen, asi que los avatares de este

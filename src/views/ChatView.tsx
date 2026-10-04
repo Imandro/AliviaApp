@@ -70,7 +70,7 @@ const ORB_BG: Record<OrbTheme, string> = {
 const ORB_LABEL: Record<Exclude<VoiceSession, 'idle'>, string> = {
   listening: 'Te escucho…',
   transcribing: 'Entendiendo…',
-  speaking: 'VIA está respondiendo…',
+  speaking: 'Livi está respondiendo…',
 };
 
 const ORB_HINT: Record<Exclude<VoiceSession, 'idle'>, string> = {
@@ -288,7 +288,7 @@ export const ChatView: React.FC = () => {
         };
         rec.onerror = (event: any) => {
           if (event?.error === 'not-allowed') {
-            showToast('Permite el micrófono para hablar con VIA.');
+            showToast('Permite el micrófono para hablar con Livi.');
           }
           settle(null);
         };
@@ -473,7 +473,7 @@ export const ChatView: React.FC = () => {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      showToast('Permite el micrófono para hablar con VIA.');
+      showToast('Permite el micrófono para hablar con Livi.');
       return;
     }
     streamRef.current = stream;
@@ -624,12 +624,12 @@ export const ChatView: React.FC = () => {
           <div style={styles.badgeGlow}>
             <img
               src="/avatars/via-normal-64.png"
-              alt="VIA, mascota de Alivia"
+              alt="Livi, mascota de Alivia"
               style={styles.viaMascot}
             />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>VIA · ORIENTACIÓN EMOCIONAL</h3>
+            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>Livi · ORIENTACIÓN EMOCIONAL</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px', flexWrap: 'wrap' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: statusColor, display: 'inline-block', boxShadow: `0 0 8px ${statusColor}` }} />
               <p className="body-standard" style={{ fontSize: '10.5px', opacity: 0.7 }}>
@@ -644,7 +644,7 @@ export const ChatView: React.FC = () => {
               background: voiceOn ? 'rgba(var(--accent-gold-rgb), 0.14)' : 'rgba(0,0,0,0.12)',
               border: `1px solid ${voiceOn ? 'rgba(var(--accent-gold-rgb), 0.35)' : 'var(--border-color)'}`,
             }}
-            title={voiceOn ? 'Silenciar la voz de VIA' : 'Activar la voz de VIA'}
+            title={voiceOn ? 'Silenciar la voz de Livi' : 'Activar la voz de Livi'}
           >
             {voiceOn ? <Volume2 size={15} color="var(--accent-gold)" /> : <VolumeX size={15} color="var(--text-muted)" />}
           </button>
@@ -770,7 +770,7 @@ export const ChatView: React.FC = () => {
       >
           <input
             type="text"
-            placeholder="Escribe o habla con VIA…"
+            placeholder="Escribe o habla con Livi…"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
@@ -780,7 +780,7 @@ export const ChatView: React.FC = () => {
           <button
             onClick={startVoice}
             disabled={!speechSupported || voiceSession !== 'idle'}
-            title="Hablar con VIA"
+            title="Hablar con Livi"
             style={{
               ...styles.micBtn,
               background: voiceSession !== 'idle' ? 'linear-gradient(135deg, #f43f5e, #be123c)' : 'rgba(255, 255, 255, 0.06)',

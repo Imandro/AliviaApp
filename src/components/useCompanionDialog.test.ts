@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 /**
- * El globo de VIA antes se desmontaba de golpe: React lo eliminaba del DOM en el
+ * El globo de Livi antes se desmontaba de golpe: React lo eliminaba del DOM en el
  * mismo instante en que el mensaje llegaba a null, asi que la animacion de salida
  * no existia.
  *

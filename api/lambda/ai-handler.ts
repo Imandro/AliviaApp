@@ -197,7 +197,7 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
     // Esto importa porque la cuota de Gemini es.intermitente: medido con esta
     // cuenta, 5 de 6 llamadas seguidas devolvieron 429 "exceeded your current
     // quota". Antes solo se probaban los modelos de un mismo proveedor, asi que
-    // cuando los tres fallaban VIA se quedaba muda sin intentar Groq.
+    // cuando los tres fallaban Livi se quedaba muda sin intentar Groq.
     for (const { upstream, models } of modelosPorProveedor) {
       if (Date.now() >= deadline) break;
       if (!upstream.key) continue;
@@ -220,7 +220,7 @@ const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): P
         });
 
         // Ni 429 ni 503 cortan el stream: quedan otros modelos y otros proveedores por
-        // probar. Cortar aqui era lo que dejaba a VIA muda cuando se agotaba la
+        // probar. Cortar aqui era lo que dejaba a Livi muda cuando se agotaba la
         // cuota.
         if (!upstreamRes.ok || !upstreamRes.body) {
           // Pero hay dos 429 que quieren cosas distintas, y confundirlos cuesta

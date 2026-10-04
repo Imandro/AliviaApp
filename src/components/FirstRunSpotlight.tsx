@@ -21,7 +21,7 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     selector: '[data-tour="via"]',
-    title: 'VIA está aquí',
+    title: 'Livi está aquí',
     body: 'Toca este cartel para hablar con ella. Puedes escribirle o mantener pulsado el micrófono para hablarle.',
   },
   {

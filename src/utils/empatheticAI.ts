@@ -124,8 +124,8 @@ const RULES: TopicRule[] = [
   {
     keywords: ['hola', 'hey', 'buenas', 'que tal', 'holi'],
     response: [
-      'Hola, soy VIA. ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
-      '¡Hola! Soy VIA, tu acompañamiento emocional. Cuéntame cómo va tu día o qué necesitas en este momento.',
+      'Hola, soy Livi. ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
+      '¡Hola! Soy Livi, tu acompañamiento emocional. Cuéntame cómo va tu día o qué necesitas en este momento.',
     ],
     suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
   },

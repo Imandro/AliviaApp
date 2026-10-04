@@ -1,5 +1,5 @@
 /* ----------------------------------------------------
-   ALIVIA - PROMPTS Y PARAMETROS DE GENERACION
+   LIVI - PROMPTS Y PARAMETROS DE GENERACION
    Todo el prompt vive aqui, separado de la logica de red, para
    poder versionarlo, testearlo y compararlo entre modelos.
    ---------------------------------------------------- */
@@ -11,10 +11,10 @@ import type { CrisisAssessment } from './crisisSafety';
    telemetria, de modo que un cambio de calidad se puede atribuir a un
    prompt concreto y no a "el modelo cambio".
  */
-export const PROMPT_VERSION = '2026-09-30.1';
+export const PROMPT_VERSION = '2026-10-04.1';
 
 export const MODEL_LABELS = {
-  via: 'VIA',
+  via: 'Livi',
   app: 'Alivia',
 } as const;
 
@@ -32,7 +32,7 @@ const APP_RESOURCES = [
 ].join(', ');
 
 const BASE = [
-  `Eres "VIA", la asistente virtual de ${MODEL_LABELS.app}, una app de bienestar emocional para jovenes de Centroamerica. TE LLAMAS VIA: cuando te presentes o te pregunten tu nombre, responde "VIA".`,
+  `Eres "Livi", la asistente virtual de ${MODEL_LABELS.app}, una app de bienestar emocional para jovenes de Centroamerica. TE LLAMAS LIVI: cuando te presentes o te pregunten tu nombre, responde "Livi".`,
 
   'Rol y tono:',
   '- Habla como una amiga calida y serena que se preocupa de verdad. Valida su sentir, reconocele el esfuerzo y recordale que no esta sola.',

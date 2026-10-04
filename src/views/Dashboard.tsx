@@ -191,14 +191,14 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         </div>
       </div>
 
-      {/* Banner VIA — chat IA siempre a la vista */}
+      {/* Banner Livi — chat IA siempre a la vista */}
       <div
         className="cm-card cm-press dash-span"
         data-tour="via"
         style={styles.viaBanner}
         onClick={() => navigate('/chat')}
         role="button"
-        aria-label="Abrir VIA, chat de orientación emocional"
+        aria-label="Abrir Livi, chat de orientación emocional"
       >
         <div style={styles.viaGlowTop} />
         <div style={styles.viaGlowBot} />
@@ -207,7 +207,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             <div style={styles.viaIcon} className="cm-float">
               <img
                 src="/avatars/via-normal-64.png"
-                alt="VIA, mascota de Alivia"
+                alt="Livi, mascota de Alivia"
                 style={styles.viaMascot}
               />
             </div>
@@ -216,7 +216,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={styles.viaLabel}>
               <Sparkles size={11} color="rgba(12, 24, 16, 0.75)" />
-              <span>VIA · ACOMPAÑAMIENTO EMOCIONAL</span>
+              <span>Livi · ACOMPAÑAMIENTO EMOCIONAL</span>
             </div>
             <h3 style={styles.viaTitle}>¿Cómo te sientes hoy?</h3>
             <p style={styles.viaSub}>Conversa con Alivia: te escucha y te acompaña sin juicios.</p>

@@ -62,11 +62,11 @@ export function HomeCompanion({ children }: { children: ReactNode }) {
             data-leaving={leaving ? 'true' : undefined}
             aria-hidden={leaving || undefined}
           >
-            <div className="home-companion-dialog-heading"><span>VIA · A TU RITMO</span><button type="button" onClick={dismiss} aria-label="Cerrar mensaje de VIA">×</button></div>
+            <div className="home-companion-dialog-heading"><span>Livi tu acompañante.</span><button type="button" onClick={dismiss} aria-label="Cerrar mensaje de Livi">×</button></div>
             <p role="status" aria-live="polite" aria-atomic="true">{message}</p>
           </div>
         )}
-        <button ref={touch} className="home-companion-touch" type="button" aria-label="Hablar con la mascota VIA" title="Toca para hablar o arrastra para mover. También puedes usar las flechas del teclado." aria-expanded={Boolean(message)} onClick={() => {
+        <button ref={touch} className="home-companion-touch" type="button" aria-label="Hablar con la mascota Livi" title="Toca para hablar o arrastra para mover. También puedes usar las flechas del teclado." aria-expanded={Boolean(message)} onClick={() => {
           const phrases = ['Aquí estoy, sin prisa.', '¿Respiramos un momento?', 'Un pequeño paso también cuenta.', 'Puedes tomarte una pausa 🌿'];
           showManual(phrases[manualPhrase.current++ % phrases.length]);
         }}>

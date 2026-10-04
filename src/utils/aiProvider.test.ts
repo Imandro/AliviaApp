@@ -326,7 +326,7 @@ describe('streamAiReply', () => {
         sseBody([
           'data: {"type":"open"}\n\n',
           proxyDelta('Hola '),
-          proxyDelta('me llamo VIA.'),
+          proxyDelta('me llamo Livi.'),
           proxyDone(),
         ]),
         { headers: { 'Content-Type': 'text/event-stream' } }
@@ -338,9 +338,9 @@ describe('streamAiReply', () => {
       onDelta: (_d, full) => parciales.push(full),
     });
 
-    expect(parciales).toEqual(['Hola ', 'Hola me llamo VIA.']);
+    expect(parciales).toEqual(['Hola ', 'Hola me llamo Livi.']);
     expect(reply.source).toBe('groq');
-    expect(reply.text).toContain('VIA');
+    expect(reply.text).toContain('Livi');
   }, 20000);
 
   it('acepta una respuesta JSON aunque se pidiera streaming', async () => {
