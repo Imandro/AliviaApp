@@ -40,10 +40,8 @@ describe('officialResources — recursos oficiales verificados', () => {
   });
 
   describe('OFFICIAL_RESOURCES — conjunto verificado', () => {
-    it('contiene 33 recursos totales (UCA fuera por no tener contacto verificado)', () => {
-      // UCA (ni-uca, Centro de Atención Psicológica) se retiró del conjunto: no
-      // había forma de verificar que el contacto siguiera vigente. Al quitarlo,
-      // NI baja de 13 a 12 y el total de 34 a 33.
+    it('contiene 33 recursos totales (solo con contacto verificado)', () => {
+      // 33 = catálogo verificado: NI 12, SV 4, GT 4, HN 3, CR 3, PA 3, INTL 4.
       expect(OFFICIAL_RESOURCES.length).toBe(33);
     });
 
@@ -125,8 +123,8 @@ describe('officialResources — recursos oficiales verificados', () => {
       expect(COUNTRY_MAP['pa']).toBe('PA');
     });
 
-    it('UCA removido: no existe recurso con id ni-uca', () => {
-      expect(OFFICIAL_RESOURCES.find((r) => r.id === 'ni-uca')).toBeUndefined();
+    it('no expone recursos de universidad sin contacto verificado', () => {
+      expect(OFFICIAL_RESOURCES.filter((r) => r.id.startsWith('ni-uca'))).toHaveLength(0);
     });
   });
 
