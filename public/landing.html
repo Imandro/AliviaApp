@@ -101,24 +101,26 @@
 
 <style>
 :root{
-  --fondo-0:#0D1810;
-  --fondo-1:#1A2A20;
-  --vidrio:#16241C;
-  --linea:rgba(233,243,238,.09);
-  --texto:#EAF3EE;
-  --texto-2:#A9BFB2;
-  --texto-3:#7C948A;
+  --fondo-0:#1A2A20;
+  --fondo-1:#0D1810;
+  --vidrio:rgba(44,83,61,.42);
+  --linea:rgba(255,255,255,.08);
+  --texto:#EAEBDD;
+  --texto-2:#8CB08D;
+  --texto-3:#92B394;
   --oro:#F2E3A0;
   --oro-vivo:#E9C86B;
   --salvia:#8CB08D;
-  --lavanda:#B9A8E6;
+  --lavanda:#C4B8D4;
   --coral:#E57373;
+  --sombra-card:0 8px 32px rgba(0,0,0,.25);
+  --spring:cubic-bezier(.16,1,.3,1);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth; overflow-x:clip}
 body{
   margin:0; background:var(--fondo-0); color:var(--texto);
-  font-family:"Lato",system-ui,sans-serif; font-size:17px; line-height:1.7;
+  font-family:"Lato",system-ui,sans-serif; font-size:16px; line-height:1.5;
   -webkit-font-smoothing:antialiased; font-synthesis:none;
 }
 ::selection{background:rgba(233,200,107,.28)}
@@ -129,11 +131,10 @@ a{color:inherit}
 
 /* Fondo con blobs del brand */
 .aurora{position:fixed; inset:0; z-index:-1; overflow:hidden; background:
-  radial-gradient(1100px 700px at 85% -10%, rgba(44,83,61,.55), transparent 60%),
-  radial-gradient(900px 600px at -10% 40%, rgba(140,176,141,.14), transparent 55%),
-  radial-gradient(circle at top right, var(--fondo-1) 0%, var(--fondo-0) 70%);
+  radial-gradient(1100px 600px at 85% -10%, rgba(196,184,212,.08), transparent 60%),
+  radial-gradient(circle at top right, #1A2A20 0%, #0D1810 100%);
 }
-.aurora i{position:absolute; border-radius:50%; filter:blur(90px); opacity:.16; pointer-events:none}
+.aurora i{position:absolute; border-radius:50%; filter:blur(80px); opacity:.1; pointer-events:none}
 .aurora i:nth-child(1){width:420px;height:420px;background:var(--oro);top:-120px;left:-120px;animation:flota 22s ease-in-out infinite alternate}
 .aurora i:nth-child(2){width:520px;height:520px;background:var(--salvia);bottom:-160px;right:-140px;animation:flota 26s ease-in-out infinite alternate-reverse}
 .aurora i:nth-child(3){width:340px;height:340px;background:var(--lavanda);top:38%;left:52%;opacity:.10;animation:flota 19s ease-in-out infinite alternate}
@@ -141,12 +142,8 @@ a{color:inherit}
 
 .estrellas{position:fixed; inset:0; z-index:-1; pointer-events:none;
   background-image:
-    radial-gradient(1.4px 1.4px at 12% 18%, rgba(242,227,160,.5), transparent 60%),
-    radial-gradient(1.1px 1.1px at 78% 12%, rgba(242,227,160,.42), transparent 60%),
-    radial-gradient(1.6px 1.6px at 55% 30%, rgba(233,243,238,.35), transparent 60%),
-    radial-gradient(1.2px 1.2px at 90% 46%, rgba(242,227,160,.36), transparent 60%),
-    radial-gradient(1.3px 1.3px at 32% 8%, rgba(233,243,238,.3), transparent 60%);
-  animation:titila 5s ease-in-out infinite alternate;
+    radial-gradient(700px 480px at 8% 42%, rgba(140,176,141,.06), transparent 70%),
+    radial-gradient(560px 400px at 92% 76%, rgba(196,184,212,.05), transparent 70%);
 }
 @keyframes titila{from{opacity:.45}to{opacity:.9}}
 
@@ -154,14 +151,13 @@ a{color:inherit}
 .nav{
   position:sticky; top:0; z-index:50;
   backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-  background:rgba(13,24,16,.72); border-bottom:1px solid var(--linea);
+  background:rgba(26,42,32,.85); border-bottom:1px solid var(--linea);
 }
-.nav__in{display:flex; align-items:center; gap:1.6rem; padding:.85rem 0}
+.nav__in{display:flex; align-items:center; gap:1.6rem; padding:.65rem 0}
 .wordmark{
-  font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.15rem;
-  letter-spacing:.3em; color:var(--texto); text-decoration:none; line-height:1;
+  display:inline-flex; align-items:center; flex:none; color:var(--texto); text-decoration:none;
 }
-.wordmark b{color:var(--oro-vivo)}
+.wordmark img{display:block; width:clamp(7rem,12vw,8.5rem); height:auto}
 .nav__links{margin-left:auto; display:flex; gap:.4rem; align-items:center}
 .nav__links a{
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.86rem;
@@ -178,8 +174,8 @@ a{color:inherit}
   display:inline-flex; align-items:center; gap:.6rem;
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.76rem; letter-spacing:.2em;
   text-transform:uppercase; color:var(--salvia);
-  border:1px solid rgba(140,176,141,.28); border-radius:999px; padding:.42rem .95rem;
-  margin:0 0 1.6rem; background:rgba(255,255,255,.03);
+  border:1px solid rgba(140,176,141,.2); border-radius:20px; padding:.42rem .95rem;
+  margin:0 0 1.6rem; background:rgba(140,176,141,.06);
 }
 .tagline em{font-style:normal; color:var(--oro)}
 .hero h1{
@@ -193,25 +189,26 @@ a{color:inherit}
 .hero__cta{display:flex; flex-wrap:wrap; gap:.8rem; margin-top:2.1rem}
 .btn{
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.98rem;
-  padding:.9rem 1.6rem; border-radius:999px; text-decoration:none;
+  padding:.9rem 1.6rem; border-radius:20px; text-decoration:none;
   display:inline-flex; align-items:center; gap:.55rem; border:1px solid transparent;
-  transition:transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease;
+  transition:transform .35s var(--spring), box-shadow .35s var(--spring), background .2s ease, border-color .2s ease;
 }
-.btn--oro{background:linear-gradient(135deg,var(--oro),var(--oro-vivo)); color:#1A2A20; box-shadow:0 12px 30px rgba(233,200,107,.22)}
-.btn--oro:hover{transform:translateY(-2px); box-shadow:0 16px 34px rgba(233,200,107,.3)}
-.btn--fantasma{border-color:var(--linea); color:var(--texto); background:rgba(255,255,255,.04)}
-.btn--fantasma:hover{background:rgba(255,255,255,.08); transform:translateY(-2px)}
+.btn--oro{border-color:var(--linea); background:rgba(242,227,160,.12); color:var(--oro); box-shadow:0 4px 15px rgba(242,227,160,.05)}
+.btn--oro:hover{transform:translateY(-2px); border-color:rgba(242,227,160,.2); background:rgba(242,227,160,.17); box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.btn--oro:active,.btn--fantasma:active{transform:scale(.97)}
+.btn--fantasma{border-color:var(--linea); color:var(--texto-2); background:transparent}
+.btn--fantasma:hover{background:rgba(255,255,255,.03); transform:translateY(-2px)}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Tarjeta-orbe */
 .orbcard{
-  position:relative; border-radius:28px;
-  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.015));
+  position:relative; border-radius:24px;
+  background:var(--vidrio);
   border:1px solid var(--linea);
-  box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow:var(--sombra-card), inset 0 1px 0 rgba(255,255,255,.04);
   padding:clamp(1.6rem,3vw,2.6rem);
   display:flex; flex-direction:column; align-items:center; gap:1.4rem;
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15);
 }
 .orbstage{position:relative; width:min(250px,64%); aspect-ratio:1; display:grid; place-items:center}
 .orbstage::before{
@@ -222,7 +219,7 @@ a{color:inherit}
 .orb{
   width:100%; height:100%; border-radius:50%;
   background:radial-gradient(circle at 33% 30%, #FFF6DC 0%, var(--oro) 34%, rgba(233,200,107,.25) 68%, transparent 74%);
-  box-shadow:0 0 70px rgba(233,200,107,.28);
+  box-shadow:0 0 46px rgba(233,200,107,.18);
   display:grid; place-items:center;
   animation:respira 8s ease-in-out infinite;
 }
@@ -235,10 +232,10 @@ a{color:inherit}
 .fases{display:flex; gap:.4rem; justify-content:center}
 .fases span{
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.74rem;
-  color:var(--texto-2); border:1px solid var(--linea); border-radius:999px; padding:.32rem .8rem;
-  background:rgba(255,255,255,.03);
+  color:var(--texto-2); border:1px solid var(--linea); border-radius:16px; padding:.32rem .8rem;
+  background:rgba(255,255,255,.04);
 }
-.fases span.on{color:#1A2A20; background:var(--oro); border-color:transparent}
+.fases span.on{color:var(--oro); background:rgba(242,227,160,.12); border-color:rgba(242,227,160,.18)}
 .orbcard figcaption{font-size:.82rem; color:var(--texto-3); text-align:center; margin:0}
 
 /* Momentos */
@@ -257,12 +254,13 @@ a{color:inherit}
 }
 .momento{
   border-radius:20px; padding:1.5rem 1.4rem; min-height:170px;
-  background:linear-gradient(165deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  background:var(--vidrio);
   border:1px solid var(--linea);
   display:flex; flex-direction:column; justify-content:flex-end; gap:.35rem;
-  transition:transform .25s ease, border-color .25s ease;
+  box-shadow:var(--sombra-card);
+  transition:transform .35s var(--spring), border-color .3s ease, box-shadow .35s var(--spring);
 }
-.momento:hover{transform:translateY(-4px); border-color:rgba(233,200,107,.3)}
+.momento:hover{transform:translateY(-2px); border-color:rgba(242,227,160,.18); box-shadow:0 12px 40px rgba(0,0,0,.3)}
 .momento time{font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.05rem; color:var(--oro)}
 .momento p{margin:0; color:var(--texto-2); font-size:.94rem; line-height:1.55}
 .momento small{display:block; margin-top:.55rem; color:var(--texto-3); font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; font-family:"Quicksand",sans-serif}
@@ -272,9 +270,9 @@ a{color:inherit}
 .pitch__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.9fr); gap:clamp(2rem,5vw,4rem); align-items:center}
 .pitch-frame{
   position:relative; width:min(320px,86%); margin-inline:auto;
-  aspect-ratio:9/16; border-radius:26px; overflow:hidden;
+  aspect-ratio:9/16; border-radius:24px; overflow:hidden;
   border:1px solid var(--linea);
-  box-shadow:0 30px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  box-shadow:var(--sombra-card), inset 0 1px 0 rgba(255,255,255,.04);
   background:#000;
 }
 .pitch-poster{
@@ -288,11 +286,13 @@ a{color:inherit}
 }
 .pitch-play{
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:64px; height:64px; border-radius:50%;
+  width:64px; height:64px; border-radius:20px;
   display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(135deg,var(--oro),var(--oro-vivo));
-  box-shadow:0 10px 30px rgba(233,200,107,.45);
-  transition:transform .2s ease;
+  background:rgba(242,227,160,.16); color:var(--oro);
+  border:1px solid rgba(242,227,160,.24);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  transition:transform .35s var(--spring), background .2s ease;
 }
 .pitch-poster:hover .pitch-play{transform:translate(-50%,-50%) scale(1.08)}
 .pitch-play svg{width:22px;height:22px;fill:#12200f;margin-left:3px}
@@ -308,23 +308,26 @@ a{color:inherit}
 .bento{padding:clamp(3rem,7vw,5.5rem) 0}
 .bento__grid{display:grid; grid-template-columns:repeat(12,1fr); gap:1rem}
 .card{
-  border-radius:22px; padding:1.7rem 1.6rem;
-  background:linear-gradient(165deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+  border-radius:24px; padding:1.7rem 1.6rem;
+  background:var(--vidrio);
   border:1px solid var(--linea);
-  transition:transform .25s ease, border-color .25s ease;
+  box-shadow:var(--sombra-card);
+  transition:transform .4s var(--spring), border-color .3s ease, box-shadow .4s var(--spring);
   position:relative; overflow:hidden;
+  backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15);
 }
-.card:hover{transform:translateY(-4px); border-color:rgba(233,200,107,.32); box-shadow:0 18px 50px rgba(233,200,107,.10)}
+.card:hover{transform:translateY(-2px); border-color:rgba(242,227,160,.18); box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.card:active{transform:scale(.985)}
 .card h3{font-size:1.14rem; margin:.9rem 0 .45rem}
 .card p{margin:0; color:var(--texto-2); font-size:.94rem; line-height:1.6}
 .card .ico{
-  width:44px;height:44px;border-radius:14px;display:grid;place-items:center;
-  background:rgba(233,200,107,.10); border:1px solid rgba(233,200,107,.22);
+  width:44px;height:44px;border-radius:16px;display:grid;place-items:center;
+  background:rgba(242,227,160,.08); border:1px solid rgba(242,227,160,.15);
 }
 .card .ico svg{width:22px;height:22px;stroke:var(--oro);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .card--sage .ico{background:rgba(140,176,141,.12);border-color:rgba(140,176,141,.3)}
 .card--sage .ico svg{stroke:var(--salvia)}
-.card--lav .ico{background:rgba(185,168,230,.12);border-color:rgba(185,168,230,.3)}
+.card--lav .ico{background:rgba(196,184,212,.1);border-color:rgba(196,184,212,.2)}
 .card--lav .ico svg{stroke:var(--lavanda)}
 .card--coral .ico{background:rgba(229,115,115,.12);border-color:rgba(229,115,115,.32)}
 .card--coral .ico svg{stroke:var(--coral)}
@@ -340,20 +343,23 @@ a{color:inherit}
 .recursos__grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem; margin-top:1.8rem}
 .recursos__card{
   display:block; text-decoration:none; color:inherit;
-  background:rgba(255,255,255,.035); border:1px solid var(--linea);
-  border-radius:18px; padding:1.6rem 1.7rem;
-  transition:border-color .18s, transform .18s;
+  background:var(--vidrio); border:1px solid var(--linea);
+  border-radius:20px; padding:1.6rem 1.7rem;
+  box-shadow:var(--sombra-card);
+  transition:border-color .3s, transform .35s var(--spring), box-shadow .35s var(--spring);
+  backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15);
 }
-.recursos__card:hover{border-color:rgba(233,200,107,.42); transform:translateY(-2px)}
+.recursos__card:hover{border-color:rgba(242,227,160,.2); transform:translateY(-2px); box-shadow:0 12px 40px rgba(0,0,0,.3)}
 .recursos__card h3{font-family:"Quicksand",sans-serif; font-size:1.25rem; margin:0 0 .5rem}
 .recursos__card p{margin:0; color:var(--texto-2); font-size:.97rem; line-height:1.65}
-.recursos__card--coral{border-color:rgba(229,115,115,.32); background:rgba(229,115,115,.07)}
-.recursos__card--coral:hover{border-color:rgba(229,115,115,.6)}
+.recursos__card--coral{border-color:rgba(232,196,201,.18); background:rgba(232,196,201,.07)}
+.recursos__card--coral:hover{border-color:rgba(232,196,201,.3)}
 
 /* FAQ: <details> nativo, sin JS. Se cierra al abrir otra para que la pagina
    no crezca sin limite en movil. */
 .faq{padding:clamp(3rem,7vw,5.5rem) 0; border-top:1px solid var(--linea)}
-.faq__item{border-bottom:1px solid var(--linea)}
+.faq__item{border-bottom:1px solid var(--linea); transition:background .25s ease}
+.faq__item[open]{background:rgba(44,83,61,.16)}
 .faq__item summary{
   cursor:pointer; list-style:none; padding:1.25rem 2.2rem 1.25rem 0;
   font-family:"Quicksand",sans-serif; font-size:1.08rem; font-weight:600; position:relative;
@@ -369,8 +375,8 @@ a{color:inherit}
 .pasos-off{list-style:none; margin:1.6rem 0 0; padding:0; display:grid; gap:1rem}
 .pasos-off li{
   display:flex; gap:1rem; align-items:flex-start;
-  padding:1.1rem 1.3rem; border-radius:18px;
-  background:rgba(255,255,255,.035); border:1px solid var(--linea);
+  padding:1.1rem 1.3rem; border-radius:20px;
+  background:var(--vidrio); border:1px solid var(--linea); box-shadow:var(--sombra-card);
 }
 .pasos-off i{
   flex:none; width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
@@ -378,28 +384,28 @@ a{color:inherit}
   font-family:"Quicksand",sans-serif; font-weight:700; font-style:normal; font-size:.82rem;
 }
 .pasos-off li:nth-child(2) i{background:rgba(233,200,107,.15);color:var(--oro)}
-.pasos-off li:nth-child(3) i{background:rgba(185,168,230,.16);color:var(--lavanda)}
+.pasos-off li:nth-child(3) i{background:rgba(196,184,212,.14);color:var(--lavanda)}
 .pasos-off b{font-family:"Quicksand",sans-serif;font-weight:600;color:var(--texto);display:block;margin-bottom:.15rem}
 .pasos-off span{color:var(--texto-2); font-size:.93rem}
 .demo-red{
   border-radius:24px; border:1px solid var(--linea);
-  background:linear-gradient(165deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
-  padding:2rem; box-shadow:0 30px 80px rgba(0,0,0,.4);
+  background:var(--vidrio); backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15);
+  padding:2rem; box-shadow:var(--sombra-card);
 }
 .red-toggle{
   display:flex; align-items:center; justify-content:space-between; gap:1rem;
   border-radius:16px; padding:1rem 1.2rem; margin-bottom:1rem;
-  background:rgba(0,0,0,.25); border:1px solid var(--linea);
+  background:rgba(0,0,0,.15); border:1px solid var(--linea);
 }
 .red-toggle p{margin:0; font-family:"Quicksand",sans-serif; font-weight:600}
 .red-toggle small{color:var(--texto-3)}
 .switch{flex:none; width:52px; height:30px; border-radius:999px; position:relative;
-  background:linear-gradient(135deg,var(--coral),#B74A4A); transition:.3s ease}
+  background:rgba(229,115,115,.55); transition:background .3s ease}
 .switch::after{
   content:""; position:absolute; top:3px; left:3px; width:24px;height:24px;border-radius:50%;
   background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.4); transition:.3s cubic-bezier(.34,1.4,.64,1);
 }
-.demo-red.online .switch{background:linear-gradient(135deg,var(--salvia),var(--bosque,#3E7157))}
+.demo-red.online .switch{background:rgba(140,176,141,.72)}
 .demo-red.online .switch::after{left:25px}
 .fila-estado{
   display:flex; align-items:center; gap:.9rem; border-radius:16px; padding:1.05rem 1.2rem; margin-bottom:.8rem;
@@ -425,14 +431,13 @@ a{color:inherit}
 .stats__band{
   display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px;
   border-radius:24px; overflow:hidden; border:1px solid var(--linea);
-  background:var(--linea);
+  background:var(--linea); box-shadow:var(--sombra-card);
 }
-.stat{background:rgba(13,24,16,.75); padding:2.2rem 1.8rem; text-align:left}
+.stat{background:rgba(44,83,61,.42); padding:2.2rem 1.8rem; text-align:left}
 .stat b{
   display:block; font-family:"Quicksand",sans-serif; font-weight:700;
   font-size:clamp(2rem,4vw,2.9rem); line-height:1.05;
-  color:transparent; background:linear-gradient(92deg,var(--oro),var(--salvia));
-  -webkit-background-clip:text; background-clip:text;
+  color:var(--oro);
 }
 .stat span{display:block; margin-top:.55rem; color:var(--texto-2); font-size:.92rem; line-height:1.55}
 .stats__nota{margin-top:1rem; font-size:.8rem; color:var(--texto-3)}
@@ -443,13 +448,13 @@ a{color:inherit}
 .stack{list-style:none; margin:1.8rem 0 0; padding:0; display:flex; flex-wrap:wrap; gap:.5rem}
 .stack li{
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.82rem;
-  color:var(--texto-2); border:1px solid var(--linea); border-radius:999px; padding:.42rem .95rem;
-  background:rgba(255,255,255,.03);
+  color:var(--texto-2); border:1px solid var(--linea); border-radius:16px; padding:.42rem .95rem;
+  background:rgba(255,255,255,.04);
 }
 .techcard{
   border-radius:24px; overflow:hidden; border:1px solid var(--linea);
-  background:linear-gradient(170deg, #131F17, #0C1510);
-  box-shadow:0 30px 80px rgba(0,0,0,.5);
+  background:var(--vidrio); backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15);
+  box-shadow:var(--sombra-card);
 }
 .techbar{
   display:flex; align-items:center; gap:.55rem; padding:.9rem 1.2rem;
@@ -468,7 +473,7 @@ a{color:inherit}
 .legend li{display:flex; align-items:center; gap:.45rem}
 .legend i{width:8px;height:8px;border-radius:50%;flex:none}
 .techstats{display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin-bottom:1.4rem}
-.techstats div{border-radius:14px; padding:.85rem .5rem; text-align:center; background:rgba(255,255,255,.045)}
+.techstats div{border-radius:16px; padding:.85rem .5rem; text-align:center; background:rgba(255,255,255,.06); border:1px solid var(--linea)}
 .techstats b{display:block; font-family:"Quicksand",sans-serif; font-weight:700; font-size:1.35rem; color:#fff}
 .techstats span{font-size:.68rem; letter-spacing:.09em; text-transform:uppercase; color:var(--texto-3)}
 /* Sello universitario UNAN León · CUR Somoto — tarjeta blanca con imagotipo a color */
@@ -521,26 +526,34 @@ a{color:inherit}
 .creditos__nota{color:var(--texto-2); max-width:56ch; margin:0 0 1.4rem}
 .creditos__nota a{color:var(--oro); text-decoration:none; border-bottom:1px solid rgba(233,200,107,.3)}
 .creditos__nota a:hover{border-bottom-color:var(--oro)}
-/* Las marcas del hackathon son blancas sobre transparencia: en el fondo oscuro
-   solo se leen dentro de una placa blanca, igual que hace .unan__card. */
+/* Las marcas oficiales usan superficies oscuras para conservar el contraste de sus logos blancos. */
 .creditos__logos{list-style:none; display:flex; flex-wrap:wrap; gap:.7rem; margin:0 0 1.3rem; padding:0}
-.creditos__logos li{display:flex; align-items:center; background:#fff; border-radius:14px; padding:9px 15px; box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.creditos__logos li{display:flex; align-items:center; justify-content:center; background:var(--vidrio); border:1px solid var(--linea); border-radius:20px; padding:12px 16px; box-shadow:var(--sombra-card)}
 .creditos__logos img{display:block; height:38px; width:auto}
 .creditos__logos li[data-alto="chico"] img{height:29px}
-.creditos__ver{display:inline-flex; align-items:center; gap:.5rem; padding:10px 17px; border-radius:999px; border:1px solid var(--linea); background:rgba(255,255,255,.04); color:var(--texto-2); font-family:"Quicksand",sans-serif; font-weight:600; font-size:.9rem; cursor:pointer; transition:all .25s cubic-bezier(.16,1,.3,1)}
+.creditos__contenido .creditos__logos li{box-sizing:border-box; min-width:136px; min-height:72px; backdrop-filter:blur(18px) saturate(1.1); -webkit-backdrop-filter:blur(18px) saturate(1.1)}
+.creditos__contenido .creditos__logos li[data-alto="chico"] img{height:36px}
+.creditos__contenido .creditos__logos li[data-logo="gobierno"] img{height:34px}
+.creditos__contenido .creditos__logos li[data-logo="innovacion"] img{height:36px}
+.creditos__ver{display:inline-flex; align-items:center; gap:.5rem; padding:12px 18px; border-radius:20px; border:1px solid var(--linea); background:rgba(255,255,255,.04); color:var(--texto-2); font-family:"Quicksand",sans-serif; font-weight:600; font-size:.9rem; cursor:pointer; transition:all .35s var(--spring)}
 .creditos__ver:hover{border-color:rgba(233,200,107,.35); color:var(--oro)}
 .creditos__ver:active{transform:scale(.97)}
-.galeria{border:1px solid var(--linea); border-radius:20px; padding:0; background:var(--fondo-1); color:var(--texto); width:min(920px,92vw); max-width:100%}
+.galeria{border:1px solid var(--linea); border-radius:24px; padding:0; background:var(--vidrio); color:var(--texto); width:min(920px,92vw); max-width:100%; box-shadow:var(--sombra-card); backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15)}
 .galeria::backdrop{background:rgba(4,8,6,.86)}
 .galeria__top{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:16px 18px; border-bottom:1px solid var(--linea)}
 .galeria__top p{margin:0; font-family:"Quicksand",sans-serif; font-weight:700; font-size:.95rem}
 .galeria__cerrar{background:transparent; border:1px solid var(--linea); border-radius:999px; color:var(--texto-2); padding:7px 14px; font:inherit; font-size:.85rem; cursor:pointer}
 .galeria__cerrar:hover{color:var(--oro); border-color:rgba(233,200,107,.35)}
 .galeria__rejilla{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; padding:16px 18px; max-height:62vh; overflow-y:auto; overscroll-behavior:contain}
-.galeria__rejilla img{display:block; width:100%; aspect-ratio:2/1; object-fit:cover; border-radius:10px; background:var(--vidrio)}
-.galeria__rejilla a{display:block; line-height:0}
+.galeria__rejilla img{display:block; width:100%; height:auto; object-fit:contain; border-radius:10px; background:var(--vidrio)}
+.galeria__rejilla a{display:block; line-height:0; cursor:zoom-in}
 .galeria__ancha{grid-column:1/-1}
-.galeria__ancha img{aspect-ratio:16/9}
+.galeria__zoom{position:fixed; box-sizing:border-box; width:min(1100px,96vw); max-width:96vw; max-height:94vh; max-height:94dvh; margin:auto; padding:clamp(1rem,3vw,2rem); border:1px solid var(--linea); border-radius:24px; background:var(--fondo-1); color:var(--texto); box-shadow:var(--sombra-card)}
+.galeria__zoom::backdrop{background:rgba(4,8,6,.92)}
+.galeria__zoom-contenido{display:flex; flex-direction:column; align-items:center; gap:1rem; max-height:calc(94vh - 4rem); max-height:calc(94dvh - 4rem)}
+.galeria__zoom img{display:block; max-width:100%; max-height:calc(94vh - 8rem); max-height:calc(94dvh - 8rem); width:auto; height:auto; object-fit:contain; border-radius:12px}
+.galeria__zoom-pie{margin:0; text-align:center; color:var(--texto-2); font-size:.85rem}
+.galeria__zoom-cerrar{position:absolute; top:.65rem; right:.65rem; z-index:1; width:40px; height:40px; border:1px solid var(--linea); border-radius:50%; background:var(--fondo-1); color:var(--texto); font:inherit; font-size:1.35rem; cursor:pointer}
 .galeria__pie{padding:0 18px 16px; font-size:.78rem; color:var(--texto-3); margin:0}
 .galeria__pie a{color:var(--texto-2); border-bottom:1px solid var(--linea)}
 .galeria__marcas{padding:0 18px; border-top:1px solid var(--linea)}
@@ -563,8 +576,16 @@ a{color:inherit}
 @media (max-width:640px){
   body{font-size:16px}
   .wrap{width:calc(100% - 2.6rem)}
+  .wordmark img{width:6.75rem}
   .hero__cta{gap:.65rem}
   .hero__cta .btn{width:100%; justify-content:center}
+  .aurora i{filter:blur(56px); animation:none}
+  .estrellas{animation:none}
+  .orbcard,.card,.recursos__card,.demo-red,.techcard,.galeria{
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  }
+  .galeria__rejilla{grid-template-columns:1fr}
+  .momento:hover,.card:hover,.recursos__card:hover{transform:none}
   .techstats{gap:.45rem}
   .pie__meta{flex-direction:column; align-items:flex-start}
 }
@@ -636,10 +657,11 @@ a{color:inherit}
 
 <nav class="nav">
   <div class="wrap nav__in">
-    <a class="wordmark" href="/">ALIVIA<b>.</b></a>
+    <a class="wordmark" href="/"><img src="/alivia-logo-secundario-blanco.png" alt="Logotipo de ALIVIA, bienestar emocional" width="2460" height="938"></a>
     <div class="nav__links">
       <a href="#momentos">Momentos</a>
       <a href="#pitch">Pitch</a>
+      <a href="/beta.html">Beta Play Store</a>
       <a href="#funciones">Funciones</a>
       <a href="#tecnologia">Tecnología</a>
       <a href="/descarga.html">Descargar</a>
@@ -658,7 +680,8 @@ a{color:inherit}
         en vivo, un diario que disuelve lo que pesa y ayuda real en crisis.
         En la web o instalada como app Android.</p>
       <div class="hero__cta">
-        <a class="btn btn--oro" href="/">Abrir la app</a>
+        <a class="btn btn--oro" href="/beta.html">Quiero probar la beta</a>
+        <a class="btn btn--fantasma" href="/">Abrir la app</a>
         <a class="btn btn--fantasma" href="/descarga.html">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.6l3.3-3.3 1.4 1.4L12 16.4l-4.7-4.7 1.4-1.4L12 13.6V3h0ZM5 19h14v2H5v-2Z"/></svg>
           Descargar Android
@@ -959,24 +982,26 @@ a{color:inherit}
 </section>
 
 <section class="creditos reveal" aria-labelledby="credTitulo">
-  <p class="kicker">Hackathon Nicaragua · KRONOX 2026</p>
-  <h2 id="credTitulo" style="font-size:clamp(1.15rem,2.2vw,1.6rem); max-width:24ch">ALIVIA nació en el Hackathon Nicaragua KRONOX 2026.</h2>
-  <p class="creditos__nota">
-    Diez años de una red que sigue creyendo en las ideas jóvenes, con el soporte del
-    <a href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener">Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno</a>
-    y del Gobierno de Reconciliación y Unidad Nacional, fueron el suelo para que una idea
-    hecha en Somoto llegara a miles de teléfonos.
-  </p>
-  <ul class="creditos__logos">
-    <li><img src="/kronox/logo-hackathon-nicaragua.png" width="250" height="91" loading="lazy" decoding="async" alt="Hackathon Nicaragua"></li>
-    <li data-alto="chico"><img src="/kronox/isotipo-10-aniversario.png" width="303" height="166" loading="lazy" decoding="async" alt="Décimo aniversario: ¡Siempre más allá!"></li>
-    <li><img src="/kronox/logo-institucional-blanco.webp" width="567" height="542" loading="lazy" decoding="async" alt="Gobierno de Reconciliación y Unidad Nacional de Nicaragua"></li>
-    <li><img src="/kronox/logo-ci-nicaragua-blanco.webp" width="567" height="542" loading="lazy" decoding="async" alt="Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno, Nicaragua"></li>
-  </ul>
-  <button type="button" class="creditos__ver js-galeria" aria-haspopup="dialog">
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h11v2H4z"/></svg>
-    Ver el lanzamiento
-  </button>
+  <div class="wrap creditos__contenido">
+    <p class="kicker">Hackathon Nicaragua · KRONOX 2026</p>
+    <h2 id="credTitulo" style="font-size:clamp(1.15rem,2.2vw,1.6rem); max-width:24ch">ALIVIA nació en el Hackathon Nicaragua KRONOX 2026.</h2>
+    <p class="creditos__nota">
+      Diez años de una red que sigue creyendo en las ideas jóvenes, con el soporte del
+      <a href="https://www.hackathonicaragua.com.ni/" target="_blank" rel="noopener">Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno</a>
+      y del Gobierno de Reconciliación y Unidad Nacional, fueron el suelo para que una idea
+      hecha en Somoto llegara a miles de teléfonos.
+    </p>
+    <ul class="creditos__logos">
+      <li><img src="/kronox/logo-hackathon-nicaragua.png" width="250" height="91" loading="lazy" decoding="async" alt="Hackathon Nicaragua"></li>
+      <li data-alto="chico"><img src="/kronox/isotipo-10-aniversario.png" width="303" height="166" loading="lazy" decoding="async" alt="Décimo aniversario: ¡Siempre más allá!"></li>
+      <li data-logo="gobierno"><img src="/kronox/logo-institucional-blanco-recortado.png" width="543" height="138" loading="lazy" decoding="async" alt="Gobierno de Reconciliación y Unidad Nacional de Nicaragua"></li>
+      <li data-logo="innovacion"><img src="/kronox/logo-ci-nicaragua-blanco-recortado.png" width="567" height="148" loading="lazy" decoding="async" alt="Centro Nacional de Innovación y Tecnología Francisco «El Chele» Moreno, Nicaragua"></li>
+    </ul>
+    <button type="button" class="creditos__ver js-galeria" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h11v2H4z"/></svg>
+      Ver el lanzamiento
+    </button>
+  </div>
 </section>
 
 <dialog class="galeria" id="galeria" aria-labelledby="galTitulo">
@@ -1025,6 +1050,14 @@ a{color:inherit}
     y de la <a href="https://www.tecnacional.edu.ni/noticias/hackathon-nicaragua-kronox-2026-10-anos-siempre-mas-alla/" target="_blank" rel="noopener">convocatoria de lanzamiento</a>.
     Las fotos enlazan a su fuente original.
   </p>
+</dialog>
+
+<dialog class="galeria__zoom" id="galeriaZoom" aria-labelledby="galeriaZoomTitulo">
+  <button type="button" class="galeria__zoom-cerrar js-zoom-cerrar" aria-label="Cerrar imagen ampliada">×</button>
+  <div class="galeria__zoom-contenido">
+    <img class="js-zoom-imagen" alt="">
+    <p id="galeriaZoomTitulo" class="galeria__zoom-pie js-zoom-titulo"></p>
+  </div>
 </dialog>
 
 <footer class="pie">
@@ -1126,12 +1159,28 @@ a{color:inherit}
   var boton = document.querySelector('.js-galeria');
   var dlg = document.getElementById('galeria');
   var cerrar = dlg && dlg.querySelector('.js-cerrar');
+  var zoom = document.getElementById('galeriaZoom');
+  var zoomImagen = zoom && zoom.querySelector('.js-zoom-imagen');
+  var zoomTitulo = zoom && zoom.querySelector('.js-zoom-titulo');
+  var cerrarZoom = zoom && zoom.querySelector('.js-zoom-cerrar');
   if (!boton || !dlg || typeof dlg.showModal !== 'function') {
     if (boton) boton.hidden = true;
     return;
   }
   boton.addEventListener('click', function(){ dlg.showModal(); });
   if (cerrar) cerrar.addEventListener('click', function(){ dlg.close(); });
+  dlg.querySelector('.galeria__rejilla').addEventListener('click', function(ev){
+    var enlace = ev.target.closest('a');
+    var imagen = enlace && enlace.querySelector('img');
+    if (!imagen || !zoom || !zoomImagen || typeof zoom.showModal !== 'function') return;
+    ev.preventDefault();
+    zoomImagen.src = imagen.currentSrc || imagen.src;
+    zoomImagen.alt = imagen.alt;
+    zoomTitulo.textContent = imagen.alt;
+    zoom.showModal();
+  });
+  if (cerrarZoom) cerrarZoom.addEventListener('click', function(){ zoom.close(); });
+  if (zoom) zoom.addEventListener('click', function(ev){ if (ev.target === zoom) zoom.close(); });
   /* Click en el fondo (el dialog no tiene padding, el borde es el fondo) */
   dlg.addEventListener('click', function(ev){ if (ev.target === dlg) dlg.close(); });
 })();
