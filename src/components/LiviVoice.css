@@ -1,0 +1,160 @@
+.livi-chat-voice > :not(.livi-voice-panel) {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.livi-voice-panel { background: transparent; }
+.livi-voice-stage {
+  position: relative;
+  width: min(100px, calc((100dvh - 280px) * .14));
+  aspect-ratio: 144 / 324;
+  pointer-events: none;
+}
+.livi-voice-react, .livi-voice-ack, .livi-voice-mascot { width: 100%; height: 100%; }
+.livi-voice-react {
+  transform: scale(calc(1 + var(--input-level, 0) * .065))
+    rotate(calc(var(--input-level, 0) * -3deg));
+}
+.livi-voice-mascot {
+  position: relative;
+  overflow: visible;
+  transform-origin: 50% 50%;
+  animation: livi-attentive 12.4s ease-in-out infinite !important;
+}
+.livi-voice-mascot img, .livi-beak {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+/* The base never fades out: every expression is a complete image above it. */
+.livi-pose-normal { opacity: 1; }
+.livi-pose-caring, .livi-pose-warm, .livi-pose-blink, .livi-beak { opacity: 0; }
+.livi-pose-caring, .livi-pose-blink { transition: opacity 100ms ease !important; }
+.livi-voice-stage[data-ready=true][data-blinking=true] .livi-pose-blink { opacity: 1; }
+.livi-beak-mouth {
+  transform-box: view-box;
+  transform-origin: 72px 146px;
+  transform: scaleY(var(--mouth-open, 0));
+  opacity: var(--mouth-open, 0);
+}
+.livi-voice-stage[data-state=transcribing] .livi-voice-mascot {
+  animation: livi-reflect 8.7s ease-in-out infinite !important;
+}
+.livi-voice-stage[data-ready=true][data-state=transcribing] .livi-pose-caring { opacity: 1; }
+.livi-voice-stage[data-state=speaking] .livi-voice-ack {
+  animation: livi-acknowledge 680ms ease-in-out both !important;
+}
+.livi-voice-stage[data-state=speaking] .livi-voice-mascot {
+  animation: livi-conversation 11.3s ease-in-out infinite !important;
+}
+.livi-voice-stage[data-ready=true][data-state=speaking] .livi-pose-warm {
+  animation: livi-reassure 11.3s ease-in-out infinite !important;
+}
+.livi-voice-stage[data-ready=true][data-state=speaking] .livi-beak { opacity: 1; }
+
+@keyframes livi-attentive {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  10%, 19% { transform: rotate(-5deg) translateY(-3px); }
+  28% { transform: rotate(2deg) translateY(1px); }
+  32% { transform: rotate(-2deg) translateY(3px); }
+  37%, 46% { transform: rotate(0) translateY(0); }
+  60%, 72% { transform: rotate(4deg) translateY(-2px); }
+  80% { transform: rotate(-2deg) translateY(2px); }
+  87% { transform: rotate(0) translateY(0); }
+}
+@keyframes livi-reflect {
+  0% { transform: rotate(0); }
+  13%, 32% { transform: rotate(8deg) translateY(-3px); }
+  40% { transform: rotate(3deg) translateY(3px); }
+  48% { transform: rotate(-4deg) translateY(-2px); }
+  58%, 66% { transform: rotate(-6deg); }
+  77% { transform: rotate(2deg) translateY(3px); }
+  84%, 100% { transform: rotate(0); }
+}
+@keyframes livi-acknowledge {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(5px) rotate(2deg); }
+  62% { transform: translateY(-3px) rotate(-1deg); }
+}
+@keyframes livi-conversation {
+  0%, 100% { transform: rotate(0); }
+  9%, 17% { transform: rotate(-5deg) translateY(-3px); }
+  25% { transform: rotate(2deg) translateY(2px); }
+  33%, 42% { transform: rotate(0); }
+  53%, 61% { transform: rotate(5deg) translateY(-2px); }
+  68% { transform: rotate(-3deg) translateY(3px); }
+  76% { transform: rotate(1deg) translateY(-2px); }
+  85%, 93% { transform: rotate(0); }
+}
+@keyframes livi-reassure {
+  0%, 29%, 48%, 80%, 100% { opacity: 0; }
+  35%, 41%, 88%, 92% { opacity: 1; }
+}
+.livi-surroundings { position: absolute; inset: 0; pointer-events: none; }
+.livi-listen-signal {
+  position: absolute; top: 29%; width: 28px; height: 38px;
+  fill: none; stroke: #edca6a; stroke-width: 2.1; stroke-linecap: round;
+  opacity: calc(.65 + var(--input-level, 0) * .35);
+}
+.livi-listen-left { right: calc(100% + 7px); }
+.livi-listen-right { left: calc(100% + 7px); transform: scaleX(-1); }
+.livi-listen-signal path { animation: livi-sound-arrives 1.5s ease-in-out infinite; }
+.livi-listen-signal path:nth-child(2) { animation-delay: .18s; }
+.livi-listen-signal path:nth-child(3) { animation-delay: .36s; }
+.livi-thought-signal {
+  position: absolute; left: calc(100% + 5px); top: 19%; width: 56px; height: 39px;
+  overflow: visible; fill: #edca6a;
+}
+.livi-thought-link {
+  fill: none; stroke: #edca6a; stroke-width: 1.3;
+  animation: livi-connect-thought 2.4s ease-in-out infinite;
+}
+.livi-thought-signal circle { animation: livi-thought-dot 2.4s ease-in-out infinite; }
+.livi-thought-signal circle:nth-of-type(2) { animation-delay: .35s; }
+.livi-thought-signal circle:nth-of-type(3) { animation-delay: .7s; }
+.livi-bla {
+  position: absolute; color: #edca6a; font-family: inherit;
+  font-size: 17px; font-weight: 700; letter-spacing: .035em; line-height: 1;
+  top: 36%; left: calc(100% + 8px);
+  opacity: 0; animation-duration: 4.8s; animation-timing-function: linear;
+  animation-iteration-count: infinite; animation-name: livi-bla-flow;
+}
+.livi-bla-one { animation-delay: 0s; }
+.livi-bla-two { animation-delay: -1.6s; }
+.livi-bla-three { animation-delay: -3.2s; }
+@keyframes livi-sound-arrives {
+  0%, 100% { opacity: .18; transform: translateX(-2px); }
+  45% { opacity: 1; transform: translateX(2px); }
+  75% { opacity: .35; transform: translateX(3px); }
+}
+@keyframes livi-connect-thought { 0%, 100% { opacity: .12; } 65% { opacity: .8; } }
+@keyframes livi-thought-dot { 0%, 100% { opacity: .25; } 35%, 55% { opacity: 1; } }
+@keyframes livi-bla-flow {
+  0% { opacity: 0; transform: translate(0, 8px); }
+  16%, 25% { opacity: 1; transform: translate(4px, -8px); }
+  49.333%, 58.333% { opacity: 1; transform: translate(16px, -32px); }
+  82.666%, 91.666% { opacity: .6; transform: translate(28px, -56px); }
+  100% { opacity: 0; transform: translate(32px, -68px); }
+}
+/* Keep expressions and blinks, but honor the user's motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .livi-voice-react { transform: none; }
+  .livi-voice-mascot, .livi-voice-ack { animation: none !important; }
+  .livi-voice-stage[data-state=speaking] .livi-voice-mascot,
+  .livi-voice-stage[data-state=transcribing] .livi-voice-mascot,
+  .livi-voice-stage[data-state=speaking] .livi-voice-ack { animation: none !important; }
+  .livi-pose-caring, .livi-pose-blink { transition-duration: 160ms !important; }
+  .livi-listen-signal path { animation-name: livi-gentle-signal; }
+  /* The app-wide reduced-motion reset would otherwise finish each fade instantly. */
+  .livi-surroundings path, .livi-surroundings circle, .livi-bla {
+    animation-duration: 3s !important;
+    animation-iteration-count: infinite !important;
+  }
+  /* The requested small text drift stays visible; mascot motion remains reduced. */
+  .livi-bla { animation-duration: 4.8s !important; }
+}
+@keyframes livi-gentle-signal { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }

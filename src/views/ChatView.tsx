@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Send, Phone, ShieldAlert, ShieldCheck, ArrowRight, RotateCcw, Mic, Volume2, VolumeX, X } from 'lucide-react';
 import { getNavigationIntent } from '../utils/empatheticAI';
 import { ViaAvatar } from '../components/ViaAvatar';
+import { LiviVoice } from '../components/LiviVoice';
 import {
   streamAiReply,
   hasOnlineAI,
@@ -61,12 +62,6 @@ const getOrbTheme = (): OrbTheme => {
   return 'dark';
 };
 
-const ORB_BG: Record<OrbTheme, string> = {
-  dark: 'radial-gradient(circle at 50% 42%, #23372b 0%, #16251c 55%, #0d1810 100%)',
-  light: 'radial-gradient(circle at 50% 42%, #f2f3e8 0%, #e5e9dd 55%, #d5dbd0 100%)',
-  mono: 'radial-gradient(circle at 50% 42%, #171717 0%, #0e0e0e 55%, #000000 100%)',
-};
-
 const ORB_LABEL: Record<Exclude<VoiceSession, 'idle'>, string> = {
   listening: 'Te escucho…',
   transcribing: 'Entendiendo…',
@@ -74,7 +69,7 @@ const ORB_LABEL: Record<Exclude<VoiceSession, 'idle'>, string> = {
 };
 
 const ORB_HINT: Record<Exclude<VoiceSession, 'idle'>, string> = {
-  listening: 'Toca la burbuja para enviar',
+  listening: 'Toca a Livi para enviar',
   transcribing: 'Un momento…',
   speaking: 'Escucho cuando termines',
 };
@@ -88,7 +83,14 @@ export const ChatView: React.FC = () => {
   const [onlineMode, setOnlineMode] = useState<boolean>(false);
   const [lastSource, setLastSource] = useState<'groq' | 'rules' | null>(null);
   const [crisisMode, setCrisisMode] = useState(false);
-  const [voiceSession, setVoiceSession] = useState<VoiceSession>('idle');
+  const demoVoice = import.meta.env.DEV && new URLSearchParams(window.location.search).get('livi-preview') === '1';
+  const demoRun = useRef(0);
+  const demoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    demoRun.current++;
+    if (demoTimer.current !== null) clearTimeout(demoTimer.current);
+  }, []);
+  const [voiceSession, setVoiceSession] = useState<VoiceSession>(demoVoice ? 'listening' : 'idle');
   const [orbScale, setOrbScale] = useState(1);
   const [orbTheme, setOrbTheme] = useState<OrbTheme>('dark');
   const [voiceOn, setVoiceOn] = useState<boolean>(() => {
@@ -513,6 +515,9 @@ export const ChatView: React.FC = () => {
   }, [listenOnce, sendCore, showToast, startVolumeLoop, stopVoiceInternals]);
 
   const cancelVoice = useCallback(() => {
+    demoRun.current++;
+    if (demoTimer.current !== null) clearTimeout(demoTimer.current);
+    demoTimer.current = null;
     voiceRunRef.current?.abort();
     stopSpeaking();
     stopVoiceInternals();
@@ -572,9 +577,9 @@ export const ChatView: React.FC = () => {
   const speechSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition || navigator.mediaDevices?.getUserMedia);
 
   return (
-    <div className="fade-in flex flex-col" style={{ height: '100%', minHeight: 'calc(100dvh - 280px)' }}>
+    <div className={`fade-in flex flex-col${voiceSession !== 'idle' ? ' livi-chat-voice' : ''}`} style={{ height: '100%', minHeight: 'calc(100dvh - 280px)' }}>
       {voiceSession !== 'idle' && (
-        <div style={{ ...styles.orbOverlay, background: ORB_BG[orbTheme] }}>
+        <div className="livi-voice-panel" data-voice-theme={orbTheme} style={styles.orbOverlay}>
           <div style={styles.orbBg} />
           <div style={styles.orbHalo1} />
           <div style={styles.orbHalo2} />
@@ -586,16 +591,33 @@ export const ChatView: React.FC = () => {
             <X size={20} color="var(--text-primary)" />
           </button>
           <div
-            onClick={() => sendNowRef.current?.()}
+            onClick={() => {
+              if (!demoVoice) { sendNowRef.current?.(); return; }
+              if (voiceSession !== 'listening') return;
+              const run = ++demoRun.current;
+              setVoiceSession('transcribing');
+              // Preview only: show the visual states without playing or requesting audio.
+              demoTimer.current = setTimeout(() => {
+                if (run !== demoRun.current) return;
+                setVoiceSession('speaking');
+                demoTimer.current = setTimeout(() => {
+                  demoTimer.current = null;
+                  if (run === demoRun.current) setVoiceSession('listening');
+                }, 30000);
+              }, 6200);
+            }}
             style={{
               ...styles.orbCore,
-              transform: `scale(${orbScale})`,
-              opacity: voiceSession === 'transcribing' ? 0.8 : 1,
+              background: 'none',
+              boxShadow: 'none',
+              borderRadius: 0,
+              opacity: 1,
               cursor: voiceSession === 'listening' ? 'pointer' : 'default',
-              animation: voiceSession === 'listening' ? 'orbPulse 2.4s ease-out infinite' : 'none',
+              animation: 'none',
             }}
           >
-            <div style={{ ...styles.orbInner, animation: voiceSession === 'speaking' ? 'softFloat 2.2s ease-in-out infinite' : 'none' }} />
+            <LiviVoice state={voiceSession} inputLevel={Math.max(0, (orbScale - 1) / .5)}
+              fullMotionPreview={demoVoice && new URLSearchParams(window.location.search).get('livi-motion') === 'full'} />
           </div>
           <div
             style={{
@@ -609,7 +631,6 @@ export const ChatView: React.FC = () => {
             }}
           />
           <div style={styles.orbRing2} />
-          {voiceSession === 'transcribing' && <div style={styles.orbPulse} />}
           <div style={styles.orbLabel}>
             {ORB_LABEL[voiceSession as Exclude<VoiceSession, 'idle'>]}
           </div>
@@ -825,20 +846,20 @@ const styles: { [key: string]: React.CSSProperties } = {
   orbBg: {
     position: 'absolute',
     inset: 0,
-    background: 'radial-gradient(circle at 50% 45%, rgba(var(--accent-gold-rgb), 0.13) 0%, rgba(var(--accent-sage-rgb), 0.06) 45%, transparent 70%)',
+    background: 'radial-gradient(circle 150px at 50% 50%, rgba(var(--accent-gold-rgb), 0.13) 0%, rgba(var(--accent-sage-rgb), 0.06) 45%, transparent 100%)',
   },
   orbHalo1: {
     position: 'absolute',
-    width: '420px',
-    height: '420px',
+    width: '300px',
+    height: '300px',
     borderRadius: '50%',
     background: 'radial-gradient(circle, rgba(var(--accent-gold-rgb), 0.10) 0%, rgba(var(--accent-sage-rgb), 0.05) 40%, transparent 70%)',
     animation: 'spinSlow 26s linear infinite',
   },
   orbHalo2: {
     position: 'absolute',
-    width: '560px',
-    height: '560px',
+    width: '340px',
+    height: '340px',
     borderRadius: '50%',
     background: 'radial-gradient(circle, rgba(var(--accent-lavender-rgb), 0.07) 0%, transparent 65%)',
     animation: 'spinSlowRev 34s linear infinite',
@@ -880,28 +901,23 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   orbRing: {
     position: 'absolute',
-    width: '280px',
-    height: '280px',
+    width: '240px',
+    height: '240px',
     borderRadius: '50%',
-    border: '1.5px solid rgba(var(--accent-gold-rgb), 0.5)',
+    border: '1px solid rgba(var(--accent-gold-rgb), 0.3)',
+    opacity: 0.55,
+    pointerEvents: 'none',
     animation: 'spinSlow 14s linear infinite',
     transition: 'border-color 0.4s ease',
   },
   orbRing2: {
     position: 'absolute',
-    width: '340px',
-    height: '340px',
+    width: '290px',
+    height: '290px',
     borderRadius: '50%',
-    border: '1px dashed rgba(var(--accent-gold-rgb), 0.25)',
+    border: '1px dashed rgba(var(--accent-gold-rgb), 0.15)',
+    pointerEvents: 'none',
     animation: 'spinSlowRev 22s linear infinite',
-  },
-  orbPulse: {
-    position: 'absolute',
-    width: '200px',
-    height: '200px',
-    borderRadius: '50%',
-    background: 'rgba(var(--accent-lavender-rgb), 0.25)',
-    animation: 'orbPing 1.1s ease-out infinite',
   },
   orbLabel: {
     position: 'absolute',

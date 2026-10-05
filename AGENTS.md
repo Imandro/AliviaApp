@@ -77,3 +77,17 @@ No son tuyas, no las "arregles" de paso:
 - `gh` — un binario de 43 MB commiteado en la raíz. Casi seguro un `git add` accidental.
 - `README.md` dice "141 tests" (son 293) y `.env.example` aún dice "AI (VIA)" tras el rename a **Livi**.
 - `public/sitemap.xml` está gitignored a propósito: generarlo commiteado metía un diff diario por el `lastmod`.
+
+# Alivia: contexto y preferencias del usuario
+
+Alivia es el proyecto de DataStorm para acercar el bienestar emocional a adolescentes y jóvenes en Nicaragua. Livi es la mascota verde con rostro claro y lazo amarillo; preservar los recursos y la identidad existentes.
+
+- Siempre iniciar o reutilizar una vista previa local, comprobarla, abrirla en Codex y entregar su enlace al desarrollar. Mantener el servidor disponible para que el usuario revise y pida correcciones.
+- El usuario ejecuta los commits y pushes. No hacerlos ni publicar cambios sin una instrucción nueva y explícita.
+- En la conversación por voz, reemplazar la burbuja por Livi: escuchar con movimientos atentos y reactivos, pensar con gestos visibles y responder abriendo y cerrando el pico durante el estado de habla. El alcance es solo frontend: conservar la voz existente y no modificar el backend, el chat de texto ni la identidad de la mascota.
+- Mantener el encabezado, navegación, cierre y ubicación del panel de voz existente. El usuario autorizó integrar su fondo con la página y suavizar el diseño para eliminar el efecto de cuadro dentro de otro cuadro. No convertirlo en una pantalla completa ni añadir controles de demostración visibles.
+- Comprobar los recursos, el código y los chats anteriores antes de inventar aspectos del proyecto. No afirmar que se recuerda información que no se ha recuperado.
+- El usuario quiere animaciones claras y expresivas en los tres estados. Su último brief exige respetar movimiento reducido: conservar expresiones y parpadeos, con una versión calmada sin gestos amplios.
+- El nuevo brief reemplaza la estrategia de poses raster: autoriza redibujar Livi como SVG articulado a partir de los recursos originales. Priorizar actuación de cabeza, ojos, alas, cuerpo, listón y pico; validar fidelidad en reposo con superposición y revisar grabaciones en escritorio y móvil. Evitar cortes, uniones visibles y piezas desprendidas.
+- El usuario rechazó las actuaciones elaboradas y pidió cerrar el trabajo restaurando la versión sencilla: recursos originales completos al escuchar y entender, y pico pequeño al responder. Se restauró la copia Alivia_Livi_frontend; no reintroducir el SVG articulado ni «El encaje» ni añadir nuevas coreografías sin una nueva instrucción. Conservar voz, backend e interfaz y entregar el preview local.
+- Sobre esa versión sencilla, el usuario pidió efectos exteriores sin tocar a Livi: dos señales de escucha junto a la cabeza, puntos conectados al entender y tres «bla» que aparecen, desaparecen y vuelven a empezar al responder. Mantener los efectos separados de las imágenes y del pico existentes.
