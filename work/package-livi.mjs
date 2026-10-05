@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+// La compilación de SEO modifica este archivo generado; no pertenece a Livi.
+fs.writeFileSync('public/descarga.html', execFileSync('git', ['show', 'HEAD:public/descarga.html']));
+const out = 'C:/Users/zayri/Documents/Codex/2026-10-04/li/outputs/Alivia_Livi_voz';
+const files = ['AGENTS.md','CHANGELOG.md','src/views/ChatView.tsx','src/utils/tts.ts','src/utils/tts.test.ts','src/utils/speechLevel.ts','src/utils/speechLevel.test.ts','src/components/LiviVoice.tsx','src/components/LiviVoice.css','src/preview/LiviVoiceDemoControls.tsx','src/preview/LiviVoicePreview.tsx','src/preview/LiviVoicePreview.css','livi-preview.html','work/vite-livi.config.mjs','work/livi-preview-voz.wav'];
+for(const file of files) {
+  fs.mkdirSync(path.dirname(path.join(out,file)),{recursive:true});
+  fs.copyFileSync(file,path.join(out,file));
+}
+fs.writeFileSync(path.join(out,'LEEME.md'), `# Livi animada en el modo de voz de Alivia\n\nRepositorio: https://github.com/Imandro/AliviaApp\nRama local: livi-voz-animada, desde origin/main d638a5b.\n\nLa burbuja se reemplaza por la mascota original. Escuchando: cabeza, alas, parpadeo y respuesta al nivel del micrófono. Entendiendo: balanceo, inclinación y puntos. Respondiendo: tres aperturas del pico según el audio de salida; el silencio y la cancelación lo cierran. La síntesis nativa del navegador aproxima el movimiento usando eventos reales de reproducción.\n\nVista dentro de la app: http://127.0.0.1:8795/?livi-preview=1#/chat\nCerrar con X muestra el chat normal. Los botones de demostración solo existen en desarrollo. Probar voz reproduce una muestra local en español: no activa el micrófono ni envía mensajes. Para probar la conversación completa, usar el chat normal y permitir el micrófono en el navegador.\n\nServidor local: node node_modules/vite/bin/vite.js --config work/vite-livi.config.mjs\nEl proxy local apunta /api a la API habitual de alivia.lat. No incluye claves ni credenciales.\n\nValidación: compilación SEO + TypeScript + Vite/PWA correcta; 299 pruebas aprobadas, incluidas voz, silencios y cancelación. Vista comprobada en navegador y a 390 x 844. Conversación completa con micrófono pendiente de revisión en el navegador del usuario.\n\nPreferencias conservadas en AGENTS.md: siempre vista previa local; el usuario hace commits y pushes. Cambios sin commit, push ni publicación.\n`);
