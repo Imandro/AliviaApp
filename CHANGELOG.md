@@ -7,6 +7,21 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- Livi sustituye la burbuja de conversación por voz: movimientos al escuchar,
+  gestos al pensar y pico que abre y cierra durante el estado de respuesta.
+  El panel se integra con el fondo de la página, sin un segundo cuadro interior.
+  Incluye una prueba visual local de los tres estados, sin añadir audio ni
+  modificar el sistema de voz existente o el backend.
+  Restaurada por petición del usuario la versión sencilla con las imágenes
+  originales completas: escucha, expresión comprensiva y pequeño movimiento
+  del pico al responder. Retiradas las actuaciones SVG y «El encaje».
+  Respeta movimiento reducido y mantiene la demo local livi-preview=1.
+  Efectos exteriores por estado: ondas a ambos lados de la cabeza al escuchar,
+  puntos que se conectan al entender y una secuencia continua de tres «bla»:
+  suben juntos con pequeñas pausas, el tercero se esfuma al salir y entra otro abajo.
+  Por petición del usuario, el desplazamiento corto de las palabras permanece visible
+  con movimiento reducido; la mascota conserva sus restricciones de movimiento.
+
 - **Contenido por fin indexable.** La app usa `HashRouter`, así que para un
   buscador `/`, `/#/breathe` y `/#/journal` son la misma URL: las 33 guías de la
   biblioteca y las 33 líneas de crisis verificadas existían, pero no existían
