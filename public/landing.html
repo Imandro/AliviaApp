@@ -208,7 +208,7 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1100px}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:900px}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
@@ -1228,7 +1228,7 @@ a{color:inherit}
   }
 })();
 
-/* El iPhone llega desde un costado y se asienta conforme avanza el scroll */
+/* El iPhone entra desde un costado y gira sobre su eje con el scroll */
 (function(){
   var mockup = document.querySelector('.mockup');
   var device = mockup && mockup.querySelector('.iphone-device');
@@ -1238,14 +1238,16 @@ a{color:inherit}
   var pending = false;
   function update(){
     var heroTop = hero.getBoundingClientRect().top + window.scrollY;
-    var range = Math.max(360, Math.min(720, window.innerHeight * .72));
+    var range = Math.max(760, hero.getBoundingClientRect().height * .88);
     var progress = Math.max(0, Math.min(1, (window.scrollY - heroTop) / range));
-    var arrival = 1 - progress;
-    var motionScale = reduce ? .55 : 1;
-    device.style.setProperty('--scroll-x', (arrival * 88 * motionScale).toFixed(2) + 'px');
-    device.style.setProperty('--scroll-rotate', (arrival * -34 * motionScale).toFixed(2) + 'deg');
-    device.style.setProperty('--scroll-pitch', (arrival * 1.8 * motionScale).toFixed(2) + 'deg');
-    device.style.setProperty('--scroll-shadow-x', (arrival * -9 * motionScale).toFixed(2) + 'px');
+    var enterProgress = Math.min(1, progress / .38);
+    var enterEase = enterProgress * enterProgress * (3 - 2 * enterProgress);
+    var turnEase = progress * progress * (3 - 2 * progress);
+    var motionScale = reduce ? .75 : 1;
+    device.style.setProperty('--scroll-x', ((1 - enterEase) * 88 * motionScale).toFixed(2) + 'px');
+    device.style.setProperty('--scroll-rotate', (turnEase * 58 * motionScale).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-pitch', (turnEase * -1.4 * motionScale).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-shadow-x', ((1 - turnEase) * -9 * motionScale).toFixed(2) + 'px');
     pending = false;
   }
   function schedule(){
