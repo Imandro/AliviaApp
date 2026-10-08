@@ -347,6 +347,15 @@ a{color:inherit}
 .articulacion__panel h2{font-size:clamp(1.55rem,3vw,2.2rem);max-width:22ch;margin:.35rem 0 .8rem}
 .articulacion__panel p{color:var(--texto-2);margin:0;line-height:1.7}
 .articulacion__panel p+p{margin-top:.8rem}
+.articulacion__marca{display:flex;align-items:center;gap:clamp(.6rem,2vw,1rem);margin-bottom:1rem}
+.articulacion__marca-alivia{display:block;width:clamp(100px,16vw,150px);height:auto}
+.articulacion__marca-por{font-family:"Quicksand",sans-serif;font-size:1.4rem;font-weight:700;color:var(--oro)}
+.articulacion__marca-minsa{display:grid;justify-items:center;gap:.2rem}
+.articulacion__marca-minsa img{display:block;width:clamp(125px,20vw,190px);height:auto}
+.articulacion__marca-minsa span{
+  color:var(--texto-2);font-family:"Quicksand",sans-serif;font-size:.62rem;
+  font-weight:700;letter-spacing:.18em;text-transform:uppercase
+}
 .articulacion__nota{
   padding:1.25rem 1.35rem;border:1px solid var(--linea);border-radius:18px;
   background:rgba(13,24,16,.38);color:var(--texto-2);font-size:.92rem;line-height:1.65;
@@ -570,16 +579,19 @@ a{color:inherit}
   .hero__grid,.offline__grid,.tech__grid{grid-template-columns:1fr}
   .c-span7,.c-span5,.c-span4{grid-column:span 12}
   .stats__band{grid-template-columns:1fr}
-  .nav__links a:not(.cta){display:none}
+  .nav__links a:not(.cta):not(.minsa-link){display:none}
 }
 @media (max-width:640px){
   body{font-size:16px}
   .wrap{width:calc(100% - 2.6rem)}
-  .wordmark{gap:.3rem}
-  .wordmark__alivia{width:5.1rem}
-  .wordmark__por{font-size:.8rem}
-  .wordmark__minsa img{width:4.6rem}
-  .wordmark__minsa span{font-size:.42rem;letter-spacing:.12em}
+  .nav__in{gap:.55rem}
+  .nav__links{gap:.2rem}
+  .nav__links a.cta{padding:.38rem .45rem;font-size:.68rem;white-space:nowrap}
+  .wordmark{gap:.2rem}
+  .wordmark__alivia{width:4.1rem}
+  .wordmark__por{font-size:.72rem}
+  .wordmark__minsa img{width:3.6rem}
+  .wordmark__minsa span{font-size:.36rem;letter-spacing:.1em}
   .hero__cta{gap:.65rem}
   .hero__cta .btn{width:100%; justify-content:center}
   .aurora i{filter:blur(56px); animation:none}
@@ -670,6 +682,7 @@ a{color:inherit}
     </a>
     <div class="nav__links">
       <a href="#momentos">Momentos</a>
+      <a class="cta minsa-link" href="#minsa">MINSA</a>
       <a href="#pitch">Pitch</a>
       <a href="/beta.html">Beta Play Store</a>
       <a href="#funciones">Funciones</a>
@@ -740,6 +753,30 @@ a{color:inherit}
     </div>
   </div>
 </section>
+<section class="articulacion" id="minsa" aria-labelledby="articulacionTitulo">
+  <div class="wrap">
+    <div class="articulacion__panel reveal">
+      <div>
+        <div class="articulacion__marca" role="img" aria-label="ALIVIA en colaboración con MINSA–SILAIS Madriz">
+          <img class="articulacion__marca-alivia" src="/alivia-logo-secundario-blanco.png" alt="">
+          <span class="articulacion__marca-por" aria-hidden="true">×</span>
+          <div class="articulacion__marca-minsa">
+            <img src="/minsa-logo-silais.png" alt="">
+            <span>SILAIS Madriz</span>
+          </div>
+        </div>
+        <h2 id="articulacionTitulo">Una alerta crítica puede acercar ayuda a tiempo.</h2>
+        <p>ALIVIA trabaja en coordinación con el MINSA–SILAIS (Madriz), desde donde se facilita la comunicación de casos de salud mental que requieren atención prioritaria con las autoridades y los puestos de mando más cercanos, en Madriz y los demás departamentos.</p>
+        <p>Los reportes se gestionan desde la aplicación mediante mecanismos de validación orientados a reducir envíos falsos o de broma, para que las alertas relevantes puedan canalizarse y ser valoradas por las autoridades correspondientes.</p>
+      </div>
+      <aside class="articulacion__nota">
+        <strong>Un puente para pedir apoyo</strong>
+        Esta coordinación busca contribuir a una respuesta oportuna y a la protección de la vida. ALIVIA complementa, pero no sustituye, los servicios de emergencia ni la atención de profesionales de salud.
+      </aside>
+    </div>
+  </div>
+</section>
+
 <section class="pitch" id="pitch">
   <div class="wrap pitch__grid">
     <div class="reveal">
@@ -836,23 +873,6 @@ a{color:inherit}
         <h3>Cosas que no importan</h3>
         <p>Ocho tareas aburridas a propósito —monedas, bloques, marimba, dardos, papel— para distraerte sin nada que ganar.</p>
       </article>
-    </div>
-  </div>
-</section>
-
-<section class="articulacion" aria-labelledby="articulacionTitulo">
-  <div class="wrap">
-    <div class="articulacion__panel reveal">
-      <div>
-        <p class="kicker">Acompañamiento en la comunidad</p>
-        <h2 id="articulacionTitulo">Una alerta crítica puede acercar ayuda a tiempo.</h2>
-        <p>ALIVIA trabaja en coordinación con el MINSA–SILAIS (Madriz), desde donde se facilita la comunicación de casos de salud mental que requieren atención prioritaria con las autoridades y los puestos de mando más cercanos, en Madriz y los demás departamentos.</p>
-        <p>Los reportes se gestionan desde la aplicación mediante mecanismos de validación orientados a reducir envíos falsos o de broma, para que las alertas relevantes puedan canalizarse y ser valoradas por las autoridades correspondientes.</p>
-      </div>
-      <aside class="articulacion__nota">
-        <strong>Un puente para pedir apoyo</strong>
-        Esta coordinación busca contribuir a una respuesta oportuna y a la protección de la vida. ALIVIA complementa, pero no sustituye, los servicios de emergencia ni la atención de profesionales de salud.
-      </aside>
     </div>
   </div>
 </section>
