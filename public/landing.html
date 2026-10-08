@@ -244,10 +244,6 @@ a{color:inherit}
 .iphone-button--volume-down{left:-3px;top:31.5%;height:7%}
 .iphone-button--power{right:-3px;top:25%;height:12%}
 .mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
-@media (min-width:641px){
-  .iphone-device{--scroll-rotate:-24deg;transition:transform .85s cubic-bezier(.2,.75,.25,1),filter .85s ease}
-  .iphone-device.is-in-view{--scroll-rotate:0deg;--scroll-shadow-x:0px}
-}
 @media (max-width:640px){
   .iphone-device{width:clamp(230px,68vw,310px);max-width:76vw}
 }
@@ -640,7 +636,7 @@ a{color:inherit}
   html{scroll-behavior:auto}
   *{transition:none!important; animation:none!important}
   .reveal{opacity:1; transform:none}
-  .iphone-device{transform:rotateY(0deg)!important;transition:none!important;filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));will-change:auto}
+  .iphone-device{transition:transform .18s linear!important;filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));will-change:auto}
 }
 :focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
 </style>
@@ -1232,30 +1228,13 @@ a{color:inherit}
   }
 })();
 
-/* En escritorio el iPhone gira al aparecer; en móvil sigue el scroll */
+/* El iPhone gira desde una vista lateral hasta quedar de frente con el scroll */
 (function(){
   var mockup = document.querySelector('.mockup');
   var device = mockup && mockup.querySelector('.iphone-device');
-  if (!mockup || !device) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (window.matchMedia && window.matchMedia('(min-width: 641px)').matches) {
-    if (reduce || !('IntersectionObserver' in window)) {
-      device.classList.add('is-in-view');
-      return;
-    }
-    var observer = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting) {
-          device.classList.add('is-in-view');
-          observer.unobserve(mockup);
-        }
-      });
-    }, { threshold: .15 });
-    observer.observe(mockup);
-    return;
-  }
   var hero = document.querySelector('.hero');
-  if (!hero || !('requestAnimationFrame' in window)) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!mockup || !device || !hero || !('requestAnimationFrame' in window)) return;
   var pending = false;
   function update(){
     var heroTop = hero.getBoundingClientRect().top + window.scrollY;
