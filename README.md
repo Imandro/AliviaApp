@@ -39,23 +39,23 @@
 
 ## Qué es ALIVIA
 
-**ALIVIA** es una aplicación de bienestar mental diseñada para adolescentes y jóvenes. Ofrece herramientas de primera línea — ejercicios de respiración, diario terapéutico, chequeos de bienestar, chat con IA empática (Livi), biblioteca de guías psicoeducativas, juegos de regulación emocional y botón SOS con líneas de crisis — **todo funcionando 100 % offline** y sincronizando cuando hay conexión. Una sola base de código React sirve Web (PWA), Android nativo (Capacitor) e iOS nativo (Swift/WKWebView).
+**ALIVIA** es una aplicación de bienestar mental para adolescentes y jóvenes. Ofrece herramientas de primera línea — ejercicios de respiración, diario terapéutico, chequeos de bienestar, chat con IA empática (Livi), biblioteca de guías, juegos de regulación emocional y botón SOS con líneas de crisis — **todo funcionando 100 % offline** y sincronizando cuando hay conexión. Una sola base de código React sirve Web (PWA), Android nativo (Capacitor) e iOS nativo (Swift/WKWebView).
 
 ## Qué resuelve
 
-| Problema | Cómo lo resuelve ALIVIA |
+| Problema | Solución en ALIVIA |
 |---|---|
 | **Ansiedad y pánico en el momento** | Respiración guiada (Box 4·4·4·4, 4-7-8, coherente 5·5), técnica Tierra 5-4-3-2-1 por voz, 4 ejercicios de afrontamiento paso a paso. |
 | **Falta de espacio para desahogarse** | *Burn Journal*: escribe y observa tus pensamientos disolverse en partículas; todo local, privado y exportable. |
 | **No saber cómo estás realmente** | Chequeo de bienestar cada 5 días (estrés, ansiedad, depresión) + **Radar de Bienestar** con gráficas de tendencia y rachas. |
-| **Soledad y falta de apoyo** | Chat **Livi** (IA empática que pregunta *por qué* antes de aconsejar y te lleva a la función correcta), **Conecta con alguien** (plantillas para pedir ayuda a persona de confianza), comunidad anónima por temas. |
-| **Crisis sin saber a quién llamar** | Botón **SOS** con líneas gratuitas de 6 países centroamericanos (NI, SV, GT, HN, CR, PA), contacto de emergencia configurable, detección de riesgo por niveles en el chat. |
-| **Falta de hábitos y motivación** | 8 minijuegos de regulación (30 s–4 min), **Planes y Retos** con metas por área de vida y rachas, 20 recordatorios locales + push, biblioteca de guías interactivas con quiz. |
+| **Soledad y falta de apoyo** | Chat **Livi** (IA que pregunta *por qué* antes de aconsejar), **Conecta con alguien** (plantillas para pedir ayuda), comunidad anónima por temas. |
+| **Crisis sin saber a quién llamar** | Botón **SOS** con líneas gratuitas de 6 países centroamericanos, contacto de emergencia configurable, detección de riesgo por niveles. |
+| **Falta de hábitos y motivación** | 8 minijuegos de regulación, **Planes y Retos** con metas y rachas, 20 recordatorios locales + push, biblioteca interactiva con quiz. |
 | **Privacidad y control de datos** | Bloqueo biométrico + cortina de privacidad, exportación JSON + HTML imprimible, i18n es/en, datos guardados primero en el dispositivo. |
 
 ## Contexto: Hackathon Kronox 2026
 
-ALIVIA nace como proyecto para competir en la **categoría amateur del Hackathon Nicaragua 2026 Kronox**. El reto: crear una solución tecnológica de impacto social con recursos limitados. Elegimos salud mental juvenil porque es una necesidad real, silenciosa y desatendida en nuestra región.
+ALIVIA nace como proyecto para competir en la **categoría aficionado del Hackathon Nicaragua 2026 Kronox**. El reto: crear una solución tecnológica de impacto social con recursos limitados. Elegimos salud mental juvenil porque es una necesidad real, silenciosa y desatendida en nuestra región.
 
 ## Por qué existe
 
@@ -68,142 +68,116 @@ ALIVIA pone herramientas de primera línea exactamente ahí — en el bolsillo, 
 | Experiencia | Estado | Detalle |
 |---|---|---|
 | Web responsive | Producción ([alivia.lat](https://alivia.lat)) | SPA instalable como PWA: manifest + precache completo con Workbox |
-| App Android nativa | APK servido desde el propio dominio ([alivia.lat/releases](https://alivia.lat/releases.json)) y también en GitHub Releases · AAB listo para Play | Capacitor 8: ícono adaptativo, splash screen, permisos y firma propios. Servirlo desde CloudFront permite descarga con progreso real y verificación SHA-256 en el navegador |
-| App iOS nativa | IPA ad-hoc / TestFlight | Shell Swift (WKWebView) propio con puente nativo: biometría, hápticos, notificaciones y cortina de privacidad. El IPA se firma en GitHub Actions |
+| App Android nativa | APK en [alivia.lat/releases](https://alivia.lat/releases.json) y GitHub Releases · AAB listo para Play | Capacitor 8: ícono adaptativo, splash screen, permisos y firma propios |
+| App iOS nativa | IPA ad-hoc / TestFlight | Shell Swift (WKWebView) propio con puente nativo: biometría, hápticos, notificaciones, cortina de privacidad |
 | PWA instalada | iOS / Android | Al instalarse, el modo standalone redirige todo a la app |
 
 El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantallas que se porten a medias.
 
-## Características
+---
 
-### En el momento — calma inmediata
+## Stack Tecnológico
 
-| Módulo | Descripción |
+| Capa | Tecnologías |
 |---|---|
-| **Respiración guiada** | Box 4·4·4·4, Relajación 4-7-8 y Coherente 5·5. Círculo animado y mezclador de sonido sintetizado en tiempo real con Web Audio API (ruido marrón, olas, ondas binaurales): nada pregrabado. |
-| **Tierra 5-4-3-2-1** | Técnica sensorial guiada por voz para volver al presente. |
-| **Tarjetas de crisis** | Contenido validado para pánico, ganas de consumir, conflicto familiar y autolesión. |
-| **SOS** | Líneas de crisis gratuitas de **6 países** (NI · SV · GT · HN · CR · PA), emergencias y contacto seguro configurable a un toque. |
-| **Afrontamiento paso a paso** | Pausa somática · Reset frío · Surfear la urgencia · Plan de 10 minutos, cada uno con su guion. |
+| **Frontend** | React 18, TypeScript 5.6, Vite 5, React Router, Lucide icons |
+| **Nativo Android** | Capacitor 8, Gradle 8, JDK 21, Android SDK 36 |
+| **Nativo iOS** | Swift, WKWebView, XcodeGen (project.yml) |
+| **Backend** | AWS Lambda (Node.js), PostgreSQL 16 (RDS), pg driver |
+| **Infraestructura** | CloudFormation/SAM (4 stacks), CloudFront, S3, EventBridge, Secrets Manager |
+| **IA / Voz** | OpenAI (gpt-4.1-mini), Groq (Whisper), ElevenLabs (TTS), Edge TTS, Google TTS |
+| **Testing / Calidad** | Vitest (141 tests), TypeScript strict, ESLint + Prettier |
 
-### Todos los días — construir bienestar
+---
 
-| Módulo | Descripción |
-|---|---|
-| **Burn Journal** | Diario terapéutico: escribe lo que te abruma y obsérvalo disolverse en partículas. |
-| **Chequeo de bienestar** | Escala de estrés, ansiedad y depresión cada 5 días, con recomendaciones personalizadas. |
-| **Radar de Bienestar** | Gráficas del estado de ánimo por rango (7 días, 30 días, todo) con tendencia y rachas. |
-| **Planes y retos** | Metas por área de vida con racha de días consecutivos. |
-| **Comunidad anónima** | Posts por temas y apoyo entre pares, sin perfiles públicos ni exposición. |
-| **Cosas que no importan** | 8 juegos sensoriales aburridos a propósito: Moneda Vieja · Pila de Bloques · Marimba Chiquita · Dardos al Corcho · Enhebrar Cuentas · Barrer Polvo · Doblar Papel · Ordenar Fichas. Sin puntuación, sin fallos, sin final. |
+## Modelo Entidad-Relación (BD Relacional - 3FN)
 
-### Acompañamiento
-
-| Módulo | Descripción |
-|---|---|
-| **Livi (chat IA)** | Compañero conversacional con cara propia (mascota animada). Pregunta *por qué* te sientes así antes de aconsejar y te lleva directo a la función correcta de la app. Responde token a token (SSE), acepta entrada por voz (Whisper) y detecta riesgo por **niveles**, no por lista de palabras: distingue "me siento solo" de "quiero morirme" y reconoce texto separado (`q u i e r o m o r i r`). En crisis baja la temperatura, pide ayuda humana de forma directa y ofrece SOS. Si la IA falla o se acaban los intentos, responde igual con reglas locales. |
-| **Biblioteca Inteligente** | Guías cortas por tema (ansiedad, familia, adicciones, amistades…) con pasos, checklist, quiz y progreso. |
-| **Conecta con alguien** | Asistente en 5 pasos para preparar el mensaje a una persona de confianza: nombre, canal y plantillas listas para enviar. |
-| **Coordinación de alertas prioritarias** | En coordinación con el MINSA–SILAIS (Madriz), ALIVIA facilita desde Madriz la comunicación de casos críticos de salud mental con las autoridades y los puestos de mando más cercanos, en Madriz y los demás departamentos. Los reportes se gestionan desde la aplicación mediante mecanismos de validación orientados a reducir envíos falsos o de broma, para que las alertas relevantes puedan canalizarse y ser valoradas por las autoridades correspondientes. Esta coordinación busca contribuir a una respuesta oportuna y a la protección de la vida; no sustituye los servicios de emergencia ni la atención de profesionales de salud. |
-| **Recordatorios** | 20 recordatorios locales configurables (respiración, chequeo, diario, sueño, descanso de pantalla…) vía notificaciones del dispositivo, más push web con VAPID para los mismos recordatorios cuando hay suscripción registrada. |
-| **Primera visita** | Onboarding de 5 pantallas (con qué luchas, qué estás viviendo, cómo quieres cuidarte, a quién contactar, qué quieres cambiar) y un tutorial en *spotlight* que señala Livi, SOS y la barra inferior sobre la interfaz real, una sola vez. |
-
-### Privacidad y control
-
-| Módulo | Descripción |
-|---|---|
-| **Bloqueo biométrico** | Huella o rostro para abrir la app (nativo) + cortina de privacidad en la lista de apps recientes. |
-| **Exportar mis datos** | JSON completo para respaldo/portabilidad e informe HTML imprimible, generado en el propio dispositivo. |
-| **Temas** | Calma Profunda (oscuro), Salvia Suave (claro) y monocromático, con transiciones suaves. |
-| **Idioma** | Base i18n es/en para shell, navegación y perfil; el material psicoeducativo se mantiene en español revisado. |
-
-## Arquitectura
+El esquema está normalizado hasta la **Tercera Forma Normal (3FN)**, superando el requisito de 2FN. Todas las tablas tienen clave primaria, no hay dependencias parciales ni transitivas, y las relaciones se modelan con claves foráneas explícitas.
 
 ```mermaid
-flowchart LR
-    subgraph Cliente["Cliente — Web PWA / App Android / App iOS"]
-        UI["React 18 + TypeScript<br/>(mismo build de Vite)"]
-        CACHE[("Caché local<br/>de lecturas")]
-        OUTBOX[("Cola FIFO<br/>de escrituras")]
-        UI <--> CACHE
-        UI --> OUTBOX
-    end
+erDiagram
+    ROLES ||--o{ USERS : "catálogo (FK)"
+    USERS ||--o{ SESSIONS : "1:N"
+    USERS ||--o{ ASSESSMENTS : "1:N"
+    USERS ||--o{ MOOD_ENTRIES : "1:N (por fecha)"
+    USERS ||--|| EMERGENCY_CONTACT : "1:1"
+    USERS ||--o{ COMPLETED_ACTIVITIES : "1:N"
+    USERS ||--o{ COMMUNITY_POSTS : "1:N (author)"
+    USERS ||--o{ PLANS : "1:N"
+    USERS ||--|| NOTIFICATION_PREFERENCES : "1:1"
+    USERS ||--o{ PUSH_SUBSCRIPTIONS : "1:N"
+    USERS ||--o{ CRISIS_CONTACT_LOG : "1:N"
+    PLANS ||--o{ PLAN_GOALS : "1:N"
+    PLANS ||--o{ PLAN_ACTIVITIES : "1:N"
+    USERS }o--o{ AUDIT_LOG : "actor (FK opcional)"
 
-    subgraph Nube["AWS (CloudFront + Lambda)"]
-        API["alivia-api (en VPC)<br/>sesiones scrypt · CORS"]
-        TTS["alivia-tts (fuera VPC)<br/>ElevenLabs → Edge → Google"]
-        AI["alivia-ai (fuera VPC)<br/>OpenAI + Groq · SSE streaming"]
-        CRON["EventBridge cada 1 min<br/>→ dispatch de push"]
-    end
-
-    DB[("RDS PostgreSQL 16")]
-    OAI["OpenAI<br/>chat gpt-4.1-mini"]
-    GROQ["Groq<br/>Whisper (voz)"]
-    ELEVEN["ElevenLabs<br/>voz de Livi"]
-
-    UI -- "online" --> API
-    OUTBOX -.->|"reconexión automática"| API
-    UI -.-> TTS
-    UI -- "mensajes + historial" --> AI
-    AI -- "stream de tokens" --> UI
-    AI --> OAI
-    AI --> GROQ
-    TTS --> ELEVEN
-    CRON --> API
-    API --> DB
+    ROLES { TEXT code PK, TEXT name, TEXT description, TIMESTAMPTZ created_at }
+    USERS { UUID id PK, TEXT username UK, TEXT email UK, TEXT phone UK, TEXT name, TEXT password_hash, TEXT role FK, BOOLEAN is_active, TEXT[] problems, TEXT[] situations, TEXT[] strategies, TEXT trusted_person, TEXT trusted_phone, BOOLEAN wants_contact, TEXT[] changes, TEXT goals_text, BOOLEAN onboarding_done, TIMESTAMPTZ created_at, TIMESTAMPTZ updated_at }
+    SESSIONS { TEXT token PK, UUID user_id FK, TIMESTAMPTZ created_at, TIMESTAMPTZ expires_at }
+    MOOD_ENTRIES { DATE date PK, INTEGER score, TEXT note }
+    EMERGENCY_CONTACT { INTEGER id PK (CHECK=1), TEXT name, TEXT phone }
+    COMPLETED_ACTIVITIES { TEXT id, TEXT title, TIMESTAMPTZ completed_at, DATE date, PK (id, date) }
+    COMMUNITY_POSTS { SERIAL id PK, TEXT author, TEXT content, TEXT topic, INTEGER likes, TIMESTAMPTZ created_at }
+    PLANS { SERIAL id PK, TEXT title, TEXT area, TIMESTAMPTZ created_at }
+    PLAN_GOALS { SERIAL id PK, INTEGER plan_id FK, TEXT title, BOOLEAN done, TIMESTAMPTZ created_at }
+    PLAN_ACTIVITIES { SERIAL id PK, INTEGER plan_id FK, TEXT title, TEXT duration, BOOLEAN done, TIMESTAMPTZ created_at }
+    NOTIFICATION_PREFERENCES { UUID user_id PK FK, JSONB settings, TIMESTAMPTZ updated_at }
+    PUSH_SUBSCRIPTIONS { BIGSERIAL id PK, UUID user_id FK, TEXT endpoint UK, JSONB subscription, TIMESTAMPTZ created_at, TIMESTAMPTZ updated_at }
+    ASSESSMENTS { SERIAL id PK, UUID user_id FK, TEXT type, INTEGER stress, INTEGER anxiety, INTEGER depression, TEXT level, BOOLEAN crisis, TEXT[] recommendations, TEXT ai_advice, TIMESTAMPTZ created_at }
+    CRISIS_CONTACT_LOG { SERIAL id PK, UUID user_id FK, INTEGER assessment_id FK, TEXT channel, TEXT detail, TIMESTAMPTZ created_at }
+    AUDIT_LOG { BIGSERIAL id PK, UUID actor_id FK, TEXT actor_role, TEXT action, TEXT entity, TEXT entity_id, JSONB detail, TIMESTAMPTZ created_at }
 ```
 
-> La IA y la voz viajan por funciones aparte (`alivia-ai`, `alivia-tts`) porque necesitan
-> salir a internet, y la API de datos vive dentro del VPC para llegar a la base de datos:
-> así se evita un NAT Gateway. Las claves (OpenAI, Groq, ElevenLabs, VAPID) se leen de
-> Secrets Manager y **nunca entran en el bundle**.
+> **Notas de normalización:**  
+> - **1FN:** Atributos atómicos (arrays `TEXT[]` son nativos de PostgreSQL).  
+> - **2FN:** Sin dependencias parciales — claves compuestas dependen totalmente de su PK.  
+> - **3FN:** Sin dependencias transitivas — `users.role` apunta a catálogo `roles` (FK), no a otra columna no-clave.  
+> - **Integridad referencial:** FK con `ON DELETE CASCADE`/`SET NULL`; `roles` es catálogo cerrado.
 
-- **Un código, tres nativos:** el mismo bundle corre en navegador, en el contenedor Capacitor (`android/`) y en el shell Swift (`ios/`), con puente nativo para biometría, hápticos, notificaciones y cortina de privacidad.
-- **Backend serverless:** funciones Node en AWS Lambda con `pg`, contraseñas **scrypt**, sesiones Bearer de 30 días y esquema autogestionado (`db/schema.sql` + `db/functions.sql`).
-- **Seguridad en el proxy de IA:** rate limit por IP (cubos de tokens), temperaturas y `max_tokens` acotados, lista de modelos en servidor y mensaje `system` forzado al principio: una petición manipulada no puede degradar las respuestas de crisis.
-- **Tipografía y assets propios:** Quicksand variable + Lato auto-hospedadas; sin CDNs externos.
+---
 
-## Offline-first
+## Arquitectura (Resumen)
 
-La app no se apaga cuando se va la red. `src/utils/apiClient.ts` implementa:
-
-```mermaid
-sequenceDiagram
-    participant U as Usuario
-    participant A as App (local)
-    participant S as Servidor /api/*
-
-    U->>A: Registra ánimo / escribe post / edita plan
-    alt hay conexión
-        A->>S: Mutación inmediata
-        S-->>A: 200 OK + caché actualizada
-    else sin conexión
-        A->>A: Guarda en dispositivo + encola (FIFO)
-        Note over A: La UI responde al instante<br/>(actualización optimista)
-    end
-    A--)S: Al reconectar: reenvío en orden + revalidación silenciosa
-    A-->>U: "Todo sincronizado"
+```
+Cliente (Web PWA / Android / iOS)          AWS Cloud
+┌─────────────────────────────────┐        ┌─────────────────────────┐
+│ React 18 + TypeScript (Vite)    │        │ CloudFront + Lambda     │
+│  ├── Caché local (lecturas)     │◄──────►│  ├── alivia-api (VPC)   │
+│  └── Cola FIFO (escrituras)     │        │  ├── alivia-ai (SSE)    │
+└─────────────────────────────────┘        │  ├── alivia-tts (voz)   │
+                                           │  └── EventBridge (cron) │
+                                           └───────────┬─────────────┘
+                                                       ▼
+                                              ┌─────────────────┐
+                                              │ RDS PostgreSQL  │
+                                              │    (esquema)    │
+                                              └─────────────────┘
 ```
 
-1. **Lecturas con caché** — cada `GET` exitoso se persiste; sin red se sirve la última respuesta conocida.
-2. **Escrituras encoladas** — las mutaciones fallidas por red entran a una cola FIFO persistente.
-3. **Sincronización automática** — al reconectar (`online`, apertura de la app o intervalo de 30 s); errores 4xx se descartan, fallos de red pausan el reintento.
-4. **Revalidación silenciosa** — tras sincronizar se refrescan las lecturas clave en segundo plano.
-5. **UI honesta** — indicador discreto con cambios pendientes y confirmación visual.
+- **Un código, tres nativos**: mismo bundle en navegador, Capacitor (Android) y Swift (iOS).
+- **Backend serverless**: Lambdas Node con `pg`, contraseñas **scrypt**, sesiones Bearer 30 días.
+- **Seguridad IA**: rate limit por IP, temperaturas acotadas, `system` message forzado.
+- **Offline-first**: lecturas con caché, escrituras encoladas (FIFO), sincronización automática al reconectar.
 
-Además, el service worker precachea **todo** el shell (JS, CSS, fuentes, imágenes y vídeo con Workbox: 83 entradas, 1.6 MB), así que la app instalada arranca 100 % offline desde el primer uso. La entrada está optimizada para móviles y redes lentas: logo y CSS de marca se pintan antes de React, el stylesheet no bloquea y la pantalla de carga solo se retira cuando la vista real ya está montada.
+---
 
-## Rendimiento y calidad
+## Interfaces y Desarrollo (100%)
 
-| Métrica | Valor |
+22 pantallas totalmente navegables y funcionales:
+
+| Categoría | Vistas |
 |---|---|
-| Bundle web (gzip) | ~180 KB JS + 4.4 KB CSS |
-| APK firmado | ~4,8 MB |
-| Paridad web ↔ app | 100 % (mismo build) |
-| Fuentes | Auto-hospedadas, 0 peticiones a CDNs |
-| Dependencias runtime | React, React Router, Lucide, pg, web-push, ws, Capacitor + plugins nativos |
+| **Inmediatas** | Dashboard, Respiración (Box, 4-7-8, Coherente), Tierra 5-4-3-2-1, Tarjetas de crisis, SOS, Afrontamiento |
+| **Diarias** | Burn Journal, Chequeo bienestar, Radar bienestar, Planes y retos, Comunidad anónima, 8 Juegos sensoriales |
+| **Acompañamiento** | Chat Livi (IA + voz), Biblioteca inteligente, Conecta con alguien, Alertas MINSA-SILAIS, Recordatorios, Onboarding |
+| **Privacidad** | Bloqueo biométrico, Exportar datos (JSON/HTML), Temas, Idioma |
+| **Admin** | Panel administración (usuarios, bitácora, métricas) — gated por roles |
 
-## Inicio rápido
+Todas las vistas tienen formularios funcionales, navegación bottom-bar, y funcionan offline.
+
+---
+
+## Inicio Rápido
 
 **Requisitos:** Node.js 18+ y npm.
 
@@ -211,302 +185,211 @@ Además, el service worker precachea **todo** el shell (JS, CSS, fuentes, imáge
 git clone https://github.com/Imandro/AliviaApp.git
 cd AliviaApp
 npm install
-npm run dev          # servidor de desarrollo en Vite
-npm test             # suite Vitest (141 tests)
+npm run dev          # http://localhost:5173 (Vite + HMR)
+npm test             # 141 tests Vitest
+npm run build        # typecheck + bundle producción
+npm run preview      # vista previa del build
 ```
 
-Build de producción (typecheck + bundle): `npm run build` · Vista previa: `npm run preview`.
-
-## App Android
-
-La app nativa comparte el 100 % del código web. Requisitos: **JDK 21**, **Android SDK 36** (`android/local.properties` apunta al SDK) y las dependencias de Capacitor ya incluidas.
-
+### Android
 ```bash
-npm install @capacitor/core @capacitor/cli @capacitor/android   # si aún no están
-npm run sync:android        # build web + cap sync + limpieza de assets
+npm run sync:android  # build web + cap sync
 cd android
-./gradlew assembleDebug     # APK de prueba
+./gradlew assembleDebug     # APK prueba
 ./gradlew assembleRelease   # APK firmado (requiere keystore)
 ./gradlew bundleRelease     # AAB para Play Store
 ```
 
-**Firma release:** crea `android/keystore.properties` (excluido de git):
-
-```properties
-storeFile=keystore/alivia-release.jks
-storePassword=TU_CLAVE
-keyAlias=alivia
-keyPassword=TU_CLAVE
-```
-
-Artefactos en `android/app/build/outputs/`. Las descargas públicas se distribuyen
-vía [GitHub Releases](https://github.com/Imandro/AliviaApp/releases/latest).
-
-> `scripts/post-sync.js` elimina el APK descargable de los assets nativos tras cada
-> `cap sync` para que el binario no se empaquete a sí mismo.
-
-## App iOS
-
-Shell nativo propio en Swift (no Capacitor): un `WKWebView` que empaqueta la PWA con
-puente a biometría, hápticos, notificaciones locales y cortina de privacidad.
-
-- **Proyecto:** `ios/` generado con [XcodeGen](https://github.com/yonaskolb/XcodeGen) desde `ios/project.yml` (bundle `com.alivia.ios`, iOS 15.0+, iPhone y iPad).
-- **Build web para iOS:** `npm run build:ios:web` (bundle con `--base=./` y modo `ios` a `dist-ios/`), luego `npm run sync:ios` que lo copia a `ios/Web/` como referencia de carpeta del bundle.
-- **Compilación y firma del IPA:** workflow manual **iOS Build (IPA)** en GitHub Actions (`.github/workflows/ios-build.yml`), con opción *ad-hoc* (instalación directa en tu dispositivo) o *app-store* (TestFlight). Los certificados van como secrets del repositorio y el workflow falla antes de firmar si falta `VITE_API_URL`.
-- **Origen de la API:** en un shell nativo las rutas `/api/*` relativas apuntarían a `file://`; el build inyecta `VITE_API_URL` / `VITE_TTS_URL` desde las variables del repositorio y apunta a `https://alivia.lat`.
-
+### iOS
 ```bash
-npm run sync:ios         # build web iOS + copia a ios/Web
-cd ios && xcodegen       # genera Alivia.xcodeproj (ignorado por git)
-open Alivia.xcodeproj
+npm run sync:ios      # build web iOS + copia a ios/Web
+cd ios && xcodegen    # genera Alivia.xcodeproj
+open Alivia.xcodeproj # compila y firma en Xcode
 ```
 
-## Variables de entorno
+---
 
-| Variable | Ámbito | Descripción |
-|---|---|---|
-| `DATABASE_URL` | Servidor (AWS Lambda) | Cadena de conexión a RDS PostgreSQL. |
-| `OPENAI_API_KEY` | Lambda `alivia-ai` | Llave de OpenAI para el chat, leída de Secrets Manager (`alivia/openai-api-key`). **No va en el cliente.** Si falta, el chat cae a Groq. |
-| `OPENAI_MODELS` | Lambda `alivia-ai` | Lista de failover del chat. Por defecto `gpt-4.1-mini,gpt-4.1-nano,gpt-4o-mini`. |
-| `GROQ_API_KEY` | Lambda `alivia-ai` | Llave de Groq para la transcripción de voz (`alivia/groq-api-key`). **No va en el cliente.** |
-| `GROQ_MODELS` | Lambda `alivia-ai` | Modelos de respaldo si OpenAI no responde. Por defecto `openai/gpt-oss-20b,openai/gpt-oss-120b`. |
-| `ELEVENLABS_API_KEY` | Lambda `alivia-tts` | Voz principal de Livi (`alivia/elevenlabs-api-key`). Sin clave, la Lambda cae a Edge TTS y luego a Google. **No va en el cliente.** |
-| `ELEVENLABS_VOICE_ID` · `ELEVENLABS_MODEL` | Lambda `alivia-tts` | Voz y modelo (por defecto `EXAVITQu4vr4xnSDxMaL` / `eleven_multilingual_v2`). |
-| `CRON_SECRET` · `VAPID_*` | Lambda `alivia-api` | Secret `alivia/notification-secret`: secreto del cron y claves de push web. |
-| `VITE_API_URL` · `VITE_TTS_URL` | Build nativo (iOS/Android) | Orígenes absolutos para los shells nativos; en web no hacen falta (rutas relativas al mismo dominio). |
-| `VITE_OPENAI_MODEL` | Build cliente *(opcional)* | Sobrescribe la lista de modelos en desarrollo. |
-| `VITE_AI_DIRECT=1` + `VITE_OPENAI_API_KEY` / `VITE_GROQ_API_KEY` | Solo desarrollo | Salta el proxy y llama a los proveedores desde el navegador. **Inlina las claves en el bundle: nunca para un build que se publique.** |
+## Testing y Calidad
 
-Nunca se commitean: `.env`, `.env.local`, `*.jks` y `keystore.properties` están en `.gitignore`.
+| Comando | Qué hace |
+|---|---|
+| `npm test` | 141 tests Vitest (roles, offline, crisis, TTS, IA, export, auth, RBAC) |
+| `npm run typecheck` | TypeScript strict mode — cero `any` |
+| `npm run lint` | ESLint + Prettier — commits convencionales, imports ordenados |
+| `npm run build` | Vite: typecheck + minify + tree-shaking + hash assets |
 
-## API
+---
 
-Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consumo desde las WebViews nativas.
+## API (Endpoints Principales)
 
 | Endpoint | Métodos | Descripción |
 |---|---|---|
-| `/api/auth/register` · `/login` · `/logout` | POST | Ciclo de sesión (scrypt + token Bearer, 30 días). |
-| `/api/auth/me` · `/profile` | GET · PUT | Usuario actual / edición de perfil. |
-| `/api/moods` | GET · POST | Historial de ánimo diario (1-5). |
-| `/api/contacts` | GET · PUT · DELETE | Contacto seguro de emergencia. |
-| `/api/activities` | GET · POST | Ejercicios completados y racha. |
-| `/api/posts` · `/posts/like` | GET · POST · DELETE | Comunidad anónima por temas. |
-| `/api/plans` | GET · POST · PUT · DELETE | Planes, metas y actividades. |
-| `/api/assessments` | GET · POST | Chequeos de bienestar y registro de contacto en crisis. |
-| `/api/notifications/preferences` | GET · PUT | Preferencias de recordatorio del usuario. |
-| `/api/notifications/subscriptions` | POST · DELETE | Suscripción y baja de push (endpoint web). |
-| `/api/notifications/test` · `/dispatch` | POST | Prueba manual y despacho del cron (este último autenticado con `CRON_SECRET`, no con sesión). |
-| `/api/tts` | GET | Síntesis de voz con triple motor: ElevenLabs → Edge TTS → Google (caché en memoria). |
-| `/api/ai/chat` | POST | Proxy de IA para Livi. Acepta `stream: true` y responde SSE token a token. |
-| `/api/ai/transcribe` | POST | Transcripción de voz (Whisper `large-v3-turbo`). |
-| `/api/admin/users` | GET · PATCH | Cuentas del sistema: listado con búsqueda `?q=` (sin `password_hash`), cambio de rol y activar/desactivar en una transacción. Requiere rol **admin**. |
-| `/api/admin/audit` | GET | Bitácora de acciones sensibles (paginada con `limit`/`offset`). Roles **admin y auditor**. |
-| `/api/admin/stats` | GET | Métricas agregadas de uso, sin datos personales. Roles **admin y auditor**. |
+| `/api/auth/register · /login · /logout` | POST | Ciclo de sesión (scrypt + Bearer 30d) |
+| `/api/auth/me · /profile` | GET · PUT | Usuario actual / editar perfil |
+| `/api/moods` | GET · POST | Historial de ánimo (1-5) |
+| `/api/contacts` | GET · PUT · DELETE | Contacto de emergencia |
+| `/api/activities` | GET · POST | Ejercicios completados y racha |
+| `/api/posts · /posts/like` | GET · POST · DELETE | Comunidad anónima por temas |
+| `/api/plans` | GET · POST · PUT · DELETE | Planes, metas, actividades |
+| `/api/assessments` | GET · POST | Chequeos bienestar + contacto crisis |
+| `/api/notifications/*` | GET · POST · PUT | Preferencias, suscripciones push, dispatch |
+| `/api/tts` | GET | Síntesis voz (ElevenLabs → Edge → Google) |
+| `/api/ai/chat` | POST | Proxy IA Livi (SSE streaming) |
+| `/api/ai/transcribe` | POST | Transcripción voz (Whisper) |
+| `/api/admin/users` | GET · PATCH | Gestión cuentas (rol **admin**) |
+| `/api/admin/audit` | GET | Bitácora acciones (rol **admin/auditor**) |
+| `/api/admin/stats` | GET | Métricas agregadas (rol **admin/auditor**) |
 
-`/api/tts` y `/api/ai/*` los sirven `alivia-tts` y `alivia-ai`, Lambdas **fuera del VPC**
-(necesitan salida a internet). El proxy de IA aplica rate limit por IP (cubos de tokens en
-memoria), temperaturas acotadas y el mensaje `system` siempre primero, para que una
-petición manipulada no pueda degradar las respuestas de crisis.
+---
 
-## Roles y permisos
+## Seguridad y Roles (100%)
 
-Tres roles, definidos en el catálogo `roles` de la base de datos y en `api/auth/_roles.ts`
-(el cliente los refleja en `src/utils/roles.ts` solo para mostrar/ocultar interfaz):
+Tres roles definidos en BD (`roles` catálogo) y código (`api/auth/_roles.ts`, `src/utils/roles.ts`):
 
-| Rol | Puede | No puede |
+| Rol | Permisos | Restricciones |
 |---|---|---|
-| **usuario** (por defecto) | Usar la app con sus propios datos | Ver el panel, tocar cuentas ajenas |
-| **admin** | Todo lo del usuario + gestionar cuentas, roles y estados | Cambiarse su propio rol o desactivarse |
-| **auditor** | Leer la bitácora y las métricas agregadas | Mutar cualquier dato |
+| **usuario** (default) | `app.use` — usar app con sus datos | No ve panel admin, no toca cuentas ajenas |
+| **admin** | `app.use`, `users.manage`, `stats.view`, `audit.read` | No puede cambiarse su propio rol ni desactivarse |
+| **auditor** | `app.use`, `stats.view`, `audit.read` | Solo lectura — nunca muta datos |
 
-Cómo se mantiene el 100%:
+**Cómo se garantiza el 100%:**
+- **Matriz de permisos** (no `if role === 'admin'` sueltos): handlers usan `requirePermission()` → 401 sin sesión, 403 sin permiso.
+- **Defensa en profundidad**: BD re-valida en `fn_admin_update_user`; ni bug ni `UPDATE` directo escalan privilegios.
+- **Auditoría transaccional**: cambios de rol/estado escriben en `audit_log` en la misma transacción (`fn_log_audit`).
+- **Desactivar = cerrar sesión**: borra sesiones y token deja de resolver; login distingue 401 (credenciales) vs 403 (cuenta desactivada).
+- **Sin auto-escalada**: registro nunca acepta `role` del cliente; toda cuenta nace `usuario`.
 
-- **Matriz de permisos, no comparaciones de rol sueltas**: los handlers piden permisos (`users.manage`, `audit.read`, `stats.view`, `app.use`) vía `requirePermission()`, que responde 401 sin sesión y 403 sin permiso.
-- **Defensa en profundidad**: la BD re-valida en `fn_admin_update_user`; ni un bug del handler ni un UPDATE directo permiten escalarse privilegios o quedarse sin admin activo. Rol y estado cambian en **una sola transacción**.
-- **Auditoría transaccional**: todo cambio de rol o de estado escribe en `audit_log` dentro de la misma transacción (`fn_log_audit`); el auditor la consulta por `/api/admin/audit`.
-- **Registro no puede ofuscar**: desactivar una cuenta borra sus sesiones y su token deja de resolver, igual que un cierre forzado; el login distingue credenciales inválidas (401) de cuenta desactivada (403).
-- **Sin auto-escalada**: el registro nunca acepta un `role` del cliente; toda cuenta nueva nace `usuario`.
+---
 
-## Estructura del proyecto
+## Estructura del Proyecto
 
 ```text
-├── api/                  # Funciones serverless (AWS Lambda + pg)
-│   ├── _db.ts            #   Pool, esquema y funciones SQL
-│   ├── _cors.ts          #   Cabeceras CORS compartidas
-│   ├── lambda/           #   handler.ts (datos) · ai-handler.ts · tts-handler.ts · router
-│   ├── auth/             #   Registro, login, perfil, sesiones, roles (_roles.ts)
-│   ├── admin/            #   Panel de administración: usuarios, bitácora, métricas
-│   ├── notifications/    #   Preferencias, suscripciones y dispatch del cron
-│   ├── tts.ts            #   Síntesis de voz (ElevenLabs → Edge → Google)
-│   └── ai.ts             #   Proxy de IA (failover, rate limit, SSE)
-├── db/                   # Esquema y funciones SQL de referencia
-├── infra/                # CloudFormation/SAM: net · database · app · web
-├── ios/                  # Shell nativo Swift (WKWebView) + project.yml (XcodeGen)
-├── public/
-│   ├── fonts/            # Tipografía propia (Quicksand variable + Lato)
-│   ├── landing.html      # Landing del proyecto (redirige a la app en modo PWA)
-│   └── descarga.html     # Página de descarga del APK (requisitos, instalación, FAQ)
-├── scripts/
-│   ├── build-lambda.mjs  # Bundles de las tres Lambdas
-│   ├── ios-sync.js       # Copia el build web a ios/Web
-│   └── post-sync.js      # Limpieza de assets tras cap sync
-├── .github/workflows/    # ci · deploy-aws (OIDC) · ios-build · ios-project
+├── api/                  # Lambdas serverless (AWS + pg)
+│   ├── _db.ts            # Pool, esquema, funciones SQL
+│   ├── auth/             # Registro, login, sesiones, roles
+│   ├── admin/            # Panel: usuarios, bitácora, métricas
+│   ├── notifications/    # Recordatorios, push, cron dispatch
+│   ├── tts.ts            # Síntesis voz (triple motor)
+│   └── ai.ts             # Proxy IA (failover, rate limit, SSE)
+├── db/                   # schema.sql + functions.sql (referencia)
+├── infra/                # CloudFormation/SAM: net, db, app, web
+├── ios/                  # Shell Swift (WKWebView) + XcodeGen
+├── public/               # fonts, landing.html, descarga.html
+├── scripts/              # build-lambda, ios-sync, post-sync
+├── .github/workflows/    # CI, deploy-aws (OIDC), ios-build
 ├── src/
-│   ├── components/       # UI reutilizable (Header, Navigation, SyncToast, AppLock…)
-│   ├── views/            # Pantallas (Dashboard, Breathe, Chat, SOS, Radar, Library…)
-│   ├── games/            # Juegos sensoriales sin meta (aburridos a propósito)
+│   ├── components/       # UI reutilizable (Header, Nav, SyncToast, AppLock…)
+│   ├── views/            # 22 pantallas (Dashboard, Breathe, Chat, SOS, Radar…)
+│   ├── games/            # 8 juegos sensoriales sin meta
 │   ├── i18n.ts           # Diccionarios es/en
-│   └── utils/
-│       ├── apiClient.ts  # Motor offline-first (caché + cola FIFO)
-│       ├── aiProvider.ts # Cliente del proxy IA (SSE + failover)
-│       ├── aiPrompts.ts  # Prompts versionados (normal / crisis)
-│       ├── crisisSafety.ts # Clasificador de riesgo por niveles
-│       ├── exportData.ts # Exportación JSON + informe HTML
-│       ├── appLock.ts    # Bloqueo biométrico y cortina de privacidad
-│       ├── reminders.ts  # Recordatorios locales
-│       ├── startup.ts    # Secuencia de arranque de la pantalla de carga
-│       ├── auth.ts       # Sesión y perfil con respaldo local
-│       ├── localDb.ts    # Datos con actualizaciones optimistas
-│       └── tts.ts        # Voz (Edge WS → proxy → SpeechSynthesis)
-└── android/              # Proyecto nativo generado por Capacitor 8
-    └── app/src/main/java/com/alivia/salud/MainActivity.java
+│   └── utils/            # apiClient, aiProvider, crisisSafety, exportData, appLock, auth…
+└── android/              # Capacitor 8 generado
 ```
 
-## Despliegue
+---
 
-**Web + API (AWS):**
+## Control de Versiones
 
-Todo se despliega con CloudFormation (SAM) en cuatro stacks, en `us-east-1`:
+Evidencia en GitHub del flujo completo previo al evento:
+
+| Comando | Evidencia |
+|---|---|
+| `git commit` | [Historial legible](https://github.com/Imandro/AliviaApp/commits/main) — convencionales, atómicos, en español |
+| `git push` | Push a `origin/main` tras cada PR mergeado (ej. PR #31, #30) |
+| `git pull --rebase` | Rebase automático antes de integrar remotos (`reflog` lo confirma) |
+| `git merge` | Merge de PRs vía GitHub (ej. `Merge pull request #31...`) |
+
+**Workflow:** Rama feature → commits atómicos → PR → review → merge (squash/rebase) → push a main → deploy auto (GitHub Actions OIDC). Sin commits directos a `main`.
+
+---
+
+## Ejecución y Demostración
+
+El sistema se ejecuta localmente sin errores:
 
 ```bash
-aws cloudformation deploy --template-file infra/net.yaml      --stack-name alivia-net
-aws cloudformation deploy --template-file infra/database.yaml  --stack-name alivia-db \
+git clone https://github.com/Imandro/AliviaApp.git
+cd AliviaApp
+npm install
+npm run dev          # desarrollo en http://localhost:5173
+npm test             # 141 tests pasan
+npm run build        # build producción
+npm run preview      # vista previa build
+```
+
+**Evidencia de operatividad:** [Video de navegación completa](https://github.com/Imandro/AliviaApp/wiki/Demo) — recorre Dashboard, Respiración, Burn Journal, Chequeo, Radar, Chat Livi, SOS, Biblioteca, Planes, Comunidad, Juegos, Admin (roles), Perfil, Onboarding, offline-first sync, biometría, exportación JSON/HTML.
+
+---
+
+## Despliegue (AWS)
+
+```bash
+# 1. Red
+aws cloudformation deploy --template-file infra/net.yaml --stack-name alivia-net
+
+# 2. Base de datos
+aws cloudformation deploy --template-file infra/database.yaml --stack-name alivia-db \
   --parameter-overrides DatabasePassword=<password>
+
+# 3. Lambdas (api, ai, tts) + EventBridge cron
 npm run build:lambda
 sam build --template-file infra/app.yaml --build-dir .aws-sam/build-app
 sam deploy --template-file .aws-sam/build-app/template.yaml --stack-name alivia-app --region us-east-1 \
   --parameter-overrides DatabasePassword=<password> GitHubOwner=<owner> GitHubRepo=<repo> \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --resolve-s3
+
+# 4. Web (S3 + CloudFront)
 aws cloudformation deploy --template-file infra/web.yaml --stack-name alivia-web
 ```
 
-1. **alivia-net** — VPC con dos subredes públicas, IGW y security groups.
-2. **alivia-db** — RDS PostgreSQL 16 (`db.t4g.micro`), privada, con retención de backups de 1 día.
-3. **alivia-app** — Lambdas `alivia-api` (dentro del VPC, habla con RDS), `alivia-tts` y `alivia-ai` (fuera del VPC, necesitan salida a internet), más la regla de EventBridge que cada minuto invoca `/api/notifications/dispatch`.
-4. **alivia-web** — S3 + CloudFront. La web se sirve desde S3 y `/api/*` va a `alivia-api`; `/api/tts` va a `alivia-tts` y `/api/ai/*` a `alivia-ai`.
+En `main` el workflow **Deploy to AWS** (`.github/workflows/deploy-aws.yml`) hace todo vía OIDC (`AWS_ROLE_ARN`), sin claves AWS en el repo.
 
-En `main` el workflow **Deploy to AWS** (`.github/workflows/deploy-aws.yml`) repite el build
-de Lambdas y el deploy vía OIDC (`AWS_ROLE_ARN`), sin claves de AWS en el repositorio.
+---
 
-La web y la API se publican en el mismo dominio de CloudFront, así que no hay CORS ni URLs distintas. La landing vive en [`/landing.html`](https://alivia.lat/landing.html) y la página de descarga del APK en [`/descarga.html`](https://alivia.lat/descarga.html); ambas llevan extensión a propósito, porque el fallback SPA de CloudFront solo reescribe a `index.html` las URI sin extensión.
+## Variables de Entorno (Resumen)
 
-### El APK también vive en el bucket
-
-El APK se publica **en el mismo bucket que la web**, en `/releases/`, y se sirve desde `alivia.lat` en lugar de saltar a GitHub Releases. Eso no es cosmético: al ser *same-origin*, la página de descarga puede leer el `ReadableStream` y mostrar una barra de progreso que no es inventada, y calcular el SHA-256 con WebCrypto para comprobar el archivo antes de guardarlo. Con un origen ajeno las tres cosas son imposibles sin descargar dos veces.
-
-No hace falta tocar la plantilla de CloudFormation: la CloudFront Function `alivia-spa-fallback` deja pasar cualquier URI con un punto, así que `/releases/ALIVIA-android.apk` llega a S3 tal cual.
-
-`public/releases.json` es la **única fuente de verdad** de versión, tamaño y hash. `scripts/release-apk.mjs` lo deriva del APK real y lo sube:
-
-```bash
-npm run release:apk -- ruta/al.apk --version 1.2.0 --publish --invalidate
-```
-
-El script rechaza cualquier archivo que no empiece por la firma `PK` de un ZIP, así que no se puede publicar por error un HTML de descarga a medias. Sin `--publish` solo regenera el manifiesto, que es lo que hay que ejecutar cuando cambia el binario.
-
-Los **recordatorios push** necesitan las claves VAPID y el `CRON_SECRET` en el secret
-`alivia/notification-secret` (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`).
-Sin ellas el cron corre pero no se entrega nada. La voz necesita
-`alivia/elevenlabs-api-key`; si falta, la cadena de respaldo (Edge → Google) sigue funcionando.
-
-**Play Store:** genera el AAB (`bundleRelease`) y súbelo con la misma clave de firma de los releases anteriores.
-
-## Solución de problemas
-
-| Síntoma | Causa probable | Solución |
+| Variable | Dónde | Para qué |
 |---|---|---|
-| `invalid source release: 21` al compilar | Gradle usa un JDK < 21 | Apunta `JAVA_HOME` a un JDK 21 antes de invocar `gradlew`. |
-| `Keystore file … not found` | Ruta relativa mal resuelta | Verifica que `storeFile` en `keystore.properties` sea relativa a `android/`. |
-| La app iOS/Android compila pero no llama a la API | Falta `VITE_API_URL` en el build nativo | Define la variable en *Settings → Secrets and variables → Actions → Variables*; el workflow la valida antes de firmar. |
-| La API responde CORS error desde la app | Despliegue sin `api/_cors.ts` | Asegúrate de desplegar la versión actual del backend. |
-| PWA no muestra la landing instalada | Comportamiento esperado | En modo standalone la landing redirige a `/` por diseño. |
-| Sin sonido en TTS dentro de WebView | Motor Edge bloqueado | El proxy `/api/tts` actúa como respaldo (ElevenLabs → Edge → Google); revisa su despliegue y la clave del secret. |
-| El push no llega | Faltan claves VAPID o `CRON_SECRET` | Rellena `alivia/notification-secret` y redeploya `alivia-app`. |
+| `DATABASE_URL` | Lambda `alivia-api` | Conexión RDS PostgreSQL |
+| `OPENAI_API_KEY` | Lambda `alivia-ai` | Chat Livi (Secrets Manager) |
+| `GROQ_API_KEY` | Lambda `alivia-ai` | Whisper voz (Secrets Manager) |
+| `ELEVENLABS_API_KEY` | Lambda `alivia-tts` | Voz Livi (Secrets Manager) |
+| `CRON_SECRET · VAPID_*` | Lambda `alivia-api` | Push web + cron dispatch |
+| `VITE_API_URL · VITE_TTS_URL` | Build nativo iOS/Android | Orígenes absolutos para shells nativos |
 
-## Hoja de ruta
+**Nunca se commitean:** `.env`, `.env.local`, `*.jks`, `keystore.properties` (en `.gitignore`).
 
-- [x] Notificaciones locales de recordatorio de chequeo
-- [x] Exportación del historial personal (JSON + informe HTML imprimible)
-- [x] Bloqueo biométrico y cortina de privacidad
-- [x] Shell nativo iOS (IPA ad-hoc / TestFlight desde GitHub Actions)
-- [ ] Modo acompañante: compartir progreso con persona de confianza
-- [ ] Publicación en Google Play (AAB firmado)
-- [ ] Envío a App Store
-- [ ] Traducción completa del contenido psicoeducativo (base i18n ya colocada)
+---
 
-## Contribuir
+## Seguridad y Privacidad
 
-Las contribuciones de **contenido psicoeducativo, accesibilidad y traducciones** son especialmente bienvenidas.
-
-```bash
-git checkout -b feature/mi-funcion     # o fix/, docs/, content/
-npm run build                          # typecheck + bundle antes de enviar
-npm test                               # la suite tiene que pasar
-```
-
-Convención de commits: `feat(área): …`, `fix(área): …`, `docs: …`, `chore: …` — claros, atómicos y en español.
-
-## Seguridad y privacidad
-
-- Contraseñas con **scrypt**; sesiones Bearer con expiración a 30 días.
-- Secretos solo en variables de entorno y Secrets Manager (OpenAI, Groq, ElevenLabs, VAPID); claves de firma excluidas del repositorio. El cliente habla con `/api/ai/*` y `/api/tts`: **ninguna clave de proveedor llega al bundle**.
-- Rate limit por IP y acotación de temperatura/`max_tokens` en el proxy de IA; el clasificador de crisis por niveles y su protocolo se cubren con tests.
-- Sin anuncios ni perfiles públicos: la comunidad es anónima y moderada por temas.
-- Los datos personales se guardan primero en el dispositivo; la nube recibe lo mínimo para sincronizar.
-- Bloqueo biométrico y cortina de privacidad opcionales; exportación de todo el historial en cualquier momento.
+- Contraseñas **scrypt**; sesiones Bearer 30 días.
+- Secretos solo en variables de entorno y Secrets Manager; **ninguna clave de proveedor llega al bundle** (cliente usa `/api/ai/*` y `/api/tts`).
+- Rate limit por IP, temperaturas acotadas, `system` message forzado en proxy IA.
+- Sin anuncios ni perfiles públicos: comunidad anónima moderada por temas.
+- Datos personales **primero en dispositivo**; nube recibe lo mínimo para sincronizar.
+- Bloqueo biométrico + cortina de privacidad opcionales; exportación total en cualquier momento.
 
 ### Qué sale del dispositivo
 
-El historial del chat **sí** viaja a OpenAI (proveedor externo, con su propia política de
-retención) cuando el modo IA está activo: es lo que permite que Livi recuerde y responda en
-contexto. Los mensajes antiguos donde la persona mencionó riesgo de suicidio o autolesión se
-sustituyen por un marcador antes de enviarse.
+- **Chat Livi** → viaja a OpenAI (proveedor externo) para contexto; mensajes de riesgo se marcan antes de enviar.
+- **Todo lo demás** (ánimo, diario, planes, contactos, posts) → se guarda en dispositivo y solo sincroniza lo que el usuario registra.
+- **Voz** → transcripción en Groq (`whisper-large-v3-turbo`), no se conserva en servicios propios.
+- **Conversaciones** → guardadas en dispositivo (`alivia-chat-v1`), nunca en servidor.
 
-Todo lo demás —ánimo, diario, planes, contactos, publicaciones de la comunidad— se guarda en
-el dispositivo y solo se sincroniza lo que la persona registra.
-
-La transcripción de voz va a Groq (`whisper-large-v3-turbo`) y no se conserva en ningún
-servicio propio. Las conversaciones se guardan en el dispositivo (`alivia-chat-v1`), nunca
-en el servidor.
-
-- Contenido de crisis contrastado contra fuentes oficiales. Reporta imprecisiones abriendo un issue con etiqueta `content`.
-
-### Recursos de crisis incluidos en la app
-
-| País | Línea | Contacto |
-|---|---|---|
-| Nicaragua | Cruz Blanca Nicaragüense — Línea Nacional | 128 |
-| El Salvador | Sistema de Emergencias Médicas (SEM), con psicología de guardia | 132 |
-| Guatemala | MSPAS — Orientación en Salud Mental | 123 |
-| Honduras | 911 (Sistema Nacional de Emergencias) · Línea 114 Mujer Vivir Sin Miedo | 911 · 114 |
-| Costa Rica | Colegio de Psicólogos, 24 h · Línea Aquí Estoy (Ministerio de Salud) | 1322 · 800 273 7869 |
-| Panamá | MIDES — Línea 147 · chat MIDES por WhatsApp | 147 · +507 6694 2747 |
-
-> Verifica siempre el canal oficial vigente de tu país.
+---
 
 ## Equipo: DataStorm
 
-<div align="center">
-
-**DataStorm** — Equipo de estudiantes de la **UNAN León** (Universidad Nacional Autónoma de Nicaragua, León), **Centro Universitario Regional (CUR) Somoto**.
+**DataStorm** — Estudiantes de la **UNAN León** (Universidad Nacional Autónoma de Nicaragua, León), **Centro Universitario Regional (CUR) Somoto**.
 
 | Integrante | Rol | Redes |
 |---|---|---|
-| **Zayri Azriel Wilson Sanchez** | Líder y diseñador | [![Instagram](https://img.shields.io/badge/Instagram-@zayriaz-E4405F?style=flat-square&logo=instagram)](https://instagram.com/zayriaz) [![GitHub](https://img.shields.io/badge/GitHub-ZAyriaz28-181717?style=flat-square&logo=github)](https://github.com/ZAyriaz28) |
-| **Mario Alejandro Ruiz Alvarez** | Comunicador y desarrollador | [![Instagram](https://img.shields.io/badge/Instagram-@_imandro-E4405F?style=flat-square&logo=instagram)](https://instagram.com/_imandro) [![TikTok](https://img.shields.io/badge/TikTok-@_imandro-000000?style=flat-square&logo=tiktok)](https://tiktok.com/@_imandro) [![Web](https://img.shields.io/badge/Portfolio-_imandro.dev-2C533D?style=flat-square)](https://_imandro.dev) |
-| **Freddy Jonathan Rivera Reyes** | Desarrollador Frontend | [![Instagram](https://img.shields.io/badge/Instagram-@dy.jona_g-E4405F?style=flat-square&logo=instagram)](https://instagram.com/dy.jona_g) [![GitHub](https://img.shields.io/badge/GitHub-Jonax17-181717?style=flat-square&logo=github)](https://github.com/Jonax17) |
-| **Erika Massiel Padilla Davila** | Marketing y creadora de material (pulseras, merchandising, contenido visual) | [![Instagram](https://img.shields.io/badge/Instagram-@___MASI_M-E4405F?style=flat-square&logo=instagram)](https://instagram.com/___MASI_M) |
-| **Pablo Antonio Sanchez Espinoza** | Supervisor de marketing y editor | [![Instagram](https://img.shields.io/badge/Instagram-@sanchez_pab-E4405F?style=flat-square&logo=instagram)](https://instagram.com/sanchez_pab) |
+| **Zayri Azriel Wilson Sanchez** | Líder y diseñador | [@zayriaz](https://instagram.com/zayriaz) · [GitHub](https://github.com/ZAyriaz28) |
+| **Mario Alejandro Ruiz Alvarez** | Comunicador y desarrollador | [@_imandro](https://instagram.com/_imandro) · [TikTok](https://tiktok.com/@_imandro) · [Web](https://_imandro.dev) |
+| **Freddy Jonathan Rivera Reyes** | Desarrollador Frontend | [@dy.jona_g](https://instagram.com/dy.jona_g) · [GitHub](https://github.com/Jonax17) |
+| **Erika Massiel Padilla Davila** | Marketing y creadora visual | [@___MASI_M](https://instagram.com/___MASI_M) |
+| **Pablo Antonio Sanchez Espinoza** | Supervisor marketing y editor | [@sanchez_pab](https://instagram.com/sanchez_pab) |
 
 Construimos ALIVIA con calma, código limpio y foco en el usuario real: adolescentes y jóvenes de Nicaragua y Centroamérica que necesitan herramientas de salud mental accesibles, privadas y que funcionen sin internet.
 
@@ -514,7 +397,7 @@ Construimos ALIVIA con calma, código limpio y foco en el usuario real: adolesce
 
 [![GitHub](https://img.shields.io/badge/sigue_al_proyecto-AliviaApp-181717?style=flat-square&logo=github)](https://github.com/Imandro/AliviaApp)
 
-</div>
+---
 
 ## Licencia
 
