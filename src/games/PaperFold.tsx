@@ -3,12 +3,22 @@ import { SensoryStage, STAGE_HEIGHT } from './SensoryStage';
 import { creaseSound } from '../utils/sounds';
 import { hapticTick } from '../utils/haptics';
 
-const PAPER_X = 22;
 const PAPER_W = 244;
 const PAPER_TOP = 16;
 const SPAN = STAGE_HEIGHT - PAPER_TOP - 22;
 const MIN_FOLD = 30;
 const COMMIT_RATIO = 0.42;
+
+/**
+ * Posición horizontal de la hoja, centrada en el escenario.
+ *
+ * Estaba clavada en PAPER_X (22px desde la izquierda), así que en un escenario
+ * ancho la hoja quedaba abandonada en el borde y el mensaje de "hoja agotada"
+ * se centraba cientos de píxeles a su derecha. El offset cubre el pequeño
+ * desvío de cada capa y el sangrado de la línea de pliegue.
+ */
+const paperLeft = (offset = 0): string =>
+  `calc(50% - ${PAPER_W / 2}px + ${offset}px)`;
 
 const sheet = (alpha: number): string =>
   `linear-gradient(180deg, rgba(252,250,242,${alpha}) 0%, rgba(238,233,218,${alpha}) 100%)`;
@@ -117,9 +127,9 @@ export const PaperFold: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         {/* Cuerpo de la hoja: solo la parte que aún no está plegada. */}
         <div
           style={{
-            position: 'absolute',
-            left: PAPER_X,
-            top: PAPER_TOP + bodyTop,
+          position: 'absolute',
+          left: paperLeft(),
+          top: PAPER_TOP + bodyTop,
             width: PAPER_W,
             height: SPAN - bodyTop,
             background: sheet(0.96),
@@ -145,7 +155,7 @@ export const PaperFold: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             key={i}
             style={{
               position: 'absolute',
-              left: PAPER_X + l.skew,
+              left: paperLeft(l.skew),
               top: PAPER_TOP + top + i * 1.4,
               width: PAPER_W,
               height: l.h,
@@ -165,8 +175,8 @@ export const PaperFold: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             <div
               style={{
                 position: 'absolute',
-                left: PAPER_X,
-                top: PAPER_TOP + top,
+              left: paperLeft(),
+              top: PAPER_TOP + top,
                 width: PAPER_W,
                 height: flapH,
                 transformOrigin: '50% 100%',
@@ -195,7 +205,7 @@ export const PaperFold: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             <div
               style={{
                 position: 'absolute',
-                left: PAPER_X - 8,
+                left: paperLeft(-8),
                 width: PAPER_W + 16,
                 top: PAPER_TOP + crease,
                 borderTop: '2px dashed rgba(var(--accent-lavender-rgb), 0.75)',

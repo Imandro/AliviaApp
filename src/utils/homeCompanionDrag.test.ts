@@ -1,14 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { enableHomeCompanionDrag } from './homeCompanionDrag';
 
-function fixture() {
+function fixture(box?: { left: number; top: number; right: number; bottom: number }) {
   const page = Object.assign(new EventTarget(), { innerWidth: 390, innerHeight: 844 });
   vi.stubGlobal('window', page);
   const style = { transform: '', setProperty: vi.fn() };
-  const anchor = { style, dataset: {} as Record<string, string>, getBoundingClientRect: () => {
-    const [x, y] = (style.transform.match(/-?\d+(?:\.\d+)?/g) ?? ['0', '0']).map(Number);
-    return { left: 330 + x, top: 80 + y, width: 48, height: 115 };
-  } };
+  const anchor = {
+    style,
+    dataset: {} as Record<string, string>,
+    getBoundingClientRect: () => {
+      const [x, y] = (style.transform.match(/-?\d+(?:\.\d+)?/g) ?? ['0', '0']).map(Number);
+      return { left: 330 + x, top: 80 + y, width: 48, height: 115 };
+    },
+    // Con contenedor, la mascota se mueve dentro de .app-content y no de la ventana.
+    ...(box ? { closest: () => ({ getBoundingClientRect: () => box }) } : {}),
+  };
   let captured: number | null = null;
   const button = Object.assign(new EventTarget(), {
     setPointerCapture: (id: number) => { captured = id; },
@@ -92,6 +98,27 @@ describe('arrastre de la mascota', () => {
     f.page.innerHeight = 500;
     f.page.dispatchEvent(new Event('resize'));
     expect(f.anchor.style.transform).toBe('translate(-318px, 293px)');
+    f.dispose();
+  });
+  it('se amarra al área de contenido cuando la ventana es más ancha que el contenedor', () => {
+    // Ventana de 1920 con el contenedor centrado de 1100px: ocupa de 410 a 1510.
+    const host = { left: 410, top: 16, right: 1510, bottom: 1064 };
+    const f = fixture(host);
+    Object.assign(f.page, { innerWidth: 1920, innerHeight: 1120 });
+    // Al montar ya se mete dentro del contenedor (el ancla natural, 330, está a la izquierda).
+    expect(f.anchor.style.transform).toBe('translate(92px, 0px)');
+    f.send('pointerdown');
+    f.send('pointermove', { clientX: 2140, clientY: 170 });
+    f.send('pointerup');
+    // 12px del borde derecho del CONTENIDO (1510 - 12 - 48 = 1132 - ancla 330 = 802 + margen de partida...),
+    // nunca del borde de la ventana (que sería 1530 y quedaría recortado).
+    expect(f.anchor.style.transform).toBe('translate(1120px, 70px)');
+    expect(f.anchor.dataset.dialogSide).toBe('left');
+    f.send('pointerdown');
+    f.send('pointermove', { clientX: -1000, clientY: 2000 });
+    f.send('pointerup');
+    expect(f.anchor.style.transform).toBe('translate(92px, 857px)');
+    expect(f.anchor.dataset.dialogSide).toBe('right');
     f.dispose();
   });
   it('ignora otros punteros, termina al cancelar y permite un nuevo toque', () => {

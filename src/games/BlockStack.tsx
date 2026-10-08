@@ -45,7 +45,11 @@ export const BlockStack: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const stage = stageRef.current;
     if (!stage) return;
     const { x } = toStagePoint(stage, e.clientX, e.clientY);
-    const max = stage.getBoundingClientRect().width / 2 - BLOCK_W / 2 - 10;
+    /* El alcance iba ligado al ancho del escenario: con un contenedor de
+       1100px permitía ±470px mientras la base mide 176px, y los bloques se
+       apilaban flotando fuera de ella. El tope de 200px no afecta al móvil
+       (allí el escenario da ~172px de alcance). */
+    const max = Math.min(stage.getBoundingClientRect().width / 2 - BLOCK_W / 2 - 10, 200);
     const next = Math.max(-max, Math.min(max, x - stage.getBoundingClientRect().width / 2));
     if (Math.abs(next - hoverRef.current) < 0.5) return;
     hoverRef.current = next;
