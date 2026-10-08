@@ -208,7 +208,7 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;transform:translate3d(0,var(--scroll-offset,0px),0) rotate(var(--scroll-tilt,0deg));will-change:transform}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1200px;transform:translate3d(0,var(--scroll-offset,0px),0);will-change:transform}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
@@ -216,10 +216,11 @@ a{color:inherit}
 }
 .mockup img{
   display:block;width:auto;height:min(68vh,570px);max-width:100%;object-fit:contain;
-  animation:mockup-flotar 7s ease-in-out infinite;
-  filter:drop-shadow(0 24px 34px rgba(0,0,0,.32))
+  transform:rotateY(var(--scroll-rotate,0deg)) rotateX(var(--scroll-pitch,0deg));
+  transform-origin:center;
+  filter:drop-shadow(var(--scroll-shadow-x,0px) 24px 34px rgba(0,0,0,.32));
+  will-change:transform
 }
-@keyframes mockup-flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 .mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
 
 /* Momentos */
@@ -720,7 +721,7 @@ a{color:inherit}
     </div>
 
     <figure class="mockup">
-      <img src="/alivia-app-mockup.webp" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
+      <img src="/alivia-app-mockup.jpeg" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
       <figcaption>Una mirada a las herramientas de bienestar que encontrarás en ALIVIA.</figcaption>
     </figure>
   </div>
@@ -1194,18 +1195,22 @@ a{color:inherit}
   }
 })();
 
-/* Parallax suave para dar profundidad al mockup y su halo */
+/* Giro 3D del telefono sincronizado con su recorrido por la pantalla */
 (function(){
   var mockup = document.querySelector('.mockup');
+  var image = mockup && mockup.querySelector('img');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!mockup || reduce || !('requestAnimationFrame' in window)) return;
+  if (!mockup || !image || reduce || !('requestAnimationFrame' in window)) return;
   var pending = false;
   function update(){
     var rect = mockup.getBoundingClientRect();
-    var progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-    var depth = Math.max(-1, Math.min(1, (progress - 0.5) * 2));
-    mockup.style.setProperty('--scroll-offset', (depth * 30).toFixed(2) + 'px');
-    mockup.style.setProperty('--scroll-tilt', (depth * 1.15).toFixed(2) + 'deg');
+    var center = rect.top + rect.height / 2;
+    var range = (window.innerHeight + rect.height) / 2;
+    var depth = Math.max(-1, Math.min(1, (window.innerHeight / 2 - center) / range));
+    mockup.style.setProperty('--scroll-offset', (depth * 18).toFixed(2) + 'px');
+    image.style.setProperty('--scroll-rotate', (depth * 24).toFixed(2) + 'deg');
+    image.style.setProperty('--scroll-pitch', (depth * -2.5).toFixed(2) + 'deg');
+    image.style.setProperty('--scroll-shadow-x', (depth * -12).toFixed(2) + 'px');
     mockup.style.setProperty('--glow-scale', (1 - Math.abs(depth) * 0.12).toFixed(2));
     mockup.style.setProperty('--glow-opacity', (0.62 + (1 - Math.abs(depth)) * 0.32).toFixed(2));
     pending = false;
