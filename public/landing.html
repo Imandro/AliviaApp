@@ -208,17 +208,45 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1100px}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
   filter:blur(22px)
 }
-.mockup img{
-  display:block;width:auto;height:min(68vh,570px);max-width:100%;object-fit:contain;
-  border-radius:28px;filter:drop-shadow(0 24px 34px rgba(0,0,0,.32))
+.iphone-device{
+  position:relative;width:clamp(220px,26vw,326px);max-width:72vw;aspect-ratio:393/852;
+  padding:7px;border:1px solid rgba(255,255,255,.72);border-radius:15.5% / 7.2%;
+  background:linear-gradient(112deg,#343638 0%,#d8d9d5 5%,#777a7a 9%,#252729 13%,#090a0b 48%,#777a7a 91%,#d4d5d1 95%,#333537 100%);
+  box-shadow:0 28px 55px rgba(0,0,0,.42),0 8px 18px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.28);
+  transform:rotateY(var(--scroll-rotate,0deg));
+  transform-style:preserve-3d;transform-origin:center;
+  transition:none;
+  filter:drop-shadow(var(--scroll-shadow-x,0px) 14px 22px rgba(0,0,0,.22));
+  will-change:transform
 }
+.iphone-device::before{
+  content:"";position:absolute;inset:3px;border:1px solid rgba(255,255,255,.22);
+  border-radius:inherit;pointer-events:none
+}
+.iphone-screen{
+  position:absolute;inset:7px;overflow:hidden;border-radius:13.6% / 6.4%;
+  background:#111b14;box-shadow:inset 0 0 0 1px rgba(0,0,0,.85)
+}
+.iphone-screen img{display:block;width:100%;height:100%;object-fit:cover}
+.iphone-button{
+  position:absolute;z-index:2;width:3px;border-radius:3px;
+  background:linear-gradient(90deg,#777a7a,#d4d5d1 50%,#5a5d5e);
+  box-shadow:0 0 0 1px rgba(0,0,0,.38)
+}
+.iphone-button--action{left:-3px;top:16%;height:4.2%}
+.iphone-button--volume-up{left:-3px;top:23%;height:7%}
+.iphone-button--volume-down{left:-3px;top:31.5%;height:7%}
+.iphone-button--power{right:-3px;top:25%;height:12%}
 .mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
+@media (max-width:640px){
+  .iphone-device{width:clamp(230px,68vw,310px);max-width:76vw}
+}
 
 /* Momentos */
 .momentos{padding:clamp(3rem,7vw,5.5rem) 0}
@@ -347,6 +375,15 @@ a{color:inherit}
 .articulacion__panel h2{font-size:clamp(1.55rem,3vw,2.2rem);max-width:22ch;margin:.35rem 0 .8rem}
 .articulacion__panel p{color:var(--texto-2);margin:0;line-height:1.7}
 .articulacion__panel p+p{margin-top:.8rem}
+.articulacion__marca{display:flex;align-items:center;gap:clamp(.6rem,2vw,1rem);margin-bottom:1rem}
+.articulacion__marca-alivia{display:block;width:clamp(100px,16vw,150px);height:auto}
+.articulacion__marca-por{font-family:"Quicksand",sans-serif;font-size:1.4rem;font-weight:700;color:var(--oro)}
+.articulacion__marca-minsa{display:grid;justify-items:center;gap:.2rem}
+.articulacion__marca-minsa img{display:block;width:clamp(125px,20vw,190px);height:auto}
+.articulacion__marca-minsa span{
+  color:var(--texto-2);font-family:"Quicksand",sans-serif;font-size:.62rem;
+  font-weight:700;letter-spacing:.18em;text-transform:uppercase
+}
 .articulacion__nota{
   padding:1.25rem 1.35rem;border:1px solid var(--linea);border-radius:18px;
   background:rgba(13,24,16,.38);color:var(--texto-2);font-size:.92rem;line-height:1.65;
@@ -563,23 +600,26 @@ a{color:inherit}
 
 /* Reveal */
 [id]{scroll-margin-top:96px}
-.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1)}
+.reveal{opacity:0; transform:translateY(14px); transition:opacity .9s cubic-bezier(.22,1,.36,1), transform .9s cubic-bezier(.22,1,.36,1)}
 .reveal.is-in{opacity:1; transform:none}
 
 @media (max-width:900px){
   .hero__grid,.offline__grid,.tech__grid{grid-template-columns:1fr}
   .c-span7,.c-span5,.c-span4{grid-column:span 12}
   .stats__band{grid-template-columns:1fr}
-  .nav__links a:not(.cta){display:none}
+  .nav__links a:not(.cta):not(.minsa-link){display:none}
 }
 @media (max-width:640px){
   body{font-size:16px}
   .wrap{width:calc(100% - 2.6rem)}
-  .wordmark{gap:.3rem}
-  .wordmark__alivia{width:5.1rem}
-  .wordmark__por{font-size:.8rem}
-  .wordmark__minsa img{width:4.6rem}
-  .wordmark__minsa span{font-size:.42rem;letter-spacing:.12em}
+  .nav__in{gap:.55rem}
+  .nav__links{gap:.2rem}
+  .nav__links a.cta{padding:.38rem .45rem;font-size:.68rem;white-space:nowrap}
+  .wordmark{gap:.2rem}
+  .wordmark__alivia{width:4.1rem}
+  .wordmark__por{font-size:.72rem}
+  .wordmark__minsa img{width:3.6rem}
+  .wordmark__minsa span{font-size:.36rem;letter-spacing:.1em}
   .hero__cta{gap:.65rem}
   .hero__cta .btn{width:100%; justify-content:center}
   .aurora i{filter:blur(56px); animation:none}
@@ -594,8 +634,7 @@ a{color:inherit}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  *{transition:none!important; animation:none!important}
-  .reveal{opacity:1; transform:none}
+  .iphone-device{filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));will-change:auto}
 }
 :focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
 </style>
@@ -670,6 +709,7 @@ a{color:inherit}
     </a>
     <div class="nav__links">
       <a href="#momentos">Momentos</a>
+      <a class="minsa-link" href="#minsa">MINSA</a>
       <a href="#pitch">Pitch</a>
       <a href="/beta.html">Beta Play Store</a>
       <a href="#funciones">Funciones</a>
@@ -704,7 +744,15 @@ a{color:inherit}
     </div>
 
     <figure class="mockup">
-      <img src="/alivia-app-mockup.jpeg" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
+      <div class="iphone-device" role="img" aria-label="Mockup de un iPhone 15 con ALIVIA abierta">
+        <span class="iphone-button iphone-button--action" aria-hidden="true"></span>
+        <span class="iphone-button iphone-button--volume-up" aria-hidden="true"></span>
+        <span class="iphone-button iphone-button--volume-down" aria-hidden="true"></span>
+        <span class="iphone-button iphone-button--power" aria-hidden="true"></span>
+        <div class="iphone-screen">
+          <img src="/alivia-app-screen.webp" alt="">
+        </div>
+      </div>
       <figcaption>Una mirada a las herramientas de bienestar que encontrarás en ALIVIA.</figcaption>
     </figure>
   </div>
@@ -740,6 +788,30 @@ a{color:inherit}
     </div>
   </div>
 </section>
+<section class="articulacion" id="minsa" aria-labelledby="articulacionTitulo">
+  <div class="wrap">
+    <div class="articulacion__panel reveal">
+      <div>
+        <div class="articulacion__marca" role="img" aria-label="ALIVIA en colaboración con MINSA–SILAIS Madriz">
+          <img class="articulacion__marca-alivia" src="/alivia-logo-secundario-blanco.png" alt="">
+          <span class="articulacion__marca-por" aria-hidden="true">×</span>
+          <div class="articulacion__marca-minsa">
+            <img src="/minsa-logo-silais.png" alt="">
+            <span>SILAIS Madriz</span>
+          </div>
+        </div>
+        <h2 id="articulacionTitulo">Una alerta crítica puede acercar ayuda a tiempo.</h2>
+        <p>ALIVIA trabaja con el Ministerio de Salud, por medio del SILAIS Madriz, para ayudar a comunicar situaciones de salud mental que necesitan atención. Los casos importantes pueden compartirse con las autoridades de salud para que revisen qué ayuda hace falta.</p>
+        <p>Los reportes enviados desde la app pasan por controles para reducir avisos falsos o enviados en broma. Si un aviso necesita atención, puede compartirse con las autoridades de salud para que lo revisen.</p>
+      </div>
+      <aside class="articulacion__nota">
+        <strong>Un puente para pedir apoyo</strong>
+        Esta coordinación busca que las personas reciban apoyo a tiempo. ALIVIA ayuda a pedir apoyo, pero no reemplaza los servicios de emergencia ni la atención de profesionales de salud. Si hay una emergencia, comunícate directamente con los servicios oficiales de tu localidad.
+      </aside>
+    </div>
+  </div>
+</section>
+
 <section class="pitch" id="pitch">
   <div class="wrap pitch__grid">
     <div class="reveal">
@@ -836,23 +908,6 @@ a{color:inherit}
         <h3>Cosas que no importan</h3>
         <p>Ocho tareas aburridas a propósito —monedas, bloques, marimba, dardos, papel— para distraerte sin nada que ganar.</p>
       </article>
-    </div>
-  </div>
-</section>
-
-<section class="articulacion" aria-labelledby="articulacionTitulo">
-  <div class="wrap">
-    <div class="articulacion__panel reveal">
-      <div>
-        <p class="kicker">Acompañamiento en la comunidad</p>
-        <h2 id="articulacionTitulo">Una alerta crítica puede acercar ayuda a tiempo.</h2>
-        <p>ALIVIA trabaja en coordinación con el MINSA–SILAIS (Madriz), desde donde se facilita la comunicación de casos de salud mental que requieren atención prioritaria con las autoridades y los puestos de mando más cercanos, en Madriz y los demás departamentos.</p>
-        <p>Los reportes se gestionan desde la aplicación mediante mecanismos de validación orientados a reducir envíos falsos o de broma, para que las alertas relevantes puedan canalizarse y ser valoradas por las autoridades correspondientes.</p>
-      </div>
-      <aside class="articulacion__nota">
-        <strong>Un puente para pedir apoyo</strong>
-        Esta coordinación busca contribuir a una respuesta oportuna y a la protección de la vida. ALIVIA complementa, pero no sustituye, los servicios de emergencia ni la atención de profesionales de salud.
-      </aside>
     </div>
   </div>
 </section>
@@ -1157,9 +1212,8 @@ a{color:inherit}
 
 /* Reveal on scroll */
 (function(){
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var items = document.querySelectorAll('.reveal');
-  if (!reduce && 'IntersectionObserver' in window) {
+  if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(en){
         if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
@@ -1169,6 +1223,64 @@ a{color:inherit}
   } else {
     items.forEach(function(el){ el.classList.add('is-in'); });
   }
+})();
+
+/* El iPhone gira desde una vista lateral hasta quedar de frente con el scroll */
+(function(){
+  var mockup = document.querySelector('.mockup');
+  var device = mockup && mockup.querySelector('.iphone-device');
+  var hero = document.querySelector('.hero');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!mockup || !device || !hero || !('requestAnimationFrame' in window)) return;
+  var pending = false;
+  var animating = false;
+  var currentRotate;
+  var currentShadow;
+  var targetRotate;
+  var targetShadow;
+  var lastFrame = 0;
+  var motionScale = reduce ? .75 : 1;
+  function setTarget(){
+    var heroTop = hero.getBoundingClientRect().top + window.scrollY;
+    var range = Math.max(520, Math.min(780, window.innerHeight * 1.15));
+    var progress = Math.max(0, Math.min(1, (window.scrollY - heroTop) / range));
+    var turnEase = progress * progress * (3 - 2 * progress);
+    targetRotate = (1 - turnEase) * -48 * motionScale;
+    targetShadow = (1 - turnEase) * 9 * motionScale;
+    pending = false;
+    if (!animating && (Math.abs(targetRotate - currentRotate) >= .04 || Math.abs(targetShadow - currentShadow) >= .04)) {
+      animating = true;
+      window.requestAnimationFrame(animate);
+    }
+  }
+  function animate(timestamp){
+    var elapsed = lastFrame ? Math.min(timestamp - lastFrame, 50) : 16;
+    lastFrame = timestamp;
+    var easing = 1 - Math.exp(-elapsed / 110);
+    currentRotate += (targetRotate - currentRotate) * easing;
+    currentShadow += (targetShadow - currentShadow) * easing;
+    if (Math.abs(targetRotate - currentRotate) < .04 && Math.abs(targetShadow - currentShadow) < .04) {
+      currentRotate = targetRotate;
+      currentShadow = targetShadow;
+      animating = false;
+      lastFrame = 0;
+    }
+    device.style.setProperty('--scroll-rotate', currentRotate.toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-shadow-x', currentShadow.toFixed(2) + 'px');
+    if (animating) window.requestAnimationFrame(animate);
+  }
+  function schedule(){
+    if (pending) return;
+    pending = true;
+    window.requestAnimationFrame(setTarget);
+  }
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  currentRotate = targetRotate = -48 * motionScale;
+  currentShadow = targetShadow = 9 * motionScale;
+  device.style.setProperty('--scroll-rotate', currentRotate + 'deg');
+  device.style.setProperty('--scroll-shadow-x', currentShadow + 'px');
+  setTarget();
 })();
 </script>
 
