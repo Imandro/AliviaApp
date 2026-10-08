@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronRight, Check, X } from 'lucide-react';
 import { isNativeShell } from '../utils/nativeShell';
+import { shouldShowFirstLockPrompt } from './FirstLockPrompt';
 
 const SEEN_KEY = 'alivia-tour-v2';
 
@@ -189,11 +190,9 @@ const place = useCallback(
 
   
 
-  useEffect(() => {
+useEffect(() => {
     if (isNativeShell) return;
     try {
-      // El tour v1 (tarjetas) se reemplaza por este. Si alguien ya vio el
-      // anterior no debe volver a ver un tutorial, solo que este sea mejor.
       if (localStorage.getItem(SEEN_KEY) === '1') return;
       if (localStorage.getItem('alivia-tutorial-seen-v1') === '1') {
         localStorage.setItem(SEEN_KEY, '1');
@@ -202,9 +201,18 @@ const place = useCallback(
     } catch {
       /* modo privado: se muestra igual */
     }
-    // Espera a que el Dashboard termine de montar antes de medir.
-    const t = setTimeout(() => setActive(true), 1200);
-    return () => clearTimeout(t);
+    // Esperar a que se resuelva el prompt de bloqueo (si corresponde)
+    const waitForLockPrompt = () => {
+      if (!shouldShowFirstLockPrompt()) {
+        // El prompt de bloqueo ya no debe mostrarse -> activar tutorial
+        const t = setTimeout(() => setActive(true), 1200);
+        return () => clearTimeout(t);
+      }
+      // Volver a comprobar en 300ms
+      const t = setTimeout(waitForLockPrompt, 300);
+      return () => clearTimeout(t);
+    };
+    waitForLockPrompt();
   }, []);
 
   // Recalcular en resize y en scroll: los elementos se mueven y la tarjeta se
