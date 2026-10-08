@@ -155,9 +155,16 @@ a{color:inherit}
 }
 .nav__in{display:flex; align-items:center; gap:1.6rem; padding:.65rem 0}
 .wordmark{
-  display:inline-flex; align-items:center; flex:none; color:var(--texto); text-decoration:none;
+  display:inline-flex; align-items:center; gap:.5rem; flex:none; color:var(--texto); text-decoration:none;
 }
-.wordmark img{display:block; width:clamp(7rem,12vw,8.5rem); height:auto}
+.wordmark__alivia{display:block;width:clamp(5rem,8vw,6.3rem);height:auto}
+.wordmark__por{font-family:"Quicksand",sans-serif;font-size:1rem;font-weight:700;color:var(--oro)}
+.wordmark__minsa{display:grid;justify-items:center;gap:.08rem}
+.wordmark__minsa img{display:block;width:clamp(4.7rem,7.5vw,6rem);height:auto}
+.wordmark__minsa span{
+  color:var(--texto-2);font-family:"Quicksand",sans-serif;font-size:.48rem;
+  font-weight:700;letter-spacing:.16em;text-transform:uppercase
+}
 .nav__links{margin-left:auto; display:flex; gap:.4rem; align-items:center}
 .nav__links a{
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.86rem;
@@ -568,7 +575,11 @@ a{color:inherit}
 @media (max-width:640px){
   body{font-size:16px}
   .wrap{width:calc(100% - 2.6rem)}
-  .wordmark img{width:6.75rem}
+  .wordmark{gap:.3rem}
+  .wordmark__alivia{width:5.1rem}
+  .wordmark__por{font-size:.8rem}
+  .wordmark__minsa img{width:4.6rem}
+  .wordmark__minsa span{font-size:.42rem;letter-spacing:.12em}
   .hero__cta{gap:.65rem}
   .hero__cta .btn{width:100%; justify-content:center}
   .aurora i{filter:blur(56px); animation:none}
@@ -649,7 +660,14 @@ a{color:inherit}
 
 <nav class="nav">
   <div class="wrap nav__in">
-    <a class="wordmark" href="/"><img src="/alivia-logo-secundario-blanco.png" alt="Logotipo de ALIVIA, bienestar emocional" width="2460" height="938"></a>
+    <a class="wordmark" href="/" aria-label="ALIVIA en colaboración con MINSA–SILAIS Madriz">
+      <img class="wordmark__alivia" src="/alivia-logo-secundario-blanco.png" alt="ALIVIA" width="2460" height="938">
+      <span class="wordmark__por" aria-hidden="true">×</span>
+      <span class="wordmark__minsa">
+        <img src="/minsa-logo-silais.png" alt="Ministerio de Salud de Nicaragua, MINSA">
+        <span>SILAIS Madriz</span>
+      </span>
+    </a>
     <div class="nav__links">
       <a href="#momentos">Momentos</a>
       <a href="#pitch">Pitch</a>
