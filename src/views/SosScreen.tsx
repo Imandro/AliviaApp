@@ -4,14 +4,15 @@
    ---------------------------------------------------- */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check, Shield, ChevronRight } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Phone, MessageSquare, ShieldAlert, Heart, UserPlus, Trash2, Check, Shield, ChevronRight, Siren } from 'lucide-react';
 import { getEmergencyContact, saveEmergencyContact, deleteEmergencyContact } from '../utils/localDb';
 import { CountryPhoneInput } from '../components/CountryPhoneInput';
-import { CRISIS_LINES, CRISIS_COUNTRY_LABELS, CRISIS_COUNTRIES, crisisHref, type CrisisCountry } from '../utils/crisisLines';
+import { CRISIS_LINES, crisisHref } from '../utils/crisisLines';
 import { CrisisModeBanner } from './CrisisModeBanner';
 import { OfficialResourcesView } from './OfficialResourcesView';
-import { detectUserCountry, getCountryInfo, getEmergencyNumber, supportsGeolocation } from '../utils/officialResources';
+import { getEmergencyNumber } from '../utils/officialResources';
+import { SilaisAlertSheet } from '../components/SilaisAlertSheet';
 
 export const SosScreen: React.FC = () => {
   // Contacto Seguro local
@@ -19,31 +20,24 @@ export const SosScreen: React.FC = () => {
   const [isConfiguring, setIsConfiguring] = useState<boolean>(false);
   const [contactName, setContactName] = useState<string>('');
   const [contactPhone, setContactPhone] = useState<string>('');
-  
-  // Selección de país para líneas de ayuda
-  const [country, setCountry] = useState<CrisisCountry>('NI');
-  const navigate = useNavigate();
 
-  // Auto-detectar país al entrar (geolocalización con fallback a idioma)
+  const navigate = useNavigate();
+  // ?alerta=1 (viene del chat o de un SOS previo): abrir el formulario de alerta.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [silaisOpen, setSilaisOpen] = useState<boolean>(() => searchParams.get('alerta') === '1');
+
   useEffect(() => {
-    if (!supportsGeolocation()) return;
-    let mounted = true;
-    detectUserCountry()
-      .then((detected) => {
-        if (mounted && detected !== country) {
-          setCountry(detected as CrisisCountry);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (searchParams.get('alerta') === '1') {
+      setSilaisOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('alerta');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Modo crisis aguda: solo botones de llamada gigantes (UI simplificada)
   const [crisisMode, setCrisisMode] = useState(false);
-  const countryInfo = getCountryInfo(country);
-  const emergency = getEmergencyNumber(country);
+  const emergency = getEmergencyNumber('NI');
 
   const [activeTab, setActiveTab] = useState<'lines' | 'services'>('lines');
 
@@ -78,11 +72,32 @@ export const SosScreen: React.FC = () => {
     setSafeContact(null);
   };
 
-  const activeHelplines = CRISIS_LINES[country];
+  const activeHelplines = CRISIS_LINES['NI'];
 
   return (
     <div className="fade-in flex flex-col gap-4">
       <CrisisModeBanner variant="compact" countryEmergency={emergency} />
+
+      {/* ALERTA AL SILAIS: envío de datos esenciales al SILAIS por WhatsApp */}
+      <button
+        onClick={() => setSilaisOpen(true)}
+        className="glass-card"
+        style={styles.silaisCard}
+      >
+        <div style={styles.silaisIcon}>
+          <Siren size={24} color="#fff" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+          <h4 style={{ fontFamily: 'var(--font-title)', fontWeight: 700, fontSize: '15px', color: '#fff', margin: 0 }}>
+            Alertar al SILAIS
+          </h4>
+          <p className="body-standard" style={{ fontSize: '11.5px', color: '#ffcdd2', marginTop: '3px' }}>
+            Envía tu nombre, ubicación y situación al equipo de emergencia del SILAIS por WhatsApp
+            (+505 8413 2841). Tú revisas los datos antes de enviar.
+          </p>
+        </div>
+        <ChevronRight size={18} color="#fff" style={{ flexShrink: 0 }} />
+      </button>
 
       {/* Pestañas: Líneas de crisis | Servicios Oficiales */}
       <div style={{ display: 'flex', gap: '8px' }}>
@@ -208,22 +223,9 @@ export const SosScreen: React.FC = () => {
 
       {/* 2. SECCIÓN B: DIRECTORIO DE AYUDA DE CRISIS */}
       <div className="glass-card flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <div style={styles.cardHeader}>
-            <ShieldAlert size={16} color="var(--accent-rose)" />
-            <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>LÍNEAS DE CRISIS GRATUITAS</h3>
-          </div>
-
-          {/* Selector de País */}
-          <select 
-            value={country} 
-            onChange={(e) => setCountry(e.target.value as CrisisCountry)} 
-            style={styles.countrySelector}
-          >
-            {CRISIS_COUNTRIES.map((c) => (
-              <option key={c} value={c}>{CRISIS_COUNTRY_LABELS[c]}</option>
-            ))}
-          </select>
+        <div style={styles.cardHeader}>
+          <ShieldAlert size={16} color="var(--accent-rose)" />
+          <h3 className="title-small" style={{ color: 'var(--text-primary)' }}>LÍNEAS DE CRISIS GRATUITAS</h3>
         </div>
 
         <p className="body-standard" style={{ fontSize: '12px', opacity: 0.7 }}>
@@ -319,6 +321,8 @@ export const SosScreen: React.FC = () => {
       </a>
   </>
       )}
+
+      <SilaisAlertSheet open={silaisOpen} onClose={() => setSilaisOpen(false)} />
     </div>
   );
 };
@@ -333,17 +337,31 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '8px',
   },
-  countrySelector: {
-    background: 'rgba(0, 0, 0, 0.2)',
-    border: '1px solid var(--border-color)',
-    borderRadius: '10px',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-title)',
-    fontSize: '11px',
-    fontWeight: 500,
-    padding: '4px 8px',
-    outline: 'none',
+  silaisCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    padding: '16px',
+    borderRadius: '24px',
     cursor: 'pointer',
+    textAlign: 'left',
+    background: 'linear-gradient(135deg, rgba(211, 47, 47, 0.22) 0%, rgba(183, 28, 28, 0.3) 100%)',
+    border: '1px solid rgba(211, 47, 47, 0.45)',
+    boxShadow: '0 8px 24px rgba(211, 47, 47, 0.2)',
+    transition: 'all 0.2s ease',
+    width: '100%',
+    fontFamily: 'var(--font-body)',
+  },
+  silaisIcon: {
+    width: '46px',
+    height: '46px',
+    borderRadius: '14px',
+    background: 'linear-gradient(135deg, #e53935 0%, #b71c1c 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    boxShadow: '0 6px 16px rgba(229, 57, 53, 0.4)',
   },
   activeContactContainer: {
     display: 'flex',

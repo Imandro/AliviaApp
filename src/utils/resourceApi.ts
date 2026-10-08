@@ -165,7 +165,7 @@ export function filterResources(
     );
   }
   return out.sort((a, b) => {
-    const order = ['NI', 'SV', 'GT', 'HN', 'CR', 'PA', 'INTL'];
+    const order = ['NI'];
     const ia = order.indexOf(a.country);
     const ib = order.indexOf(b.country);
     if (ia !== ib) return ia - ib;

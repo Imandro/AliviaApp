@@ -107,15 +107,24 @@ describe('trimReply', () => {
   });
 
   it('recorta en el limite de palabra y anade elipsis', () => {
-    const largo = 'palabra '.repeat(100);
+    const largo = 'palabra '.repeat(300);
     const out = trimReply(largo);
-    expect(out.length).toBeLessThanOrEqual(421);
+    expect(out.length).toBeLessThanOrEqual(1601);
     expect(out.endsWith('…')).toBe(true);
     expect(out).not.toContain('  ');
   });
 
   it('deja intacto un texto corto', () => {
     expect(trimReply('respuesta corta')).toBe('respuesta corta');
+  });
+
+  it('preserva los parrafos de una respuesta larga', () => {
+    const respuesta = 'Primera linea de la respuesta.\n\nSegunda linea de la respuesta.';
+    expect(trimReply(respuesta)).toBe(respuesta);
+  });
+
+  it('limpia espacios sobrantes sin unir parrafos', () => {
+    expect(trimReply('  hola   mundo \n\n\n  adios  ')).toBe('hola mundo\n\nadios');
   });
 });
 

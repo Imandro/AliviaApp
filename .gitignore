@@ -80,3 +80,5 @@ samconfig.toml
 # haya cambiado el contenido.
 public/seo/
 public/sitemap.xml
+api/lambda/dist-alerts/
+api/lambda/lambda-alerts.zip

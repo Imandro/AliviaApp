@@ -36,18 +36,30 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   useEffect(() => {
-    if (!navRef.current) return;
-    const activeIndex = TAB_ORDER.indexOf(activeTab);
-    const buttons = navRef.current.querySelectorAll<HTMLButtonElement>('button');
-    const activeBtn = buttons[activeIndex];
-    if (activeBtn) {
-      const navRect = navRef.current.getBoundingClientRect();
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const measure = () => {
+      const activeIndex = TAB_ORDER.indexOf(activeTab);
+      const buttons = nav.querySelectorAll<HTMLButtonElement>('button');
+      const activeBtn = buttons[activeIndex];
+      if (!activeBtn) return;
+      const navRect = nav.getBoundingClientRect();
       const btnRect = activeBtn.getBoundingClientRect();
       setIndicatorStyle({
         left: btnRect.left - navRect.left,
         width: btnRect.width,
       });
-    }
+    };
+
+    measure();
+
+    // Antes solo se medía al cambiar de pestaña, así que al cruzar un
+    // breakpoint o redimensionar la ventana la píldora seguía con el ancho
+    // anterior hasta el próximo click. ResizeObserver cubre ambos casos.
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    return () => observer.disconnect();
   }, [activeTab]);
 
   return (
@@ -108,10 +120,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: '0 16px calc(20px + env(safe-area-inset-bottom)) 16px',
     zIndex: 10,
     pointerEvents: 'none',
+    /* En tablet/escritorio el contenedor llega a 1100px: sin este centrado la
+       barra se estiraría a ~1068px y cada botón mediría 178px (hoy 75px). */
+    display: 'flex',
+    justifyContent: 'center',
   },
   navBar: {
     position: 'relative',
     width: '100%',
+    maxWidth: '560px',
     height: '68px',
     display: 'flex',
     justifyContent: 'space-around',

@@ -116,7 +116,7 @@ export const PlansView: React.FC = () => {
         {showNew && (
           <div className="fade-in flex flex-col gap-3" style={styles.newPlanBox}>
             <p style={styles.newPlanLabel}>1. ¿Contra qué lucha vas?</p>
-            <div style={styles.luchasGrid}>
+            <div className="grid-up-3" style={styles.luchasGrid}>
               {LUCHAS.map(l => (
                 <button
                   key={l.id}
@@ -209,7 +209,8 @@ export const PlansView: React.FC = () => {
           </p>
         </div>
       ) : (
-        filtered.map(plan => {
+        <div className="cards-grid">
+        {filtered.map(plan => {
           const lucha = getLucha(plan.area);
           const pct = progress(plan);
           return (
@@ -285,7 +286,8 @@ export const PlansView: React.FC = () => {
               </div>
             </div>
           );
-        })
+        })}
+        </div>
       )}
     </div>
   );
@@ -333,8 +335,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: 'var(--font-title)',
   },
   luchasGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    /* Columnas responsivas en la clase .grid-up-3 (index.css). */
     gap: '8px',
   },
   luchaCard: {

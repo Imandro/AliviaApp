@@ -144,7 +144,7 @@ export const GuideView: React.FC = () => {
       : 'var(--accent-gold)';
 
   return (
-    <div className="fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="fade-in content-max" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Barra superior: volver + título + tiempo */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '12px' }}>
         <button

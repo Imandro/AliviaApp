@@ -10,16 +10,19 @@ export interface AiResponse {
   text: string;
   topics: string[];
   isCrisis: boolean;
-  suggest: { label: string; path: string }[];
+  suggest: { label: string; path: string; kind?: 'silais' }[];
 }
 
 interface TopicRule {
   keywords: string[];
   response: string[];
-  suggest?: { label: string; path: string }[];
+  suggest?: { label: string; path: string; kind?: 'silais' }[];
 }
 
 const SUGGEST_SOS = { label: 'Ver líneas de ayuda (SOS)', path: '/sos' };
+// kind 'silais': el chat abre el formulario de alerta; path es el respaldo
+// si ese chip se navega de forma normal (fuera del chat).
+const SUGGEST_SILAIS = { label: '🚨 Alertar al SILAIS', path: '/sos?alerta=1', kind: 'silais' as const };
 const SUGGEST_BREATHE = { label: 'Ejercicio de respiración', path: '/breathe' };
 const SUGGEST_JOURNAL = { label: 'Escribir en el desahogo', path: '/journal' };
 const SUGGEST_COPING = { label: 'Actividades de apoyo', path: '/coping' };
@@ -124,8 +127,8 @@ const RULES: TopicRule[] = [
   {
     keywords: ['hola', 'hey', 'buenas', 'que tal', 'holi'],
     response: [
-      'Hola, soy Livi. ¿Qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
-      '¡Hola! Soy Livi, tu acompañamiento emocional. Cuéntame cómo va tu día o qué necesitas en este momento.',
+      'Hola, ¿qué traes hoy? Puedes contarme cómo te sientes o pedirme una herramienta para este momento.',
+      '¡Hola! Cuéntame cómo va tu día o qué necesitas en este momento, aquí estoy.',
     ],
     suggest: [SUGGEST_BREATHE, SUGGEST_COPING, SUGGEST_JOURNAL],
   },
@@ -217,7 +220,7 @@ export const getAiReply = (message: string, lastTopic?: string): AiResponse => {
       isCrisis: true,
       topics: ['crisis'],
       text: crisisText(assessment.level),
-      suggest: [SUGGEST_SOS, SUGGEST_CONNECT],
+      suggest: [SUGGEST_SILAIS, SUGGEST_SOS, SUGGEST_CONNECT],
     };
   }
 
@@ -263,8 +266,8 @@ export const getAiReply = (message: string, lastTopic?: string): AiResponse => {
   };
 };
 
-export const getIntentSuggest = (message: string): { label: string; path: string }[] | null => {
-  if (assessCrisis(message).isCrisis) return [SUGGEST_SOS, SUGGEST_CONNECT];
+export const getIntentSuggest = (message: string): { label: string; path: string; kind?: 'silais' }[] | null => {
+  if (assessCrisis(message).isCrisis) return [SUGGEST_SILAIS, SUGGEST_SOS, SUGGEST_CONNECT];
   const text = searchable(message);
   for (const rule of RULES) {
     if (rule.keywords.some(k => text.includes(k))) return rule.suggest ?? null;

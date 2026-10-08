@@ -182,6 +182,41 @@ Resources:
                 - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/openai-api-key-*'
                 - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/gemini-api-key-*'
 
+  # La alerta del SOS envia datos del paciente al SILAIS por WhatsApp Cloud API
+  # (graph.facebook.com). Mismo motivo que el TTS y la IA: fuera del VPC para no
+  # exigir un NAT Gateway. El token de Meta vive en Secrets Manager.
+  AlertFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: alivia-alerts
+      CodeUri: ../api/lambda/dist-alerts/
+      Handler: handler.handler
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          NODE_ENV: production
+          WHATSAPP_TOKEN: '{{resolve:secretsmanager:alivia/whatsapp-secret:SecretString:WHATSAPP_TOKEN}}'
+          WHATSAPP_PHONE_NUMBER_ID: '{{resolve:secretsmanager:alivia/whatsapp-secret:SecretString:WHATSAPP_PHONE_NUMBER_ID}}'
+          # Si tiene nombre (plantilla aprobada con un unico parametro {{1}}),
+          # se usa template; vacio = texto libre (valido dentro de la ventana
+          # de 24 h de Meta).
+          WHATSAPP_TEMPLATE_NAME: '{{resolve:secretsmanager:alivia/whatsapp-secret:SecretString:WHATSAPP_TEMPLATE_NAME}}'
+          # Numero del SILAIS en formato internacional, sin "+".
+          SILAIS_NUMBER: '50584132841'
+      FunctionUrlConfig:
+        AuthType: NONE
+    Policies:
+      - PolicyName: ReadWhatsAppSecret
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              # Comillas obligatorias: sin ellas el ":*" final se lee como un
+              # alias YAML y el template deja de parsear.
+              Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:alivia/whatsapp-secret-*'
+
   GitHubActionsRole:
     Type: AWS::IAM::Role
     Properties:
@@ -225,6 +260,23 @@ Resources:
         SecretStringTemplate: '{"CRON_SECRET":"GENERATE","VAPID_PUBLIC_KEY":"","VAPID_PRIVATE_KEY":"","VAPID_SUBJECT":""}'
         GenerateStringKey: CRON_SECRET
         PasswordLength: 40
+
+  # Token de Meta WhatsApp Cloud API para la alerta SILAIS. Las claves se
+  # rellenan a mano (no se generan): el token lo da el Meta Developer Dashboard
+  # y el PHONE_NUMBER_ID aparece en WhatsApp > API Setup.
+  #   aws secretsmanager put-secret-value --secret-id alivia/whatsapp-secret \
+  #     --secret-string file://whatsapp.json
+  # con whatsapp.json = {"WHATSAPP_TOKEN":"...","WHATSAPP_PHONE_NUMBER_ID":"...",
+  # "WHATSAPP_TEMPLATE_NAME":""}. Siempre por archivo: la linea de comandos se
+  # come las comillas y CloudFormation/la CLI fallan parseando el JSON.
+  WhatsAppSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: alivia/whatsapp-secret
+      Description: Token de Meta WhatsApp Cloud API para alertas SILAIS
+      # SecretString estatico (no GenerateSecretString): las claves las pone el
+      # desarrollador con put-secret-value, Meta no genera nada automatico.
+      SecretString: '{"WHATSAPP_TOKEN":"","WHATSAPP_PHONE_NUMBER_ID":"","WHATSAPP_TEMPLATE_NAME":""}'
 
   NotificationConnection:
     Type: AWS::Events::Connection
@@ -309,6 +361,10 @@ Outputs:
     Value: !GetAtt AiFunctionUrl.FunctionUrl
     Export:
       Name: alivia-ai-url
+  AlertFunctionUrl:
+    Value: !GetAtt AlertFunctionUrl.FunctionUrl
+    Export:
+      Name: alivia-alerts-url
   LambdaFunctionArn:
     Value: !GetAtt ApiFunction.Arn
   GitHubActionsRoleArn:

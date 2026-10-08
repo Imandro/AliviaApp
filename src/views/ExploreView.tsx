@@ -146,7 +146,7 @@ export const ExploreView: React.FC<{ user?: SafeUser }> = ({ user }) => {
         </p>
       </div>
 
-      <div style={styles.grid}>
+      <div className="grid-up-2" style={styles.grid}>
         {FEATURES.map((f, i) => {
           const Icon = f.icon;
           return (
@@ -192,8 +192,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '8px',
   },
   grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    /* Columnas responsivas en la clase .grid-up-2 (index.css): 2 en móvil,
+       3 a partir de 768px. */
     gap: '12px',
     width: '100%',
   },

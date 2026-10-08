@@ -1,13 +1,13 @@
 /* ----------------------------------------------------
    RECURSOS OFICIALES VERIFICADOS — ALIVIA
    Líneas de crisis, hospitales, ONGs y directorios
-   oficiales de Nicaragua, Centroamérica y el mundo.
+   oficiales de NICARAGUA (solo Nicaragua).
    Datos estáticos (no hay API pública fiable) + client
    preparado en resourceApi.ts por si se publica una fuente oficial.
    ---------------------------------------------------- */
 
-export type CrisisCountry = 'NI' | 'SV' | 'GT' | 'HN' | 'CR' | 'PA';
-export type OfficialResourceCountry = CrisisCountry | 'INTL';
+export type CrisisCountry = 'NI';
+export type OfficialResourceCountry = CrisisCountry;
 
 export type OfficialResourceType =
   | 'hotline'
@@ -94,17 +94,6 @@ const V_UNAN = '2025-11-01';                 // UNAN-Managua portal ok; clínica
 const V_FUNDAMUNI = '2025-09-20';            // 0800-FUNDAMUNI no válido; sin teléfono real
 const V_CASA_ALIANZA = '2025-09-20';         // 0800-CASA-ALIANZA no válido; sin teléfono real
 const V_CENTRO_SM = '2025-08-01';            // Centro Salud Mental sin contacto confirmado
-const V_SV_GOV = '2026-01-10';               // portales MINSAL/ISNA verificados
-const V_SV_NGO = '2025-11-01';               // Hogar de Cristo / Guayabo sin teléfono confirmado
-const V_GT_GOV = '2026-01-10';               // portal MSPAS 403; línea 123 publicada
-const V_GT_NGO = '2025-11-01';               // Genesis sin contacto confirmado
-const V_HN_GOV = '2026-01-10';               // portal Salud HN ok; línea 110 publicada
-const V_HN_NGO = '2025-11-01';               // MIPASE sin contacto confirmado
-const V_CR_GOV = '2026-01-10';               // portal IAFA ok; CCSS sin teléfono directo
-const V_CR_PROF = '2025-11-01';              // Colegio Psicólogos 1322 publicado
-const V_PA_GOV = '2026-01-10';               // portales MIDES/CSS ok; línea 147 publicada
-const V_PA_NGO = '2025-11-01';               // ANCOFAP sin contacto confirmado
-const V_INTL = '2026-01-10';                 // directorios internacionales verificados online
 
 export const OFFICIAL_RESOURCES: OfficialResource[] = [
   // ============ NICARAGUA ============
@@ -330,375 +319,6 @@ export const OFFICIAL_RESOURCES: OfficialResource[] = [
     lng: -86.2511,
   },
 
-  // ============ EL SALVADOR ============
-  {
-    id: 'sv-isna-150',
-    name: 'ISNA — Instituto Salvadoreño de la Niñez y Adolescencia',
-    country: 'SV',
-    type: 'hotline',
-    phone: '150',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['depresion', 'ansiedad', 'violencia', 'bienestar'],
-    source: 'GOV',
-    lastVerified: V_SV_GOV,
-    contactStatus: 'verified',
-    website: 'https://www.isna.gob.sv/',
-  },
-  {
-    id: 'sv-hnp',
-    name: 'Hospital Nacional Psiquiátrico San Jorge',
-    country: 'SV',
-    type: 'hospital',
-    address: 'San Salvador',
-    city: 'San Salvador',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
-    source: 'GOV',
-    lastVerified: V_SV_GOV,
-    contactStatus: 'unverified',
-    website: 'https://www.salud.gob.sv/',
-  },
-  {
-    id: 'sv-hogar-cristo',
-    name: 'Hogar de Cristo El Salvador',
-    country: 'SV',
-    type: 'ngo',
-    phone: '2222-5050',
-    address: 'San Salvador',
-    city: 'San Salvador',
-    hours: 'L-V 8:00-17:00',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: true,
-    specialties: ['depresion', 'adicciones', 'bienestar'],
-    source: 'NGO',
-    lastVerified: V_SV_NGO,
-    contactStatus: 'unverified',
-    website: 'https://hogardecristo.org.sv/',
-  },
-  {
-    id: 'sv-fundacion-guayabo',
-    name: 'Fundación Guayabo, Salud Mental',
-    country: 'SV',
-    type: 'ngo',
-    address: 'San Salvador',
-    city: 'San Salvador',
-    hours: 'L-V 9:00-17:00',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: true,
-    specialties: ['depresion', 'ansiedad', 'tdah'],
-    source: 'NGO',
-    lastVerified: V_SV_NGO,
-    contactStatus: 'none',
-  },
-
-  // ============ GUATEMALA ============
-  {
-    id: 'gt-hfm',
-    name: 'Hospital de Especialidades Freud Federico Mora',
-    country: 'GT',
-    type: 'hospital',
-    address: 'Guatemala',
-    city: 'Guatemala',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'panico', 'adicciones'],
-    source: 'GOV',
-    lastVerified: V_GT_GOV,
-    contactStatus: 'unverified',
-    website: 'https://www.gob.gt/',
-  },
-  {
-    id: 'gt-mspas-123',
-    name: 'MSPAS, Línea de Salud Mental 123',
-    country: 'GT',
-    type: 'hotline',
-    phone: '123',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
-    source: 'GOV',
-    lastVerified: V_GT_GOV,
-    contactStatus: 'verified',
-    website: 'https://www.mspas.gob.gt/',
-  },
-  {
-    id: 'gt-genesis',
-    name: 'Asociación GÉNESIS, Salud Mental Comunitaria',
-    country: 'GT',
-    type: 'ngo',
-    address: 'Guatemala',
-    city: 'Guatemala',
-    hours: 'L-V 8:00-17:00',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: true,
-    specialties: ['depresion', 'ansiedad', 'bienestar'],
-    source: 'NGO',
-    lastVerified: V_GT_NGO,
-    contactStatus: 'none',
-  },
-  {
-    id: 'gt-unicef',
-    name: 'UNICEF Guatemala — directorio de ayuda a la niñez',
-    country: 'GT',
-    type: 'directory',
-    website: 'https://www.unicef.org/guatemala',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['bienestar', 'violencia', 'depresion'],
-    source: 'UNICEF',
-    lastVerified: V_INTL,
-    contactStatus: 'verified',
-  },
-
-  // ============ HONDURAS ============
-  {
-    id: 'hn-mcr',
-    name: 'Hospital Mario Catarino Rivas (USLN)',
-    country: 'HN',
-    type: 'hospital',
-    address: 'Tegucigalpa',
-    city: 'Tegucigalpa',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
-    source: 'GOV',
-    lastVerified: V_HN_GOV,
-    contactStatus: 'unverified',
-    website: 'https://www.salud.gob.hn/',
-  },
-  {
-    id: 'hn-110',
-    name: 'Línea 110 — atención a la mujer y familia',
-    country: 'HN',
-    type: 'hotline',
-    phone: '110',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['violencia', 'noviazgo', 'depresion', 'suicidio'],
-    source: 'GOV',
-    lastVerified: V_HN_GOV,
-    contactStatus: 'verified',
-    website: 'https://www.salud.gob.hn/',
-  },
-  {
-    id: 'hn-mipase',
-    name: 'MIPASE, atención a víctimas de violencia',
-    country: 'HN',
-    type: 'ngo',
-    phone: '+504 2233-0077',
-    address: 'Tegucigalpa',
-    city: 'Tegucigalpa',
-    hours: 'L-V 8:00-17:00',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: true,
-    specialties: ['violencia', 'noviazgo', 'depresion'],
-    source: 'NGO',
-    lastVerified: V_HN_NGO,
-    contactStatus: 'unverified',
-  },
-
-  // ============ COSTA RICA ============
-  {
-    id: 'cr-iafa',
-    name: 'IAFA, Instituto de Adicciones y Alcoholismo',
-    country: 'CR',
-    type: 'clinic',
-    phone: '+506 2252-7777',
-    address: 'San José',
-    city: 'San José',
-    hours: 'L-V 7:30-16:30',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: true,
-    specialties: ['adicciones', 'depresion', 'ansiedad'],
-    source: 'GOV',
-    lastVerified: V_CR_GOV,
-    contactStatus: 'verified',
-    website: 'https://www.iafa.go.cr/',
-  },
-  {
-    id: 'cr-1322',
-    name: 'Colegio de Psicólogos de Costa Rica — 1322',
-    country: 'CR',
-    type: 'hotline',
-    phone: '1322',
-    hours: 'L-V 8:00-16:00',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['depresion', 'ansiedad', 'bienestar'],
-    source: 'PROF',
-    lastVerified: V_CR_PROF,
-    contactStatus: 'verified',
-    website: 'https://www.colegiopsicologoscr.com/',
-  },
-  {
-    id: 'cr-ccss',
-    name: 'CCSS, EBAIS con atención psicológica',
-    country: 'CR',
-    type: 'government',
-    address: 'Cualquier cantón',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['depresion', 'ansiedad', 'panico', 'bienestar'],
-    source: 'GOV',
-    lastVerified: V_CR_GOV,
-    contactStatus: 'unverified',
-    website: 'https://www.ccss.go.cr/',
-  },
-
-  // ============ PANAMÁ ============
-  {
-    id: 'pa-hosp-quesada',
-    name: 'Hospital Psiquiátrico de Panamá "Pedro Quesada"',
-    country: 'PA',
-    type: 'hospital',
-    address: 'Panamá',
-    city: 'Panamá',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: true,
-    virtual: false,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'panico'],
-    source: 'GOV',
-    lastVerified: V_PA_GOV,
-    contactStatus: 'unverified',
-    website: 'https://www.css.gob.pa/',
-  },
-  {
-    id: 'pa-mides-147',
-    name: 'MIDES, Línea de atención 147',
-    country: 'PA',
-    type: 'hotline',
-    phone: '147',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['violencia', 'depresion', 'bienestar'],
-    source: 'GOV',
-    lastVerified: V_PA_GOV,
-    contactStatus: 'verified',
-    website: 'https://www.mides.gob.pa/',
-  },
-  {
-    id: 'pa-ancofap',
-    name: 'ANCOFAP, Asociaciones de Familiares de Pacientes Psiquiátricos',
-    country: 'PA',
-    type: 'ngo',
-    address: 'Panamá',
-    city: 'Panamá',
-    hours: 'L-V 8:00-16:00',
-    free: true,
-    youthFriendly: false,
-    inPerson: true,
-    virtual: true,
-    specialties: ['depresion', 'ansiedad', 'bienestar'],
-    source: 'NGO',
-    lastVerified: V_PA_NGO,
-    contactStatus: 'none',
-    website: 'https://ancofap.org/',
-  },
-
-  // ============ INTERNACIONAL (≥ 3) ============
-  {
-    id: 'intl-befrienders',
-    name: 'Befrienders Worldwide — directorio global de líneas de apoyo',
-    country: 'INTL',
-    type: 'directory',
-    website: 'https://www.befrienders.org',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'bienestar'],
-    source: 'NGO',
-    lastVerified: V_INTL,
-    contactStatus: 'verified',
-  },
-  {
-    id: 'intl-iasp',
-    name: 'IASP — International Association for Suicide Prevention (centros de crisis)',
-    country: 'INTL',
-    type: 'directory',
-    website: 'https://www.iasp.info/resources/Crisis_Centres/',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['suicidio', 'depresion', 'ansiedad'],
-    source: 'NGO',
-    lastVerified: V_INTL,
-    contactStatus: 'verified',
-  },
-  {
-    id: 'intl-findahelpline',
-    name: 'Find A Helpline — directorio de líneas por país',
-    country: 'INTL',
-    type: 'directory',
-    website: 'https://www.findahelpline.com',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'bienestar'],
-    source: 'NGO',
-    lastVerified: V_INTL,
-    contactStatus: 'verified',
-  },
-  {
-    id: 'intl-samaritans',
-    name: 'Samaritans (Reino Unido) — apoyo emocional 24/7',
-    country: 'INTL',
-    type: 'hotline',
-    phone: '+44 2 07 916 5151',
-    website: 'https://www.samaritans.org',
-    hours: '24/7',
-    free: true,
-    youthFriendly: true,
-    inPerson: false,
-    virtual: true,
-    specialties: ['suicidio', 'depresion', 'ansiedad', 'bienestar'],
-    source: 'NGO',
-    lastVerified: V_INTL,
-    contactStatus: 'verified',
-  },
 ];
 
 export const CRISIS_COUNTRIES: CrisisCountryEntry[] = [
@@ -712,77 +332,12 @@ export const CRISIS_COUNTRIES: CrisisCountryEntry[] = [
     minLng: -89.3,
     maxLng: -82.6,
   },
-  {
-    country: 'SV',
-    label: 'El Salvador',
-    emergency: '911 / 150',
-    color: 'var(--accent-blue)',
-    minLat: 13.1,
-    maxLat: 14.5,
-    minLng: -90.0,
-    maxLng: -87.7,
-  },
-  {
-    country: 'GT',
-    label: 'Guatemala',
-    emergency: '110 / 1500',
-    color: 'var(--accent-green)',
-    minLat: 13.7,
-    maxLat: 17.8,
-    minLng: -92.3,
-    maxLng: -88.2,
-  },
-  {
-    country: 'HN',
-    label: 'Honduras',
-    emergency: '911 / 110',
-    color: 'var(--accent-cyan)',
-    minLat: 12.9,
-    maxLat: 16.4,
-    minLng: -89.1,
-    maxLng: -82.8,
-  },
-  {
-    country: 'CR',
-    label: 'Costa Rica',
-    emergency: '911',
-    color: 'var(--accent-teal)',
-    minLat: 8.0,
-    maxLat: 11.2,
-    minLng: -86.1,
-    maxLng: -82.7,
-  },
-  {
-    country: 'PA',
-    label: 'Panamá',
-    emergency: '911 / 147',
-    color: 'var(--accent-rose)',
-    minLat: 7.1,
-    maxLat: 9.6,
-    minLng: -83.0,
-    maxLng: -77.2,
-  },
 ];
 
 export const COUNTRY_MAP: Record<string, CrisisCountry> = {
   'ni': 'NI',
   'nicaragua': 'NI',
   'es-ni': 'NI',
-  'sv': 'SV',
-  'elsalvador': 'SV',
-  'es-sv': 'SV',
-  'gt': 'GT',
-  'guatemala': 'GT',
-  'es-gt': 'GT',
-  'hn': 'HN',
-  'honduras': 'HN',
-  'es-hn': 'HN',
-  'cr': 'CR',
-  'costarica': 'CR',
-  'es-cr': 'CR',
-  'pa': 'PA',
-  'panama': 'PA',
-  'es-pa': 'PA',
 };
 
 export function detectCountryFromLocale(): OfficialResourceCountry {
@@ -821,7 +376,6 @@ export function detectCountryFromIP(): Promise<OfficialResourceCountry> {
 }
 
 export function getCountryInfo(country: OfficialResourceCountry): CrisisCountryEntry | null {
-  if (country === 'INTL') return null;
   return (CRISIS_COUNTRIES.find((c) => c.country === country) ??
     null) as CrisisCountryEntry | null;
 }
@@ -832,9 +386,6 @@ export function getEmergencyNumber(country: OfficialResourceCountry): string {
 }
 
 export function getResourcesByCountry(country: OfficialResourceCountry): OfficialResource[] {
-  if (country === 'INTL') {
-    return OFFICIAL_RESOURCES.filter((r) => r.country === 'INTL');
-  }
   return OFFICIAL_RESOURCES.filter((r) => r.country === country);
 }
 
@@ -875,7 +426,7 @@ export function filterResources(
     );
   }
   return out.sort((a, b) => {
-    const order: OfficialResourceCountry[] = ['NI', 'SV', 'GT', 'HN', 'CR', 'PA', 'INTL'];
+    const order: OfficialResourceCountry[] = ['NI'];
     const ia = order.indexOf(a.country);
     const ib = order.indexOf(b.country);
     if (ia !== ib) return ia - ib;
@@ -966,7 +517,7 @@ export function isResourceFavorite(id: string): boolean {
 }
 
 export async function shareResource(r: OfficialResource): Promise<void> {
-  const text = `${r.name} — ${r.country === 'INTL' ? 'Internacional' : CRISIS_COUNTRIES.find((c) => c.country === r.country)?.label ?? r.country}\n${r.phone ? 'Tel: ' + r.phone + '\n' : ''}${r.hours ? 'Horario: ' + r.hours + '\n' : ''}${r.address ? 'Dirección: ' + r.address : ''}`;
+  const text = `${r.name} — ${CRISIS_COUNTRIES.find((c) => c.country === r.country)?.label ?? r.country}\n${r.phone ? 'Tel: ' + r.phone + '\n' : ''}${r.hours ? 'Horario: ' + r.hours + '\n' : ''}${r.address ? 'Dirección: ' + r.address : ''}`;
   if (typeof navigator !== 'undefined' && (navigator as any).share) {
     try {
       await (navigator as any).share({ title: 'Recursos oficiales de salud mental', text });

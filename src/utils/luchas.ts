@@ -916,7 +916,7 @@ export const LUCHAS: Lucha[] = [
     ],
     guias: [
       { title: 'Adicciones y juventud: entender para salir', desc: 'Cómo funciona el ciclo del consumo y qué estrategias reales funcionan para salir.' },
-      { title: 'Recursos de apoyo contra las adicciones', desc: 'Centros, líneas y comunidades de Centroamérica donde pedir ayuda sin pena.' },
+      { title: 'Recursos de apoyo contra las adicciones', desc: 'Centros, líneas y comunidades de Nicaragua donde pedir ayuda sin pena.' },
     ],
     ideas: [
       'Identificar mis disparadores de consumo',
@@ -1025,7 +1025,7 @@ retos: [
       'Elimina objetos con los que podrías hacerte daño: es una medida real de protección',
     ],
     guias: [
-      { title: 'Líneas de ayuda de Centroamérica', desc: 'Teléfonos gratuitos de crisis por país. Están para escucharte ahora.' },
+      { title: 'Líneas de ayuda de Nicaragua', desc: 'Teléfonos gratuitos de crisis en Nicaragua. Están para escucharte ahora.' },
       { title: 'Cómo pedir ayuda: qué decir y a quién', desc: 'Un guion para hablar con un adulto o profesional sin quedarte en el intento.' },
     ],
     ideas: [

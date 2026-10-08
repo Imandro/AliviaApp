@@ -111,12 +111,33 @@ jobs:
           zip -qr ../lambda-ai.zip .
           cd ../..
 
+      # alivia-alerts no tiene dependencias de runtime (usa fetch nativo de Node 22).
+      - name: Package Alerts Lambda
+        run: |
+          cd api/lambda/dist-alerts
+          npm install --omit=dev --no-audit --no-fund
+          zip -qr ../lambda-alerts.zip .
+          cd ../..
+
       - name: Deploy API Lambda
         run: |
           aws lambda update-function-code \
             --function-name alivia-api \
             --zip-file fileb://api/lambda/lambda-api.zip
           aws lambda wait function-updated --function-name alivia-api
+
+      # alivia-alerts se crea con el primer `sam deploy` del app.yaml actualizado;
+      # hasta entonces update-function-code fallaria y no debe romper el deploy.
+      - name: Deploy Alerts Lambda
+        run: |
+          if aws lambda get-function --function-name alivia-alerts >/dev/null 2>&1; then
+            aws lambda update-function-code \
+              --function-name alivia-alerts \
+              --zip-file fileb://api/lambda/lambda-alerts.zip
+            aws lambda wait function-updated --function-name alivia-alerts
+          else
+            echo "alivia-alerts aun no existe (pendiente: sam deploy de infra/app.yaml)"
+          fi
 
       - name: Deploy AI Lambda
         run: |

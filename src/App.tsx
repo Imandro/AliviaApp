@@ -193,6 +193,27 @@ function SplashScreen() {
   );
 }
 
+function localPreviewUser(): SafeUser {
+  return {
+    id: 'local-preview',
+    username: 'preview',
+    email: 'preview@local',
+    phone: null,
+    name: 'Preview',
+    problems: [],
+    situations: [],
+    strategies: [],
+    trusted_person: null,
+    trusted_phone: null,
+    wants_contact: false,
+    changes: [],
+    goals_text: null,
+    onboarding_done: true,
+    landing_seen: true,
+    created_at: new Date().toISOString(),
+  };
+}
+
 function Root() {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<SafeUser | null>(null);
@@ -201,6 +222,13 @@ function Root() {
   useEffect(() => {
     let cancelled = false;
     if (!getToken()) {
+      // En `npm run dev` se entra sin cuenta para poder ver Header, SOS y
+      // el resto de la app. El login real sigue activo en producción.
+      if (import.meta.env.DEV) {
+        setUser(localPreviewUser());
+        setStatus('app');
+        return;
+      }
       setStatus('welcome');
       return;
     }

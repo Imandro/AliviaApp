@@ -224,6 +224,13 @@ html[data-theme="mono"] body {
   }
 }
 
+/* Tablet: la columna de auth respira un poco más, sin perder el formato carta */
+@media (min-width: 768px) {
+  .app-shell.auth-shell > .auth-centered {
+    width: min(560px, 100%);
+  }
+}
+
 .app-container {
   width: 100%;
   max-width: 480px;
@@ -450,10 +457,75 @@ html[data-theme="mono"] body {
   gap: 16px;
 }
 
-/* --- Escritorio: el contenedor crece y las vistas usan cuadrícula ancha --- */
+/* ===== Cuadrículas responsive para listas de tarjetas =====
+   .cards-grid: para listas que hoy son de 1 columna en móvil. auto-fit decide
+   cuántas caben: en la columna estrecha del móvil entra una sola; a partir de
+   ~600px de ancho útil empiezan a caber 2, 3 o 4 sin necesidad de breakpoints.
+
+   .grid-up-2 / .grid-up-3: para cuadrículas que YA son de 2 o 3 columnas en
+   móvil (si las pasáramos a auto-fit, en un móvil de 360px se colapsarían a 1
+   y regresaría el diseño). Los breakpoints fijos solo las hacen crecer. */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+.grid-up-2,
+.grid-up-3 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-up-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid-up-2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid-up-3 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Columna de lectura: evita líneas de 1000px en chat y guías largas */
+.content-max {
+  width: 100%;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Cabecera: el padding (que en móvil era 20px fijo en el estilo inline) vive
+   aquí para calzar con el ritmo de .app-content y que el logo quede alineado
+   con el borde de las tarjetas en tablet y escritorio. */
+.app-header {
+  padding: env(safe-area-inset-top) 20px 0 20px;
+}
+
+@media (min-width: 768px) {
+  .app-header {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
 @media (min-width: 1024px) {
+  .app-header {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+/* --- Tablet: el contenedor crece y se enmarca como tarjeta ---
+   Sin este escalón, cualquier pantalla de 481 a 1023px (tablets en retrato)
+   se quedaba con la columna de 480px del móvil, sin radio ni sombra. */
+@media (min-width: 768px) {
   .app-container {
-    max-width: 1100px;
+    max-width: 860px;
     border-radius: 28px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), var(--shadow-main);
   }
@@ -468,6 +540,33 @@ html[data-theme="mono"] body {
 
   .dash-span {
     grid-column: 1 / -1;
+  }
+
+  .app-content {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+/* --- Escritorio: ancho máximo y respiración vertical ---
+   height/margin en vez de height:100% para que la tarjeta no quede con las
+   esquinas redondeadas pegadas al borde superior e inferior de la ventana. */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 1100px;
+    height: calc(100% - 32px);
+    margin: 16px 0;
+  }
+
+  .app-content {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .app-container {
+    max-width: 1160px;
   }
 }
 

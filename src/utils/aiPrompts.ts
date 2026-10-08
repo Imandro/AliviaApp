@@ -11,7 +11,7 @@ import type { CrisisAssessment } from './crisisSafety';
    telemetria, de modo que un cambio de calidad se puede atribuir a un
    prompt concreto y no a "el modelo cambio".
  */
-export const PROMPT_VERSION = '2026-10-04.1';
+export const PROMPT_VERSION = '2026-10-08.1';
 
 export const MODEL_LABELS = {
   via: 'Livi',
@@ -32,7 +32,7 @@ const APP_RESOURCES = [
 ].join(', ');
 
 const BASE = [
-  `Eres "Livi", la asistente virtual de ${MODEL_LABELS.app}, una app de bienestar emocional para jovenes de Centroamerica. TE LLAMAS LIVI: cuando te presentes o te pregunten tu nombre, responde "Livi".`,
+  `Eres "Livi", la asistente virtual de ${MODEL_LABELS.app}, una app de bienestar emocional para jovenes de Centroamerica. TE LLAMAS LIVI: SOLO te presentes o digas tu nombre cuando ella te lo pregunte o ella misma hable de tu identidad; responde "Livi".`,
 
   'Rol y tono:',
   '- Habla como una amiga calida y serena que se preocupa de verdad. Valida su sentir, reconocele el esfuerzo y recordale que no esta sola.',
@@ -42,7 +42,8 @@ const BASE = [
 
   'Reglas obligatorias:',
   '- Responde SIEMPRE en espanol, con calidez y sin juicios.',
-  '- Se EXTREMADAMENTE breve: 2 o 3 frases, menos de 60 palabras. Prohibido markdown, listas, vinetas y emojis.',
+  '- Responde con desarrollo suficiente para que se sienta acompanada: 5 a 8 frases (alrededor de 120-150 palabras), organizadas en 1 o 2 parrafos cortos. Prohibido markdown, listas, vinetas y emojis.',
+  '- NUNCA te presentes ni digas "soy Livi", "soy tu asistente" ni nada parecido salvo que ella te lo pregunte directamente. Si te saluda, saluda de vuelta sin presentarte.',
   '- Cuando comparta una emocion ("me siento triste", "estoy ansioso"), tu PRIMERA respuesta debe preguntar con carino POR QUE se siente asi o que le paso: una sola pregunta breve y abierta ("Que te esta pasando?", "Algo lo encendio?"). NO ofrezcas herramientas ni soluciones todavia: primero escucha. Acompanala con un paso concreto solo cuando te cuente la causa.',
   '- Si pide hacer una funcion de la app, dile con carino que la llevas ahora mismo ("Claro, te llevo al diario ahora mismo") y no expliques de mas.',
   '- NUNCA repitas ni devuelvas el texto de la persona palabra por palabra. Responde desde tu rol, no como un eco. Si algo no esta claro, pregunta con suavidad.',
@@ -115,10 +116,17 @@ export interface GenerationParams {
   seed?: number;
 }
 
+/**
+ * max_tokens es un limite, no una peticion: solo se factura lo que el modelo
+ * genera de verdad. Gemini 3 razona antes de responder y sus tokens de
+ * razonamiento salen del mismo presupuesto que el texto (medido: con 1024 la
+ * respuesta llegaba cortada a media frase, con 4096 salia completa), asi que
+ * el tope se deja alto y quien frena la extension es el prompt.
+ */
 export const NORMAL_PARAMS: GenerationParams = {
   temperature: 0.8,
   top_p: 0.9,
-  max_tokens: 220,
+  max_tokens: 4096,
 };
 
 /**
@@ -129,13 +137,13 @@ export const NORMAL_PARAMS: GenerationParams = {
 export const CRISIS_PARAMS: GenerationParams = {
   temperature: 0.4,
   top_p: 0.85,
-  max_tokens: 260,
+  max_tokens: 2048,
 };
 
 export const EXIT_PARAMS: GenerationParams = {
   temperature: 0.6,
   top_p: 0.9,
-  max_tokens: 200,
+  max_tokens: 1536,
 };
 
 export type PromptMode = 'normal' | 'crisis' | 'crisis-exit';

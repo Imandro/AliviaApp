@@ -124,7 +124,7 @@ export const saveAssessment = async (data: SaveAssessmentInput): Promise<Assessm
 
 export const logCrisisContact = async (
   assessmentId: number | null,
-  channel: 'helpline' | 'via' | 'assessment',
+  channel: 'helpline' | 'via' | 'assessment' | 'silais',
   detail?: string
 ): Promise<void> => {
   try {

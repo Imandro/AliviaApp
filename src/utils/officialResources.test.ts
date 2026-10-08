@@ -40,20 +40,15 @@ describe('officialResources — recursos oficiales verificados', () => {
   });
 
   describe('OFFICIAL_RESOURCES — conjunto verificado', () => {
-    it('contiene 33 recursos totales (solo con contacto verificado)', () => {
-      // 33 = catálogo verificado: NI 12, SV 4, GT 4, HN 3, CR 3, PA 3, INTL 4.
-      expect(OFFICIAL_RESOURCES.length).toBe(33);
+    it('contiene 12 recursos, todos de Nicaragua', () => {
+      // Catálogo Nicaragua-only: 12 recursos verificados.
+      expect(OFFICIAL_RESOURCES.length).toBe(12);
+      expect(OFFICIAL_RESOURCES.every((r) => r.country === 'NI')).toBe(true);
     });
 
-    it('tiene recursos para los 6 países + INTL', () => {
+    it('tiene líneas, hospitales, clínicas y ONGs nicaragüenses', () => {
       const counts = {
         NI: 12,
-        SV: 4,
-        GT: 4,
-        HN: 3,
-        CR: 3,
-        PA: 3,
-        INTL: 4,
       };
       for (const [country, expected] of Object.entries(counts)) {
         const actual = OFFICIAL_RESOURCES.filter((r) => r.country === country).length;
@@ -114,13 +109,11 @@ describe('officialResources — recursos oficiales verificados', () => {
       }
     });
 
-    it('COUNTRY_MAP mapea códigos de país', () => {
+    it('COUNTRY_MAP mapea solo Nicaragua', () => {
       expect(COUNTRY_MAP['ni']).toBe('NI');
-      expect(COUNTRY_MAP['sv']).toBe('SV');
-      expect(COUNTRY_MAP['gt']).toBe('GT');
-      expect(COUNTRY_MAP['hn']).toBe('HN');
-      expect(COUNTRY_MAP['cr']).toBe('CR');
-      expect(COUNTRY_MAP['pa']).toBe('PA');
+      expect(COUNTRY_MAP['nicaragua']).toBe('NI');
+      expect(COUNTRY_MAP['sv']).toBeUndefined();
+      expect(COUNTRY_MAP['gt']).toBeUndefined();
     });
 
     it('no expone recursos de universidad sin contacto verificado', () => {
@@ -140,21 +133,8 @@ describe('officialResources — recursos oficiales verificados', () => {
       }
     });
 
-    it('getCountryInfo devuelve null para INTL', () => {
-      expect(getCountryInfo('INTL')).toBeNull();
-    });
-
-    it('getEmergencyNumber devuelve el número de emergencia del país', () => {
+    it('getEmergencyNumber devuelve el número de emergencia de Nicaragua', () => {
       expect(getEmergencyNumber('NI')).toBe('911 / 128');
-      expect(getEmergencyNumber('SV')).toBe('911 / 150');
-      expect(getEmergencyNumber('GT')).toBe('110 / 1500');
-      expect(getEmergencyNumber('HN')).toBe('911 / 110');
-      expect(getEmergencyNumber('CR')).toBe('911');
-      expect(getEmergencyNumber('PA')).toBe('911 / 147');
-    });
-
-    it('getEmergencyNumber fallback a 911 para INTL', () => {
-      expect(getEmergencyNumber('INTL')).toBe('911');
     });
   });
 
@@ -164,14 +144,14 @@ describe('officialResources — recursos oficiales verificados', () => {
       expect(detectCountryFromLocale()).toBe('NI');
     });
 
-    it('detecta SV para es-SV', () => {
+    it('siempre resuelve NI (la app opera solo en Nicaragua)', () => {
       vi.stubGlobal('navigator', { language: 'es-SV' });
-      expect(detectCountryFromLocale()).toBe('SV');
+      expect(detectCountryFromLocale()).toBe('NI');
     });
 
-    it('detecta GT para es-GT', () => {
+    it('detecta NI para es-GT', () => {
       vi.stubGlobal('navigator', { language: 'es-GT' });
-      expect(detectCountryFromLocale()).toBe('GT');
+      expect(detectCountryFromLocale()).toBe('NI');
     });
 
     it('fallback a NI para locale desconocido', () => {
@@ -186,14 +166,13 @@ describe('officialResources — recursos oficiales verificados', () => {
   });
 
   describe('detectUserCountry', () => {
-    it('devuelve un país válido (nunca INTL)', async () => {
+    it('devuelve siempre NI', async () => {
       // Sin geolocalizacion y con locale en espanol: resuelve por idioma,
       // sin tocar la red (el fallback por IP se stubea para que no salga).
       vi.stubGlobal('navigator', { language: 'es-NI' });
       vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
       const country = await detectUserCountry();
-      expect(['NI', 'SV', 'GT', 'HN', 'CR', 'PA']).toContain(country);
-      expect(country).not.toBe('INTL');
+      expect(country).toBe('NI');
     });
 
     it('cae a NI cuando no hay geolocalizacion, idioma ni red', async () => {
@@ -222,15 +201,16 @@ describe('officialResources — recursos oficiales verificados', () => {
       expect(country).toBe('NI');
     });
 
-    it('fallback a idioma si geolocalización falla', async () => {
+    it('fallback a NI si el idioma no es de Nicaragua', async () => {
       vi.stubGlobal('navigator', {
         geolocation: {
           getCurrentPosition: (_s: any, err: (e: any) => void) => err(new Error('denied')),
         },
         language: 'es-CR',
       });
+      vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
       const country = await detectUserCountry();
-      expect(country).toBe('CR');
+      expect(country).toBe('NI');
     });
   });
 
@@ -612,15 +592,15 @@ describe('officialResources — recursos oficiales verificados', () => {
       expect(result.method).toBe('gps');
     });
 
-    it('fallback a locale si GPS denegado', async () => {
+    it('fallback a NI cuando GPS y locale no sirven', async () => {
       vi.stubGlobal('navigator', {
         geolocation: { getCurrentPosition: (_s: any, err: (e: any) => void) => err(new Error('denied')) },
         language: 'es-CR',
       });
       vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
       const result = await detectUserCountryWithCoords();
-      expect(result.country).toBe('CR');
-      expect(result.method).toBe('locale');
+      expect(result.country).toBe('NI');
+      expect(result.method).toBe('default');
     });
   });
 

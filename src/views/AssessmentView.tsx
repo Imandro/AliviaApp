@@ -39,11 +39,8 @@ import { getModelReply } from '../utils/aiProvider';
 import { assessCrisis } from '../utils/crisisSafety';
 import { journalSummaryForPrompt } from '../utils/journalDb';
 import {
-  CRISIS_COUNTRIES,
-  CRISIS_COUNTRY_LABELS,
   CRISIS_LINES,
   crisisHref,
-  type CrisisCountry,
 } from '../utils/crisisLines';
 
 type Screen = 'intro' | 'questions' | 'results' | 'history';
@@ -63,7 +60,6 @@ export const AssessmentView: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [lastResult, setLastResult] = useState<(AssessmentRecord & { ai_source?: string }) | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
-  const [contactCountry, setContactCountry] = useState<CrisisCountry>('NI');
   const [toast, setToast] = useState('');
 
   useEffect(() => {
@@ -350,7 +346,7 @@ export const AssessmentView: React.FC = () => {
     const links = toolLinksFor(s);
     const areas = planAreasFor(s);
     const crisis = res.crisis;
-    const helplines = CRISIS_LINES[contactCountry];
+    const helplines = CRISIS_LINES['NI'];
 
     return (
       <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '90px' }}>
@@ -370,7 +366,7 @@ export const AssessmentView: React.FC = () => {
           </p>
         </div>
 
-        <div style={styles.dimsColumn}>
+          <div className="cards-grid" style={styles.dimsColumn}>
           {(['stress', 'anxiety', 'depression'] as DimensionKey[]).map((dim) => {
             const dInfo = DIMENSION_INFO[dim];
             const dLevel = levelOf(res[dim]);
@@ -405,21 +401,8 @@ export const AssessmentView: React.FC = () => {
             </div>
             <p className="body-standard" style={{ fontSize: '12px', lineHeight: 1.5, opacity: 0.85 }}>
               Cuando una señal sube así, el apoyo humano real es lo que más ayuda. No estás exagerando:
-              es un buen momento para hablar con alguien. Elige tu país y llama a una línea gratuita, o conversa con Livi ahora.
+              es un buen momento para hablar con alguien. Llama a una línea gratuita, o conversa con Livi ahora.
             </p>
-
-            <div style={styles.countryRow}>
-              <span style={styles.countryLabel}>PAÍS</span>
-              <select
-                value={contactCountry}
-                onChange={(e) => setContactCountry(e.target.value as CrisisCountry)}
-                style={styles.countrySelect}
-              >
-                {CRISIS_COUNTRIES.map((c) => (
-                  <option key={c} value={c}>{CRISIS_COUNTRY_LABELS[c]}</option>
-                ))}
-              </select>
-            </div>
 
             <div style={styles.helplineList}>
               {helplines.map((line, i) => (
@@ -546,7 +529,8 @@ export const AssessmentView: React.FC = () => {
           </p>
         </div>
       ) : (
-        records.map((r) => {
+        <div className="cards-grid">
+        {records.map((r) => {
           const lv = LEVEL_INFO[r.level];
           const crisis = r.crisis;
           return (
@@ -569,7 +553,8 @@ export const AssessmentView: React.FC = () => {
               )}
             </div>
           );
-        })
+        })}
+        </div>
       )}
     </div>
   );
@@ -808,8 +793,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'center',
   },
   dimsColumn: {
-    display: 'flex',
-    flexDirection: 'column',
+    /* 1 columna en móvil; en tablet las 3 dimensiones caben en fila. */
     gap: '10px',
   },
   dimCard: {
@@ -869,24 +853,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-  },
-  countryLabel: {
-    fontSize: '9.5px',
-    fontWeight: 800,
-    letterSpacing: '0.14em',
-    color: 'var(--text-muted)',
-  },
-  countrySelect: {
-    flex: 1,
-    background: 'rgba(0,0,0,0.25)',
-    border: '1px solid rgba(211,47,47,0.3)',
-    borderRadius: '10px',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-title)',
-    fontSize: '12px',
-    padding: '7px 10px',
-    outline: 'none',
-    cursor: 'pointer',
   },
   helplineList: {
     display: 'flex',

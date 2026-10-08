@@ -188,6 +188,15 @@ Resources:
                 - TLSv1.2
               HTTPPort: 80
               HTTPSPort: 443
+          # Alertas SILAIS (WhatsApp Cloud API), tambien FUERA del VPC.
+          - Id: AlertOrigin
+            DomainName: !Select [2, !Split ['/', !ImportValue alivia-alerts-url]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+              HTTPPort: 80
+              HTTPSPort: 443
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           FunctionAssociations:
@@ -212,6 +221,15 @@ Resources:
           # /api/tts va a la Lambda de voz, sin cache
           - PathPattern: /api/tts
             TargetOriginId: TtsOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: !Ref ApiCachePolicy
+            OriginRequestPolicyId: !Ref ApiOriginRequestPolicy
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+          # /api/alerts va a la Lambda de alertas SILAIS (WhatsApp), sin cache.
+          - PathPattern: /api/alerts*
+            TargetOriginId: AlertOrigin
             ViewerProtocolPolicy: redirect-to-https
             Compress: true
             CachePolicyId: !Ref ApiCachePolicy

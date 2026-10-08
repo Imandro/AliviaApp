@@ -9,8 +9,8 @@ import {
 } from './crisisLines';
 
 describe('crisisLines — directorio de líneas de crisis', () => {
-  it('cubre los 6 países de Centroamérica', () => {
-    expect(CRISIS_COUNTRIES).toEqual(['NI', 'SV', 'GT', 'HN', 'CR', 'PA']);
+  it('cubre solo Nicaragua (la app no opera en otros países)', () => {
+    expect(CRISIS_COUNTRIES).toEqual(['NI']);
   });
 
   it('tiene etiqueta legible para cada país', () => {
