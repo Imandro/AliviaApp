@@ -1,4 +1,24 @@
 /** Keeps the sticky companion movable without replacing its pose animations. */
+
+/**
+ * Límites dentro de los que se mueve la mascota.
+ *
+ * Antes se usaba window.innerWidth/innerHeight, pero el app vive dentro de un
+ * contenedor centrado que en tablet/escritorio mide menos que la ventana: al
+ * soltar, la mascota se "amarraba" 12px del borde de la PANTALLA, quedaba
+ * fuera de .app-content y overflow-x: hidden la recortaba (desaparecía).
+ *
+ * Se mide el área de contenido real; si no existe (tests, render previo),
+ * se cae a la ventana, que es lo que pasaba siempre.
+ */
+function limits(anchorEl: HTMLElement) {
+  const win = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+  const host = typeof anchorEl.closest === 'function' ? anchorEl.closest('.app-content') : null;
+  if (!host) return win;
+  const box = host.getBoundingClientRect();
+  return { left: box.left, top: box.top, right: box.right, bottom: box.bottom };
+}
+
 export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonElement) {
   let x = 0;
   let y = 0;
@@ -21,9 +41,10 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
   function dock(animate = true) {
     const rect = anchor.getBoundingClientRect();
     const left = rect.left - x;
-    dockedSide ??= rect.left + rect.width / 2 < window.innerWidth / 2 ? 'left' : 'right';
+    const lim = limits(anchor);
+    dockedSide ??= rect.left + rect.width / 2 < (lim.left + lim.right) / 2 ? 'left' : 'right';
     const from = anchor.style.transform;
-    place(dockedSide === 'left' ? 12 - left : window.innerWidth - 12 - rect.width - left, y);
+    place(dockedSide === 'left' ? lim.left + 12 - left : lim.right - 12 - rect.width - left, y);
     // El regreso solicitado es un desplazamiento simple, sin rebotes ni sacudidas,
     // también cuando el sistema reduce las animaciones decorativas.
     if (animate && anchor.animate) {
@@ -40,11 +61,12 @@ export function enableHomeCompanionDrag(anchor: HTMLElement, button: HTMLButtonE
     const left = rect.left - x;
     const top = rect.top - y;
     const margin = 12;
-    x = Math.max(margin - left, Math.min(nextX, window.innerWidth - margin - rect.width - left));
-    y = Math.max(margin - top, Math.min(nextY, window.innerHeight - margin - rect.height - top));
+    const lim = limits(anchor);
+    x = Math.max(lim.left + margin - left, Math.min(nextX, lim.right - margin - rect.width - left));
+    y = Math.max(lim.top + margin - top, Math.min(nextY, lim.bottom - margin - rect.height - top));
     anchor.style.transform = `translate(${x}px, ${y}px)`;
-    anchor.dataset.dialogSide = left + x < Math.min(200, window.innerWidth - 94) + 22 ? 'right' : 'left';
-    anchor.style.setProperty('--companion-dialog-top', `${Math.max(margin - top - y, Math.min(34, window.innerHeight - margin - top - y - 130))}px`);
+    anchor.dataset.dialogSide = left + x - lim.left < Math.min(200, lim.right - lim.left - 94) + 22 ? 'right' : 'left';
+    anchor.style.setProperty('--companion-dialog-top', `${Math.max(margin - top - y, Math.min(34, lim.bottom - margin - top - y - 130))}px`);
     const thoughtTop = Math.max(margin - top - y, -30);
     anchor.style.setProperty('--companion-thought-top', `${thoughtTop}px`);
     // Face is about a third of the sprite height; keep the dots at its temple.

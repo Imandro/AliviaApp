@@ -78,7 +78,12 @@ export const SensoryStage: React.FC<SensoryStageProps> = ({
   children,
   stageStyle,
 }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+  /* En tablet/escritorio el contenedor llega a 1100px y el escenario mediría
+     1076x320 (3,4:1): la hoja de PaperFold quedaba pegada al borde izquierdo,
+     el corcho de Darts enanito en el centro y las barras de Marimba cuadradas.
+     Limitando el conjunto a 640px todos los juegos conservan sus proporciones
+     y el panel, el escenario y la pista siguen alineados entre sí. */
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '640px', marginLeft: 'auto', marginRight: 'auto' }}>
     <div className="glass-card" style={panel}>
       <div style={{ minWidth: 0 }}>
         <div style={kickerStyle}>{kicker}</div>

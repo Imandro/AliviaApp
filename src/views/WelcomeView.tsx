@@ -9,9 +9,11 @@ interface WelcomeViewProps {
 }
 
 type Mode = 'login' | 'register';
+type Step = 'choice' | 'form';
 
 export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => {
-  const [mode, setMode] = useState<Mode>('login');
+  const [step, setStep] = useState<Step>('choice');
+  const [mode, setMode] = useState<Mode>('register');
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -31,6 +33,14 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
 
   const switchMode = (m: Mode) => {
     setMode(m);
+    setStep('form');
+    setError('');
+    setShowPassword(false);
+    setTermsAccepted(false);
+  };
+
+  const goBackToChoice = () => {
+    setStep('choice');
     setError('');
     setShowPassword(false);
     setTermsAccepted(false);
@@ -91,16 +101,51 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
             <p style={styles.tagline}>Tu espacio seguro para sentirte mejor</p>
           </div>
 
-          <div style={styles.header}>
-            <h3 style={styles.title}>
-              {isLogin ? 'Bienvenido de nuevo' : '¡Hola! Es hora de brillar'}
-            </h3>
-            <p style={styles.subtitle}>
-              {isLogin
-                ? 'Nos alegra verte otra vez. Entra con tu usuario o correo.'
-                : 'Crea tu cuenta y empieza tu camino hacia el bienestar.'}
-            </p>
-          </div>
+          {step === 'choice' ? (
+            <>
+              <div style={styles.header}>
+                <h3 style={styles.title}>Bienvenido a ALIVIA</h3>
+                <p style={styles.subtitle}>
+                  Crea tu cuenta o entra si ya eres parte de la comunidad.
+                </p>
+              </div>
+
+              <div style={styles.choiceWrap}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={styles.choiceBtn}
+                  onClick={() => switchMode('register')}
+                >
+                  Crear cuenta
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={styles.choiceBtn}
+                  onClick={() => switchMode('login')}
+                >
+                  Ya tengo una cuenta
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={goBackToChoice} style={styles.backBtn}>
+                ← Volver
+              </button>
+
+              <div style={styles.header}>
+                <h3 style={styles.title}>
+                  {isLogin ? 'Bienvenido de nuevo' : '¡Hola! Es hora de brillar'}
+                </h3>
+                <p style={styles.subtitle}>
+                  {isLogin
+                    ? 'Nos alegra verte otra vez. Entra con tu usuario o correo.'
+                    : 'Crea tu cuenta y empieza tu camino hacia el bienestar.'}
+                </p>
+              </div>
+
 
           {error && (
             <div style={styles.alertError}>
@@ -242,6 +287,9 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onAuthenticated }) => 
             </p>
           </div>
 
+            </>
+          )}
+
           <p style={styles.footer}>Tu información está segura y en privado. Alivia te acompaña.</p>
         </div>
       </div>
@@ -377,6 +425,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: 1.5,
     color: 'var(--text-muted)',
     cursor: 'pointer',
+  },
+  choiceWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  choiceBtn: {
+    width: '100%',
+    padding: '14px',
+    borderRadius: '999px',
+    fontSize: '15px',
+    fontWeight: 700,
+    letterSpacing: '0.02em',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+  },
+  backBtn: {
+    alignSelf: 'flex-start',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 0,
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--text-muted)',
   },
   disclaimer: {
     margin: 0,
