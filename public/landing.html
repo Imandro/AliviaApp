@@ -355,6 +355,23 @@ a{color:inherit}
 .recursos__card--coral{border-color:rgba(232,196,201,.18); background:rgba(232,196,201,.07)}
 .recursos__card--coral:hover{border-color:rgba(232,196,201,.3)}
 
+/* Articulacion local para atencion de casos prioritarios. */
+.articulacion{padding:clamp(2rem,5vw,3.5rem) 0}
+.articulacion__panel{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,.65fr);gap:clamp(1.5rem,4vw,3rem);align-items:center;
+  padding:clamp(1.6rem,4vw,2.6rem);border:1px solid rgba(140,176,141,.28);border-radius:24px;
+  background:linear-gradient(135deg,rgba(44,83,61,.28),rgba(22,36,28,.82));box-shadow:var(--sombra-card);
+}
+.articulacion__panel h2{font-size:clamp(1.55rem,3vw,2.2rem);max-width:22ch;margin:.35rem 0 .8rem}
+.articulacion__panel p{color:var(--texto-2);margin:0;line-height:1.7}
+.articulacion__panel p+p{margin-top:.8rem}
+.articulacion__nota{
+  padding:1.25rem 1.35rem;border:1px solid var(--linea);border-radius:18px;
+  background:rgba(13,24,16,.38);color:var(--texto-2);font-size:.92rem;line-height:1.65;
+}
+.articulacion__nota strong{display:block;margin-bottom:.35rem;color:var(--salvia);font-family:"Quicksand",sans-serif;font-size:1rem}
+@media (max-width:700px){.articulacion__panel{grid-template-columns:1fr}}
+
 /* FAQ: <details> nativo, sin JS. Se cierra al abrir otra para que la pagina
    no crezca sin limite en movil. */
 .faq{padding:clamp(3rem,7vw,5.5rem) 0; border-top:1px solid var(--linea)}
@@ -831,6 +848,23 @@ a{color:inherit}
         <h3>Cosas que no importan</h3>
         <p>Ocho tareas aburridas a propósito —monedas, bloques, marimba, dardos, papel— para distraerte sin nada que ganar.</p>
       </article>
+    </div>
+  </div>
+</section>
+
+<section class="articulacion" aria-labelledby="articulacionTitulo">
+  <div class="wrap">
+    <div class="articulacion__panel reveal">
+      <div>
+        <p class="kicker">Acompañamiento en la comunidad</p>
+        <h2 id="articulacionTitulo">Una alerta crítica puede acercar ayuda a tiempo.</h2>
+        <p>ALIVIA trabaja en coordinación con el MINSA–SILAIS (Madriz), desde donde se facilita la comunicación de casos de salud mental que requieren atención prioritaria con las autoridades y los puestos de mando más cercanos, en Madriz y los demás departamentos.</p>
+        <p>Los reportes se gestionan desde la aplicación mediante mecanismos de validación orientados a reducir envíos falsos o de broma, para que las alertas relevantes puedan canalizarse y ser valoradas por las autoridades correspondientes.</p>
+      </div>
+      <aside class="articulacion__nota">
+        <strong>Un puente para pedir apoyo</strong>
+        Esta coordinación busca contribuir a una respuesta oportuna y a la protección de la vida. ALIVIA complementa, pero no sustituye, los servicios de emergencia ni la atención de profesionales de salud.
+      </aside>
     </div>
   </div>
 </section>
