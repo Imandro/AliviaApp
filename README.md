@@ -299,11 +299,33 @@ Todas las rutas responden cabeceras CORS compartidas (`api/_cors.ts`) para consu
 | `/api/tts` | GET | Síntesis de voz con triple motor: ElevenLabs → Edge TTS → Google (caché en memoria). |
 | `/api/ai/chat` | POST | Proxy de IA para Livi. Acepta `stream: true` y responde SSE token a token. |
 | `/api/ai/transcribe` | POST | Transcripción de voz (Whisper `large-v3-turbo`). |
+| `/api/admin/users` | GET · PATCH | Cuentas del sistema: listado con búsqueda `?q=` (sin `password_hash`), cambio de rol y activar/desactivar en una transacción. Requiere rol **admin**. |
+| `/api/admin/audit` | GET | Bitácora de acciones sensibles (paginada con `limit`/`offset`). Roles **admin y auditor**. |
+| `/api/admin/stats` | GET | Métricas agregadas de uso, sin datos personales. Roles **admin y auditor**. |
 
 `/api/tts` y `/api/ai/*` los sirven `alivia-tts` y `alivia-ai`, Lambdas **fuera del VPC**
 (necesitan salida a internet). El proxy de IA aplica rate limit por IP (cubos de tokens en
 memoria), temperaturas acotadas y el mensaje `system` siempre primero, para que una
 petición manipulada no pueda degradar las respuestas de crisis.
+
+## Roles y permisos
+
+Tres roles, definidos en el catálogo `roles` de la base de datos y en `api/auth/_roles.ts`
+(el cliente los refleja en `src/utils/roles.ts` solo para mostrar/ocultar interfaz):
+
+| Rol | Puede | No puede |
+|---|---|---|
+| **usuario** (por defecto) | Usar la app con sus propios datos | Ver el panel, tocar cuentas ajenas |
+| **admin** | Todo lo del usuario + gestionar cuentas, roles y estados | Cambiarse su propio rol o desactivarse |
+| **auditor** | Leer la bitácora y las métricas agregadas | Mutar cualquier dato |
+
+Cómo se mantiene el 100%:
+
+- **Matriz de permisos, no comparaciones de rol sueltas**: los handlers piden permisos (`users.manage`, `audit.read`, `stats.view`, `app.use`) vía `requirePermission()`, que responde 401 sin sesión y 403 sin permiso.
+- **Defensa en profundidad**: la BD re-valida en `fn_admin_update_user`; ni un bug del handler ni un UPDATE directo permiten escalarse privilegios o quedarse sin admin activo. Rol y estado cambian en **una sola transacción**.
+- **Auditoría transaccional**: todo cambio de rol o de estado escribe en `audit_log` dentro de la misma transacción (`fn_log_audit`); el auditor la consulta por `/api/admin/audit`.
+- **Registro no puede ofuscar**: desactivar una cuenta borra sus sesiones y su token deja de resolver, igual que un cierre forzado; el login distingue credenciales inválidas (401) de cuenta desactivada (403).
+- **Sin auto-escalada**: el registro nunca acepta un `role` del cliente; toda cuenta nueva nace `usuario`.
 
 ## Estructura del proyecto
 
@@ -312,7 +334,8 @@ petición manipulada no pueda degradar las respuestas de crisis.
 │   ├── _db.ts            #   Pool, esquema y funciones SQL
 │   ├── _cors.ts          #   Cabeceras CORS compartidas
 │   ├── lambda/           #   handler.ts (datos) · ai-handler.ts · tts-handler.ts · router
-│   ├── auth/             #   Registro, login, perfil, sesiones
+│   ├── auth/             #   Registro, login, perfil, sesiones, roles (_roles.ts)
+│   ├── admin/            #   Panel de administración: usuarios, bitácora, métricas
 │   ├── notifications/    #   Preferencias, suscripciones y dispatch del cron
 │   ├── tts.ts            #   Síntesis de voz (ElevenLabs → Edge → Google)
 │   └── ai.ts             #   Proxy de IA (failover, rate limit, SSE)

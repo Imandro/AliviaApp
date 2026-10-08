@@ -26,8 +26,11 @@ DROP FUNCTION IF EXISTS fn_log_crisis_contact(UUID, INTEGER, TEXT, TEXT);
 DROP FUNCTION IF EXISTS fn_set_assessment_advice(INTEGER, TEXT);
 DROP FUNCTION IF EXISTS fn_log_audit(UUID, TEXT, TEXT, TEXT, TEXT, JSONB);
 DROP FUNCTION IF EXISTS fn_list_users();
+DROP FUNCTION IF EXISTS fn_list_users(TEXT);
+-- Limpieza de las firmas previas a la fusión en fn_admin_update_user.
 DROP FUNCTION IF EXISTS fn_set_user_role(UUID, UUID, TEXT);
 DROP FUNCTION IF EXISTS fn_set_user_active(UUID, UUID, BOOLEAN);
+DROP FUNCTION IF EXISTS fn_admin_update_user(UUID, UUID, TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS fn_get_audit(INTEGER, INTEGER);
 DROP FUNCTION IF EXISTS fn_admin_stats();
 
@@ -444,7 +447,8 @@ END $$;
 
 -- Listado de cuentas para el panel de administración. Nunca expone
 -- password_hash: solo las columnas que la interfaz necesita ver.
-CREATE OR REPLACE FUNCTION fn_list_users()
+-- p_search filtra por usuario, correo o nombre (ILIKE, insensible a mayúsculas).
+CREATE OR REPLACE FUNCTION fn_list_users(p_search TEXT DEFAULT NULL)
 RETURNS TABLE(
   id UUID, username TEXT, email TEXT, name TEXT, role TEXT,
   is_active BOOLEAN, onboarding_done BOOLEAN, created_at TEXT, last_access TEXT
@@ -456,107 +460,100 @@ BEGIN
          to_char(MAX(s.created_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
   FROM users u
   LEFT JOIN sessions s ON s.user_id = u.id
+  WHERE p_search IS NULL
+     OR u.username ILIKE '%' || p_search || '%'
+     OR u.email ILIKE '%' || p_search || '%'
+     OR u.name ILIKE '%' || p_search || '%'
   GROUP BY u.id
   ORDER BY u.created_at DESC;
 END $$;
 
--- Cambia el rol de una cuenta. La API ya validó que el actor es admin, pero la
--- función re-verifica en la base: defensa en profundidad. Un atacante con
--- acceso directo a la BD no puede escalarse privilegios y ningún bug del
--- handler puede saltarse la regla.
-CREATE OR REPLACE FUNCTION fn_set_user_role(
+-- Cambia rol y/o estado de una cuenta en UNA sola transacción. La API ya
+-- validó que el actor es admin, pero la función re-verifica en la base:
+-- defensa en profundidad. Un atacante con acceso directo a la BD no puede
+-- escalarse privilegios y ningún bug del handler puede saltarse la regla.
+--
+-- p_new_role / p_is_active en NULL significan "no tocar": si la petición trae
+-- ambos, o se aplican los dos, o ninguno. Los eventos de auditoría se
+-- escriben en esta misma transacción (fn_log_audit).
+CREATE OR REPLACE FUNCTION fn_admin_update_user(
   p_actor_id UUID,
   p_target_id UUID,
-  p_new_role TEXT
+  p_new_role TEXT DEFAULT NULL,
+  p_is_active BOOLEAN DEFAULT NULL
 ) RETURNS TABLE(
   o_id UUID, o_username TEXT, o_email TEXT, o_name TEXT, o_role TEXT, o_is_active BOOLEAN
 ) LANGUAGE plpgsql AS $$
 DECLARE
   v_actor_role TEXT;
-  v_old_role TEXT;
+  v_target users;
 BEGIN
   SELECT role INTO v_actor_role FROM users WHERE id = p_actor_id;
   IF v_actor_role IS DISTINCT FROM 'admin' THEN
-    RAISE EXCEPTION 'Solo un administrador puede cambiar roles';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM roles WHERE code = p_new_role) THEN
-    RAISE EXCEPTION 'Rol no válido: %', p_new_role;
-  END IF;
-  -- Cambiarse el propio rol es la vía clásica al bloqueo: se prohíbe.
-  IF p_actor_id = p_target_id THEN
-    RAISE EXCEPTION 'No puedes cambiar tu propio rol';
+    RAISE EXCEPTION 'Solo un administrador puede gestionar cuentas';
   END IF;
 
-  SELECT role INTO v_old_role FROM users WHERE id = p_target_id;
-  IF v_old_role IS NULL THEN
+  SELECT * INTO v_target FROM users WHERE id = p_target_id;
+  IF v_target.id IS NULL THEN
     RAISE EXCEPTION 'Usuario no encontrado';
   END IF;
 
-  -- Si se degrada al único admin activo, nadie más podría gestionar roles.
-  IF v_old_role = 'admin' AND p_new_role <> 'admin'
-     AND NOT EXISTS (
-       SELECT 1 FROM users u
-       WHERE u.role = 'admin' AND u.is_active AND u.id <> p_target_id
-     ) THEN
-    RAISE EXCEPTION 'Debe quedar al menos un administrador activo';
+  -- ---- Reglas de rol ----
+  IF p_new_role IS NOT NULL AND p_new_role <> v_target.role THEN
+    IF NOT EXISTS (SELECT 1 FROM roles WHERE code = p_new_role) THEN
+      RAISE EXCEPTION 'Rol no válido: %', p_new_role;
+    END IF;
+    -- Cambiarse el propio rol es la vía clásica al bloqueo: se prohíbe.
+    IF p_actor_id = p_target_id THEN
+      RAISE EXCEPTION 'No puedes cambiar tu propio rol';
+    END IF;
+    -- Si se degrada al único admin activo, nadie más podría gestionar roles.
+    IF v_target.role = 'admin' AND p_new_role <> 'admin'
+       AND NOT EXISTS (
+         SELECT 1 FROM users u
+         WHERE u.role = 'admin' AND u.is_active AND u.id <> p_target_id
+       ) THEN
+      RAISE EXCEPTION 'Debe quedar al menos un administrador activo';
+    END IF;
   END IF;
 
-  UPDATE users SET role = p_new_role, updated_at = now()
+  -- ---- Reglas de estado ----
+  IF p_is_active IS NOT NULL AND p_is_active <> v_target.is_active THEN
+    IF p_is_active = FALSE AND p_actor_id = p_target_id THEN
+      RAISE EXCEPTION 'No puedes desactivar tu propia cuenta';
+    END IF;
+    -- Nunca se deja el sistema sin un administrador activo.
+    IF p_is_active = FALSE AND v_target.role = 'admin'
+       AND NOT EXISTS (
+         SELECT 1 FROM users u
+         WHERE u.role = 'admin' AND u.is_active AND u.id <> p_target_id
+       ) THEN
+      RAISE EXCEPTION 'Debe quedar al menos un administrador activo';
+    END IF;
+  END IF;
+
+  -- Un solo UPDATE: rol y estado cambian o no cambian, juntos.
+  UPDATE users SET
+    role = COALESCE(p_new_role, users.role),
+    is_active = COALESCE(p_is_active, users.is_active),
+    updated_at = now()
   WHERE id = p_target_id;
 
-  PERFORM fn_log_audit(p_actor_id, v_actor_role, 'user.role_change', 'user', p_target_id::text,
-    jsonb_build_object('from', v_old_role, 'to', p_new_role));
-
-  RETURN QUERY
-  SELECT u.id, u.username, u.email, u.name, u.role, u.is_active
-  FROM users u WHERE u.id = p_target_id;
-END $$;
-
--- Activa o desactiva una cuenta. Las sesiones de cuentas desactivadas dejan
--- de validarse (la API filtra por is_active), equivalente a un cierre forzado.
-CREATE OR REPLACE FUNCTION fn_set_user_active(
-  p_actor_id UUID,
-  p_target_id UUID,
-  p_is_active BOOLEAN
-) RETURNS TABLE(
-  o_id UUID, o_username TEXT, o_email TEXT, o_name TEXT, o_role TEXT, o_is_active BOOLEAN
-) LANGUAGE plpgsql AS $$
-DECLARE
-  v_actor_role TEXT;
-  v_old_active BOOLEAN;
-  v_target_role TEXT;
-BEGIN
-  SELECT role INTO v_actor_role FROM users WHERE id = p_actor_id;
-  IF v_actor_role IS DISTINCT FROM 'admin' THEN
-    RAISE EXCEPTION 'Solo un administrador puede desactivar cuentas';
-  END IF;
-  IF p_actor_id = p_target_id THEN
-    RAISE EXCEPTION 'No puedes desactivar tu propia cuenta';
+  -- Auditoría dentro de la misma transacción: un evento por cambio real.
+  IF p_new_role IS NOT NULL AND p_new_role <> v_target.role THEN
+    PERFORM fn_log_audit(p_actor_id, v_actor_role, 'user.role_change', 'user',
+      p_target_id::text, jsonb_build_object('from', v_target.role, 'to', p_new_role));
   END IF;
 
-  SELECT role, is_active INTO v_target_role, v_old_active FROM users WHERE id = p_target_id;
-  IF v_target_role IS NULL THEN
-    RAISE EXCEPTION 'Usuario no encontrado';
+  IF p_is_active IS NOT NULL AND p_is_active <> v_target.is_active THEN
+    PERFORM fn_log_audit(p_actor_id, v_actor_role, 'user.deactivate', 'user',
+      p_target_id::text, jsonb_build_object('from', v_target.is_active, 'to', p_is_active));
   END IF;
 
-  -- Nunca se deja el sistema sin un administrador activo.
-  IF NOT p_is_active AND v_target_role = 'admin'
-     AND NOT EXISTS (
-       SELECT 1 FROM users u
-       WHERE u.role = 'admin' AND u.is_active AND u.id <> p_target_id
-     ) THEN
-    RAISE EXCEPTION 'Debe quedar al menos un administrador activo';
-  END IF;
-
-  UPDATE users SET is_active = p_is_active, updated_at = now()
-  WHERE id = p_target_id;
-
+  -- Desactivar cierra las sesiones abiertas de esa cuenta.
   IF p_is_active = FALSE THEN
     DELETE FROM sessions WHERE user_id = p_target_id;
   END IF;
-
-  PERFORM fn_log_audit(p_actor_id, v_actor_role, 'user.deactivate', 'user', p_target_id::text,
-    jsonb_build_object('from', v_old_active, 'to', p_is_active));
 
   RETURN QUERY
   SELECT u.id, u.username, u.email, u.name, u.role, u.is_active

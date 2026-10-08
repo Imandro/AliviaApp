@@ -29,6 +29,7 @@ import {
 } from '../utils/reminders';
 import { REMINDER_CATALOG, type ReminderId, type ReminderPrefs, type ReminderSchedule } from '../utils/reminderCatalog';
 import { isNativeShell } from '../utils/nativeShell';
+import { canUser, roleOf, ROLE_LABELS } from '../utils/roles';
 import { getLang, setLang, t } from '../i18n';
 import logoVertical from '../assets/logo-vertical.png';
 
@@ -372,6 +373,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
         </div>
         <h3 style={styles.name}>{user.name}</h3>
         <p style={styles.username}>@{user.username}</p>
+        {roleOf(user) !== 'usuario' && (
+          <span style={styles.roleBadge}>
+            <ShieldCheck size={12} /> {ROLE_LABELS[roleOf(user)]}
+          </span>
+        )}
 
         <div style={styles.contactRow}>
           <span style={styles.contactChip}><AtSign size={12} /> {user.email}</span>
@@ -778,6 +784,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
         )}
       </div>
 
+      {(canUser(user, 'users.manage') || canUser(user, 'audit.read')) && (
+        <button
+          type="button"
+          className="btn-primary"
+          style={{ alignSelf: 'flex-start', marginTop: 10 }}
+          onClick={() => navigate('/admin')}
+        >
+          <ShieldCheck size={16} /> Panel de administración
+        </button>
+      )}
+
       <button className="btn-danger" style={styles.logoutBtn} onClick={handleLogout} disabled={signingOut}>
         <LogOut size={16} /> {signingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
       </button>
@@ -830,6 +847,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     fontSize: '12px',
     color: 'var(--text-muted)',
+  },
+  roleBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    marginTop: '6px',
+    fontSize: '11px',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    color: 'var(--accent-gold)',
+    background: 'rgba(var(--accent-gold-rgb), 0.1)',
+    border: '1px solid rgba(var(--accent-gold-rgb), 0.25)',
+    borderRadius: '999px',
+    padding: '3px 9px',
   },
   contactRow: {
     display: 'flex',

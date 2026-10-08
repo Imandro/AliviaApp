@@ -6,8 +6,8 @@
    La matriz de permisos vive aquí como única fuente de verdad del
    código y se refleja en la base de datos:
      - db/schema.sql: catálogo `roles` (FK desde users.role).
-     - db/functions.sql: fn_set_user_role / fn_set_user_active
-       re-validan en la propia BD (defensa en profundidad).
+     - db/functions.sql: fn_admin_update_user re-valida en la
+       propia BD (defensa en profundidad).
    ---------------------------------------------------- */
 
 import type { ApiRequest, ApiResponse } from '../_types.js';

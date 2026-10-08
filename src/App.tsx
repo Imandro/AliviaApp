@@ -27,6 +27,7 @@ const ConnectView = mk(() => import('./views/ConnectView'), 'ConnectView');
 const WelcomeView = mk(() => import('./views/WelcomeView'), 'WelcomeView');
 const OnboardingView = mk(() => import('./views/OnboardingView'), 'OnboardingView');
 const ProfileView = mk(() => import('./views/ProfileView'), 'ProfileView');
+const AdminView = mk(() => import('./views/AdminView'), 'AdminView');
 const AssessmentView = mk(() => import('./views/AssessmentView'), 'AssessmentView');
 const GamesView = mk(() => import('./views/GamesView'), 'GamesView');
 const GameView = mk(() => import('./views/GameView'), 'GameView');
@@ -53,6 +54,7 @@ const ROUTE_PATTERNS = [
   '/connect',
   '/assessment',
   '/profile',
+  '/admin',
 ];
 
 const isKnownRoute = (pathname: string): boolean =>
@@ -170,6 +172,9 @@ function AppShell({
                   path="/profile"
                   element={<ProfileView user={user} onEdit={onEditProfile} onLogout={onLogout} />}
                 />
+                {/* El panel re-valida el rol dentro de AdminView; aquí solo se
+                    monta la ruta para quien ya tiene sesión iniciada. */}
+                <Route path="/admin" element={<AdminView user={user} />} />
                 <Route path="*" element={<NotFoundView />} />
               </Routes>
                 <StartupReady />
@@ -201,6 +206,8 @@ function localPreviewUser(): SafeUser {
     email: 'preview@local',
     phone: null,
     name: 'Preview',
+    role: 'usuario',
+    is_active: true,
     problems: [],
     situations: [],
     strategies: [],
