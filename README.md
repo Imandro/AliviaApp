@@ -49,7 +49,7 @@
 | **Falta de espacio para desahogarse** | *Burn Journal*: escribe y observa tus pensamientos disolverse en partículas; todo local, privado y exportable. |
 | **No saber cómo estás realmente** | Chequeo de bienestar cada 5 días (estrés, ansiedad, depresión) + **Radar de Bienestar** con gráficas de tendencia y rachas. |
 | **Soledad y falta de apoyo** | Chat **Livi** (IA que pregunta *por qué* antes de aconsejar), **Conecta con alguien** (plantillas para pedir ayuda), comunidad anónima por temas. |
-| **Crisis sin saber a quién llamar** | Botón **SOS** con líneas gratuitas de 6 países centroamericanos, contacto de emergencia configurable, detección de riesgo por niveles. |
+| **Crisis sin saber a quién llamar** | Botón **SOS** con líneas gratuitas de Nicaragua, contacto de emergencia configurable, detección de riesgo por niveles. |
 | **Falta de hábitos y motivación** | 8 minijuegos de regulación, **Planes y Retos** con metas y rachas, 20 recordatorios locales + push, biblioteca interactiva con quiz. |
 | **Privacidad y control de datos** | Bloqueo biométrico + cortina de privacidad, exportación JSON + HTML imprimible, i18n es/en, datos guardados primero en el dispositivo. |
 
