@@ -208,7 +208,7 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:900px}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1100px}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
@@ -1242,7 +1242,7 @@ a{color:inherit}
     var progress = Math.max(0, Math.min(1, (window.scrollY - heroTop) / range));
     var turnEase = progress * progress * (3 - 2 * progress);
     var motionScale = reduce ? .75 : 1;
-    device.style.setProperty('--scroll-rotate', ((1 - turnEase) * -78 * motionScale).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-rotate', ((1 - turnEase) * -48 * motionScale).toFixed(2) + 'deg');
     device.style.setProperty('--scroll-shadow-x', ((1 - turnEase) * 9 * motionScale).toFixed(2) + 'px');
     pending = false;
   }
