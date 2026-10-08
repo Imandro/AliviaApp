@@ -208,11 +208,11 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;transform:translate3d(0,var(--scroll-offset,0px),0);will-change:transform}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;transform:translate3d(0,var(--scroll-offset,0px),0) rotate(var(--scroll-tilt,0deg));will-change:transform}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
-  filter:blur(22px)
+  filter:blur(22px);opacity:var(--glow-opacity,.9);transform:scale(var(--glow-scale,1))
 }
 .mockup img{
   display:block;width:auto;height:min(68vh,570px);max-width:100%;object-fit:contain;
@@ -1194,7 +1194,7 @@ a{color:inherit}
   }
 })();
 
-/* Desplazamiento sutil del mockup al recorrer la página */
+/* Parallax suave para dar profundidad al mockup y su halo */
 (function(){
   var mockup = document.querySelector('.mockup');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1203,8 +1203,11 @@ a{color:inherit}
   function update(){
     var rect = mockup.getBoundingClientRect();
     var progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-    var offset = Math.max(-12, Math.min(12, (progress - 0.5) * 24));
-    mockup.style.setProperty('--scroll-offset', offset.toFixed(2) + 'px');
+    var depth = Math.max(-1, Math.min(1, (progress - 0.5) * 2));
+    mockup.style.setProperty('--scroll-offset', (depth * 30).toFixed(2) + 'px');
+    mockup.style.setProperty('--scroll-tilt', (depth * 1.15).toFixed(2) + 'deg');
+    mockup.style.setProperty('--glow-scale', (1 - Math.abs(depth) * 0.12).toFixed(2));
+    mockup.style.setProperty('--glow-opacity', (0.62 + (1 - Math.abs(depth)) * 0.32).toFixed(2));
     pending = false;
   }
   function schedule(){
