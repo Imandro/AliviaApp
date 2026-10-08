@@ -73,6 +73,8 @@ erDiagram
         phone TEXT "unique, opcional"
         name TEXT
         password_hash TEXT
+        role TEXT "FK -> roles.code"
+        is_active BOOLEAN
         problems TEXT[] "onboarding"
         situations TEXT[] "onboarding"
         strategies TEXT[] "onboarding"
@@ -86,6 +88,13 @@ erDiagram
         updated_at TIMESTAMPTZ
     }
 
+    ROLES {
+        code TEXT PK "admin | usuario | auditor"
+        name TEXT
+        description TEXT
+        created_at TIMESTAMPTZ
+    }
+
     SESSIONS {
         token TEXT PK
         user_id UUID FK
@@ -93,11 +102,22 @@ erDiagram
         expires_at TIMESTAMPTZ
     }
 
+    AUDIT_LOG {
+        id BIGSERIAL PK
+        actor_id UUID FK "ON DELETE SET NULL"
+        actor_role TEXT
+        action TEXT
+        entity TEXT
+        entity_id TEXT
+        detail JSONB
+        created_at TIMESTAMPTZ
+    }
+
     PLANS ||--o{ PLAN_GOALS : "tiene (1:N)"
     PLANS ||--o{ PLAN_ACTIVITIES : "incluye (1:N)"
     USERS ||--o{ SESSIONS : "abre (1:N)"
-
-    MOOD_ENTRIES ||--o{ COMPLETED_ACTIVITIES : "comparten fecha (no FK)"
+    ROLES ||--o{ USERS : "clasifica (1:N)"
+    USERS ||--o{ AUDIT_LOG : "produce (1:N)"
 ```
 
 ## Resumen de cardinalidades
@@ -107,6 +127,8 @@ erDiagram
 | Plan → Metas | `plans` | `plan_goals` | 1 : N | `ON DELETE CASCADE` |
 | Plan → Actividades | `plans` | `plan_activities` | 1 : N | `ON DELETE CASCADE` |
 | Usuario → Sesiones | `users` | `sessions` | 1 : N | `ON DELETE CASCADE` |
+| Rol → Usuarios | `roles` | `users` | 1 : N | `RESTRICT` (la FK vive en `users.role`) |
+| Usuario → Auditoría | `users` | `audit_log` | 1 : N | `ON DELETE SET NULL` (el evento sobrevive a la cuenta) |
 
 Las tablas de contenido (`mood_entries`, `emergency_contact`, `completed_activities`, `community_posts`, `plans`) son **independientes** (no tienen llaves foráneas a `users`); cada usuario registrado comparte el mismo contenido global.
 
@@ -188,6 +210,8 @@ Las tablas de contenido (`mood_entries`, `emergency_contact`, `completed_activit
 | `phone` | `TEXT` | UNIQUE, opcional | Teléfono registrado al crear la cuenta |
 | `name` | `TEXT` | NOT NULL | Nombre visible (saludo en la app) |
 | `password_hash` | `TEXT` | NOT NULL | Hash `scrypt` con sal (nunca se expone) |
+| `role` | `TEXT` | NOT NULL, **FK → `roles(code)`**, default `'usuario'` | Rol del sistema: `admin`, `usuario` o `auditor` |
+| `is_active` | `BOOLEAN` | NOT NULL, default `true` | Cuenta activa; en `false` el token deja de validar y el login responde 403 |
 | `problems` | `TEXT[]` | default `'{}'` | Problemas con los que lucha (onboarding) |
 | `situations` | `TEXT[]` | default `'{}'` | Cosas que está pasando (onboarding) |
 | `strategies` | `TEXT[]` | default `'{}'` | Cómo desea luchar contra eso (onboarding) |
@@ -209,10 +233,44 @@ Las tablas de contenido (`mood_entries`, `emergency_contact`, `completed_activit
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Fecha de creación |
 | `expires_at` | `TIMESTAMPTZ` | NOT NULL | Expira a los 30 días; las expiradas se limpian al crear una nueva |
 
+### `roles` — Catálogo de roles del sistema (RBAC)
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `code` | `TEXT` | **PK** | `admin`, `usuario` o `auditor` (catálogo cerrado, sembrado con `ON CONFLICT DO NOTHING`) |
+| `name` | `TEXT` | NOT NULL | Nombre legible (Administrador, Usuario, Auditor) |
+| `description` | `TEXT` | NOT NULL | Qué puede hacer el rol, en una línea |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Fecha de siembra |
+
+Es un **catálogo cerrado**: `users.role` es FK hacia aquí, así que insertar un rol nuevo exige
+pasar por este INSERT, y cualquier valor fuera del catálogo es rechazado por la base. La matriz
+de permisos fina (`users.manage`, `audit.read`, `stats.view`, `app.use`) vive en el código
+(`api/auth/_roles.ts`) para poder testearla; la base garantiza los tres roles, el código
+reparte lo que cada uno puede hacer.
+
+### `audit_log` — Bitácora de acciones sensibles
+
+| Columna | Tipo | Restricciones | Descripción |
+|---|---|---|---|
+| `id` | `BIGSERIAL` | **PK** | Id del evento |
+| `actor_id` | `UUID` | **FK → `users(id)`**, `ON DELETE SET NULL` | Quién actuó (sobrevive borrado de la cuenta) |
+| `actor_role` | `TEXT` | NOT NULL | Rol que tenía el actor al momento del cambio |
+| `action` | `TEXT` | NOT NULL | `user.role_change`, `user.deactivate`, … |
+| `entity` | `TEXT` | NOT NULL | Entidad afectada (`user`, …) |
+| `entity_id` | `TEXT` | opcional | Id de la entidad afectada |
+| `detail` | `JSONB` | NOT NULL, default `'{}'` | Contexto (ej: `{"from":"usuario","to":"auditor"}`) |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, default `now()` | Momento exacto |
+
+Se escribe **dentro de la misma transacción** del cambio (`fn_log_audit` la invoca desde
+`fn_admin_update_user`): no existe el cambio sin su registro. Índices por
+`created_at DESC` y `(action, created_at DESC)` para paginar la consulta del auditor.
+
 ## Notas de diseño
 
 - **Cuentas**: `users` guarda credenciales + perfil de bienestar (onboarding). El login acepta **usuario o correo** como identificador.
 - **Seguridad**: contraseñas con `scrypt` + sal aleatoria; las sesiones expiran a los 30 días y el `password_hash` nunca se devuelve al cliente.
+- **Roles (RBAC)**: tres roles fijos (`admin`, `usuario`, `auditor`) con FK al catálogo `roles`. La API pide **permisos**, no roles, y la BD re-valida en `fn_admin_update_user`: nadie puede cambiarse su propio rol, desactivarse a sí mismo ni dejar el sistema sin un admin activo. Rol y estado cambian en una sola transacción y desactivar una cuenta borra sus sesiones.
+- **Auditoría**: los cambios de roles y estados quedan en `audit_log` en la misma transacción, listos para `/api/admin/audit` (admin y auditor).
 - **`mood_entries.date` es PK** → un solo ánimo por día (upsert por conflicto).
 - **`completed_activities` PK compuesta `(id, date)`** → imposible duplicar la misma actividad el mismo día.
 - **`emergency_contact.id = 1`** → patrón de "fila única" con upsert.

@@ -7,6 +7,9 @@ import registerHandler from '../auth/register.js';
 import logoutHandler from '../auth/logout.js';
 import meHandler from '../auth/me.js';
 import profileHandler from '../auth/profile.js';
+import adminUsersHandler from '../admin/users.js';
+import adminAuditHandler from '../admin/audit.js';
+import adminStatsHandler from '../admin/stats.js';
 import moodsHandler from '../moods.js';
 import activitiesHandler from '../activities.js';
 import assessmentsHandler from '../assessments.js';
@@ -28,6 +31,11 @@ const routes: Record<string, Handler> = {
   '/api/auth/logout': logoutHandler,
   '/api/auth/me': meHandler,
   '/api/auth/profile': profileHandler,
+  // Panel de administración: cada handler re-valida el permiso del rol
+  // (admin gestiona cuentas; auditor solo lee bitácora y métricas).
+  '/api/admin/users': adminUsersHandler,
+  '/api/admin/audit': adminAuditHandler,
+  '/api/admin/stats': adminStatsHandler,
   '/api/moods': moodsHandler,
   '/api/activities': activitiesHandler,
   '/api/assessments': assessmentsHandler,

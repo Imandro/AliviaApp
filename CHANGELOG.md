@@ -7,6 +7,36 @@ versionado con [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Roles y seguridad al 100%.** Tres roles funcionales —admin, usuario y
+  auditor— con control de acceso basado en permisos:
+  - Base de datos: catálogo cerrado `roles` (FK desde `users.role`, valores
+    `admin`/`usuario`/`auditor`), columna `users.is_active` y tabla
+    `audit_log`; el esquema migra solo (`ensureSchema` aplica los `ALTER`
+    idempotentes al primer arranque).
+  - Stored function `fn_admin_update_user` con defensa en profundidad:
+    re-valida en la BD que el actor es admin, impide cambiarse el propio rol,
+    desactivarse a sí mismo y quedarse sin ningún administrador activo; aplica
+    rol y/o estado en **una sola transacción** y escribe la bitácora
+    (`fn_log_audit`) dentro de esa misma transacción — solo se auditan los
+    cambios reales.
+  - API: `api/auth/_roles.ts` define la matriz de permisos
+    (`users.manage`, `stats.view`, `audit.read`, `app.use`) y el guard
+    `requirePermission` (401 sin sesión, 403 sin permiso). Nuevos endpoints
+    `/api/admin/users` (GET con búsqueda `?q=` / PATCH), `/api/admin/audit` y
+    `/api/admin/stats` (con números normalizados: COUNT/AVG llegan como texto
+    desde PostgreSQL). Desactivar una cuenta borra sus sesiones y el login
+    distingue credenciales inválidas (401) de cuenta desactivada (403). El
+    registro nunca acepta un rol del cliente: toda cuenta nueva nace
+    `usuario`.
+  - Interfaz: panel `/admin` con Resumen (métricas agregadas), Usuarios
+    (cambiar rol, activar/desactivar con confirmación, búsqueda con debounce) y
+    Bitácora con "Cargar más", visible según permisos; entrada desde el perfil
+    e insignia de rol. Los cambios administrativos no se encolan offline: sin
+    red simplemente fallan.
+  - Tests de la matriz de permisos y de los guards (401/403/200), del mapeo
+    de errores de la BD (rol propio, último admin), de la llamada atómica y
+    sus argumentos (NULL = no tocar) y del espejo cliente.
+
 - Livi sustituye la burbuja de conversación por voz: movimientos al escuchar,
   gestos al pensar y pico que abre y cierra durante el estado de respuesta.
   El panel se integra con el fondo de la página, sin un segundo cuadro interior.

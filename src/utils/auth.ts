@@ -8,6 +8,7 @@
 
 import { API_BASE } from './apiBase';
 import { apiMutate, HttpError, NetworkError, setAuthHeaderProvider } from './apiClient';
+import { isRole, type Role } from './roles';
 
 export interface SafeUser {
   id: string;
@@ -15,6 +16,8 @@ export interface SafeUser {
   email: string;
   phone: string | null;
   name: string;
+  role: Role;
+  is_active: boolean;
   problems: string[];
   situations: string[];
   strategies: string[];
@@ -27,6 +30,13 @@ export interface SafeUser {
   landing_seen: boolean;
   created_at: string;
 }
+
+/** Completa el rol si viene de una caché anterior a los roles (v1.2 →). */
+const normalizeUser = (user: SafeUser): SafeUser => ({
+  ...user,
+  role: isRole(user.role) ? user.role : 'usuario',
+  is_active: user.is_active !== false,
+});
 
 const TOKEN_KEY = 'alivia_token';
 const USER_CACHE_KEY = 'alivia_user_cache';
@@ -98,7 +108,7 @@ const cacheUser = (user: SafeUser): void => {
 export const getCachedUser = (): SafeUser | null => {
   try {
     const raw = localStorage.getItem(USER_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as SafeUser) : null;
+    return raw ? normalizeUser(JSON.parse(raw) as SafeUser) : null;
   } catch {
     return null;
   }

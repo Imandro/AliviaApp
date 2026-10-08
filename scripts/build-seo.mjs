@@ -611,12 +611,16 @@ if (existsSync(descargaPath)) {
   const head = html.slice(0, headEnd);
   let body = html.slice(headEnd);
 
+  // Eliminar bloques ld+json previos de SoftwareApplication para evitar duplicados
+  const cleanHead = head
+    .replace(/<script type="application\/ld\+json">\s*\{[\s\S]*?"@type"\s*:\s*"SoftwareApplication"[\s\S]*?<\/script>\s*/g, '');
+
   const swap = (input) =>
     input
       .replace(/v\d+\.\d+\.\d+/g, `v${version}`)
       .replace(/\d+[,.]?\d*\s?MB/gi, size);
 
-  const newHead = swap(head);
+  const newHead = swap(cleanHead);
 
   const ld = `<script type="application/ld+json">
 {

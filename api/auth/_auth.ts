@@ -93,7 +93,7 @@ export interface SessionUser {
   name: string;
   username: string;
   email: string;
-  role: string;
+  role: Role;
 }
 
 export async function getUserFromRequest(req: ApiRequest): Promise<SessionUser | null> {
