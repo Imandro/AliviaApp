@@ -9,15 +9,18 @@ const apiDir = join(root, 'api', 'lambda');
 const outDir = join(apiDir, 'dist');
 const ttsOutDir = join(apiDir, 'dist-tts');
 const aiOutDir = join(apiDir, 'dist-ai');
+const alertsOutDir = join(apiDir, 'dist-alerts');
 
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
 rmSync(outDir, { recursive: true, force: true });
 rmSync(ttsOutDir, { recursive: true, force: true });
 rmSync(aiOutDir, { recursive: true, force: true });
+rmSync(alertsOutDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 mkdirSync(ttsOutDir, { recursive: true });
 mkdirSync(aiOutDir, { recursive: true });
+mkdirSync(alertsOutDir, { recursive: true });
 
 // `web-push` es CommonJS y usa `require('crypto')` por dentro. Si esbuild lo
 // empaqueta dentro de un bundle ESM, al ejecutarlo en Node 22 revienta con
@@ -54,6 +57,14 @@ await build({
   ...shared,
   entryPoints: [join(apiDir, 'ai-handler.ts')],
   outfile: join(aiOutDir, 'handler.js'),
+});
+
+// Lambda de alertas SILAIS: FUERA del VPC porque llama a graph.facebook.com
+// (WhatsApp Cloud API) y tampoco tiene salida desde dentro de la VPC.
+await build({
+  ...shared,
+  entryPoints: [join(apiDir, 'alert-handler.ts')],
+  outfile: join(alertsOutDir, 'handler.js'),
 });
 
 // api/_db.ts lee db/functions.sql desde process.cwd() en tiempo de ejecucion,
@@ -94,7 +105,11 @@ writeRuntimePackage(ttsOutDir, 'alivia-tts', {
 // La Lambda de IA usa fetch nativo (Node 22), sin dependencias de runtime.
 writeRuntimePackage(aiOutDir, 'alivia-ai', {});
 
+// La Lambda de alertas solo usa fetch nativo, igual que la de IA.
+writeRuntimePackage(alertsOutDir, 'alivia-alerts', {});
+
 console.log('Lambda build complete:', outDir);
 console.log('TTS Lambda build complete:', ttsOutDir);
 console.log('AI Lambda build complete:', aiOutDir);
+console.log('Alerts Lambda build complete:', alertsOutDir);
 

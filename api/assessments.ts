@@ -46,7 +46,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         [
           user.id,
           assessmentId && Number.isFinite(Number(assessmentId)) ? Number(assessmentId) : null,
-          ['helpline', 'via'].includes(String(channel)) ? String(channel) : 'helpline',
+          ['helpline', 'via', 'silais'].includes(String(channel)) ? String(channel) : 'helpline',
           detail ? String(detail).slice(0, 300) : null,
         ]
       );

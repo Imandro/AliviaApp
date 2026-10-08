@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme, onSosClick, use
   const initial = (userName || 'A').trim().charAt(0).toUpperCase() || 'A';
 
   return (
-    <header style={styles.header}>
+    <header className="app-header" style={styles.header}>
       <div style={styles.logoArea}>
         <img src={logoBanner} alt="ALIVIA" style={styles.logo} />
       </div>
@@ -119,7 +119,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: 'calc(64px + env(safe-area-inset-top))',
     minHeight: 'calc(64px + env(safe-area-inset-top))',
     width: '100%',
-    padding: 'env(safe-area-inset-top) 20px 0 20px',
+    /* El padding vive en la clase .app-header (index.css) para poder seguir
+       el mismo ritmo de 20 → 28 → 32px que el contenido y alinear el logo con
+       el borde de las tarjetas en tablet y escritorio. */
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',

@@ -94,7 +94,8 @@ const cacheUser = (user: SafeUser): void => {
   syncLandingFlag(user);
 };
 
-const getCachedUser = (): SafeUser | null => {
+/** Caché local del perfil: se exporta para precargar datos (alerta SILAIS). */
+export const getCachedUser = (): SafeUser | null => {
   try {
     const raw = localStorage.getItem(USER_CACHE_KEY);
     return raw ? (JSON.parse(raw) as SafeUser) : null;

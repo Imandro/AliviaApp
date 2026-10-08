@@ -44,6 +44,7 @@ export const GamesView: React.FC = () => {
         </div>
       </div>
 
+      <div className="cards-grid">
       {GAMES.map((game) => (
         <div
           key={game.id}
@@ -85,6 +86,7 @@ export const GamesView: React.FC = () => {
           </button>
         </div>
       ))}
+      </div>
 
       <button
         className="cm-press"

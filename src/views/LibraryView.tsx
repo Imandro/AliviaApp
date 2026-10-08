@@ -153,7 +153,7 @@ export const LibraryView: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="cards-grid">
         {filtered.map(item => {
           const Icon = TYPE_ICONS[item.type];
           const cat = guidePrimaryCategory(item);

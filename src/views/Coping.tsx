@@ -342,7 +342,7 @@ export const Coping: React.FC = () => {
             </div>
           </div>
 
-          <div style={styles.activityGrid}>
+          <div className="grid-up-2" style={styles.activityGrid}>
             {activities.map((activity) => {
               const Icon = activity.icon;
               const selected = activity.id === activeActivity.id;
@@ -647,8 +647,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 400,
   },
   activityGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    /* Columnas responsivas en la clase .grid-up-2 (index.css). */
     gap: '10px',
   },
   activityChip: {

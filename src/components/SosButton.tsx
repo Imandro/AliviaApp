@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone } from 'lucide-react';
-import { hapticSos } from '../utils/haptics';
+import { haptic } from '../utils/haptics';
 
 interface SosButtonProps {
   onClick: () => void;
@@ -12,11 +12,11 @@ interface SosButtonProps {
  * Vive suelto porque el juego se juega sin Header: si el botón se duplicara,
  * el acceso a las líneas de crisis dejaría de ser el mismo control visual en
  * dos pantallas, que es justo lo que no puede pasar en una app de salud
- * mental. El pulso vive en index.css (keyframes pulseSOS).
+ * mental. El pulso vive en index.css (keyframes pulse).
  */
 export const SosButton: React.FC<SosButtonProps> = ({ onClick }) => (
   <button
-    onClick={() => { hapticSos(); onClick(); }}
+    onClick={() => { haptic(); onClick(); }}
     style={styles.button}
     title="Ayuda Inmediata (SOS)"
     aria-label="Ayuda inmediata, líneas de crisis (SOS)"
@@ -59,7 +59,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '100%',
     borderRadius: '22px',
     border: '2px solid rgba(229, 115, 115, 0.5)',
-    animation: 'pulseSOS 2s infinite ease-out',
+    animation: 'pulse 2s infinite ease-out',
     pointerEvents: 'none',
     boxSizing: 'border-box',
   },
@@ -71,7 +71,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: '100%',
     borderRadius: '22px',
     border: '2px solid rgba(229, 115, 115, 0.3)',
-    animation: 'pulseSOS 2s infinite ease-out',
+    animation: 'pulse 2s infinite ease-out',
     animationDelay: '0.6s',
     pointerEvents: 'none',
     boxSizing: 'border-box',

@@ -328,7 +328,7 @@ export const GUIDES: Record<string, GuideContent> = {
       st('✦', 'Planea la emboscada emocional', 'A los 3-7 días te va a morir la tentación de volver. Ya lo sabes. Por eso tienes la lista (ver checklist) y personas que te la leen.'),
       chk(['Guardé y separé todo lo material en silencio', 'Confié mi plan a 1-2 personas reales', 'Bloqueé el contacto directo y el "puente informativo"']),
       st('✦', 'Plan de seguridad física si hay riesgo', 'Si hay gritos, empujones o amenazas: elige un lugar seguro de la casa (sin armas, cerca de una salida), ten lista una mochila con documentos, dinero y celular, y un destino seguro (casa de alguien de confianza). En el momento: sal sin negociar y llama al 911.'),
-      st('✦', 'Recursos legales básicos por país', 'Nicaragua: Línea 611 (mujer) y 111 (niñez), Fiscalía. El Salvador: Línea 150 (mujer) y Fiscalía. Guatemala: Línea 1500 (mujer) y Fiscalía. Honduras: Línea 110 (mujer) y 911. Costa Rica: Línea 137 (mujer) y la FPAM. Panamá: Línea 134 y la AMPM. En muchos países hay abogado de oficio sin costo: pregunta en el colegio de abogados de tu país.'),
+      st('✦', 'Recursos legales básicos', 'Nicaragua: Línea 611 (mujer) y 111 (niñez), Fiscalía. En Nicaragua hay abogado de oficio sin costo: pregunta en el colegio de abogados.'),
       quiz(
         'A la semana de terminar, sientes un vacío terrible y ganas de volver. Eso significa...',
         ['Que cometiste el peor error', 'Que tu cerebro pide la dosis conocida: abstinencia. Es química, no verdad', 'Que debes volver aunque fuera tóxico'],
@@ -473,7 +473,7 @@ export const GUIDES: Record<string, GuideContent> = {
   l20: {
     minutes: 3,
     blocks: [
-      intro('El apoyo real en Centroamérica existe y es GRATIS. Lo difícil no es encontrarlo: es el primer paso. Este mapa es tu abrebocas. '),
+      intro('El apoyo real en Nicaragua existe y es GRATIS. Lo difícil no es encontrarlo: es el primer paso. Este mapa es tu abrebocas. '),
       st('✦', 'Líneas y centros', 'En tu pantalla SOS tienes líneas de crisis gratuitas de tu país 24/7. También: hospitales públicos (servicio de salud mental), iglesias y fundaciones con programas de adicciones.'),
       st('✦', 'Grupos de apoyo', 'Alcohólicos y Narcóticos Anónimos existen en toda CA y son gratis: busca "grupos AA/NA + tu ciudad". Reuniones diarias, cero juicio, anonimos.'),
       st('#', 'Chat y comunidad', 'Algunas ONG (ej. programa Jóvenes de tu ministerio de salud) tienen líneas de WhatsApp. Pregunta en tu centro de salud por "programa de adicciones de jóvenes".'),
@@ -496,11 +496,9 @@ export const GUIDES: Record<string, GuideContent> = {
     blocks: [
       intro('Si estás leyendo esto con un hoyo negro adentro, detente: primero las líneas, después la teoría. Están para escucharte YA. '),
       st('✦', 'Nicaragua: Cruz Blanca 128 (24/7)', 'Atención de emergencias gratuita y confidencial en todo el país.'),
-      st('✦', 'El Salvador: SEM 132 (24/7)', 'Atención médica de emergencias con psicólogos de guardia.'),
-      st('✦', 'Guatemala: MSPAS 123', 'Línea del Ministerio de Salud para orientación en salud mental.'),
-      st('✦', 'Honduras: 911', 'Sistema Nacional de Emergencias: coordina atención psicosocial.'),
-      st('✦', 'Costa Rica: 1322 (24/7) y Aquí Estoy 800-2737869', 'Línea de psicólogos las 24 horas y línea de apoyo emocional.'),
-      st('✦', 'Panamá: MIDES 147 (24/7)', 'Línea de atención de crisis del Ministerio de Desarrollo Social.'),
+      st('✦', 'Nicaragua: Línea 611 (24/7)', 'Ministerio de la Familia: violencia, infancia y familia.'),
+      st('✦', 'Nicaragua: Línea 111 (24/7)', 'Infancia y adolescencia: orientación y protección.'),
+      st('✦', 'Emergencias: 911', 'Si hay peligro inmediato para tu vida o la de otra persona, llama ya.'),
       chk(['Guardé en mi teléfono la línea de mi país', 'Si hoy es el día difícil, llamé o escribí a alguien real']),
       act('Abrir el SOS completo ahora', '/sos'),
       end('Estás leyendo esto: significa que una parte de ti quiere quedarse. Escucha a esa parte. '),

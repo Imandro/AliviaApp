@@ -217,7 +217,7 @@ interface SanitizedParams {
  *
  * Subir el tope no cuesta nada por si mismo: max_tokens es un limite, no una
  * peticion, y solo se factura lo que el modelo genera de verdad. El freno real
- * de la extension de la respuesta es el prompt, que pide dos frases.
+ * de la extension de la respuesta es el prompt, que pide 5 a 8 frases.
  *
  * El valor es el mismo en ai-handler.ts: ambos caminos mandan max_tokens y si no
  * coinciden el chat y la transcripcion responderian distinto.

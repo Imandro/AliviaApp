@@ -233,7 +233,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         if (dueState.due) {
           return (
             <div
-              className="cm-card cm-press dash-span"
+              className="cm-card cm-press"
               style={styles.checkupCard}
               onClick={() => navigate('/assessment')}
               role="button"
@@ -252,9 +252,9 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           );
         }
         return (
-          <div
-            className="cm-card cm-press dash-span"
-            style={styles.checkupQuiet}
+            <div
+              className="cm-card cm-press"
+              style={styles.checkupQuiet}
             onClick={() => navigate('/assessment')}
             role="button"
             aria-label="Ver mi chequeo de bienestar"
@@ -278,7 +278,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
       })()}
 
       {/* Selector de luchas */}
-      <div className="dash-span">
+      <div>
       <button
         type="button"
         onClick={() => { setPreviewLucha(luchaId); setPickerOpen(true); }}
@@ -358,7 +358,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
       {/* Recursos Oficiales / Ayuda cerca de mí — card prominente */}
       <div
-        className="cm-card cm-press dash-span"
+        className="cm-card cm-press"
         style={{
           ...styles.resourcesCard,
           background: 'linear-gradient(135deg, rgba(var(--accent-sage-rgb), 0.14) 0%, rgba(var(--accent-gold-rgb), 0.08) 100%)',
@@ -395,7 +395,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
 
       {/* Aliento para hoy */}
       <div
-        className="cm-card cm-press dash-span"
+        className="cm-card cm-press"
         style={{ ...styles.alientoCard, backgroundImage: alientoBg, minHeight: 165 }}
         onClick={() => navigate('/breathe')}
       >
@@ -596,7 +596,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
         <span style={styles.sectionHeadIcon}>✦</span>
         <span style={styles.sectionHeadTitle}>HERRAMIENTAS</span>
       </div>
-      <div className="dash-span" style={styles.actionsGrid}>
+      <div className="dash-span grid-up-2" style={styles.actionsGrid}>
         <div className="cm-card cm-press" style={styles.actionCard} onClick={() => navigate('/explore')}>
           <div style={{ ...styles.actionIcon, background: 'rgba(var(--accent-sage-rgb), 0.12)' }}>
             <Compass size={30} color="var(--accent-sage)" />
@@ -653,7 +653,7 @@ export const Dashboard: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
                 Ver todos ›
               </span>
             </div>
-            <div style={styles.gamesGrid}>
+            <div className="grid-up-2" style={styles.gamesGrid}>
               {GAMES.map(game => (
                 <div
                   key={game.id}
@@ -1527,8 +1527,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   actionsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    /* display/gridTemplateColumns viven en la clase .grid-up-2 (index.css):
+       2 columnas en móvil, 3 a partir de 768px. Con el valor fijo en línea la
+       media query no habría podido sobrescribirlo. */
     gap: '12px',
   },
   actionCard: {
@@ -1564,8 +1565,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 
   gamesGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    /* Como actionsGrid: columnas responsivas en la clase .grid-up-2. */
     gap: '10px',
   },
   gameCard: {

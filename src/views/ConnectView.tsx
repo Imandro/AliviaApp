@@ -113,7 +113,7 @@ export const ConnectView: React.FC = () => {
               <p className="body-standard" style={{ fontSize: '12px', opacity: 0.7 }}>
                 No necesitas el "discurso perfecto". Verás mensajes de ejemplo que puedes personalizar:
               </p>
-              <div style={styles.templateList}>
+              <div className="cards-grid" style={styles.templateList}>
                 {MESSAGE_TEMPLATES.map((t, i) => (
                   <button key={i} onClick={() => selectTemplate(i)} style={styles.templateBtn}>
                     <MessageSquare size={14} color="var(--accent-sage)" />
@@ -241,8 +241,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: '6px',
   },
   templateList: {
-    display: 'flex',
-    flexDirection: 'column',
+    /* Columnas responsivas en la clase .cards-grid (index.css). */
     gap: '8px',
   },
   templateBtn: {

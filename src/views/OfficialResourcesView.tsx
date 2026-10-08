@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import {
   OFFICIAL_RESOURCES,
-  CRISIS_COUNTRIES,
   resourcesMatchProblem,
   getCountryInfo,
   getEmergencyNumber,
@@ -110,7 +109,6 @@ export const OfficialResourcesView: React.FC = () => {
 
   const countryInfo = getCountryInfo(country);
   const emergency = getEmergencyNumber(country);
-  const isINTL = country === 'INTL';
 
   const toggleFavorite = useCallback((id: string) => {
     setFavorites((prev) => {
@@ -171,7 +169,7 @@ export const OfficialResourcesView: React.FC = () => {
 
   const filtered = useMemo(() => {
     let res = OFFICIAL_RESOURCES.filter((r) => {
-      if (!isINTL && r.country !== country) return false;
+      if (r.country !== country) return false;
       if (selectedProblem !== 'ALL' && !r.specialties.includes(selectedProblem)) return false;
       if (freeOnly && !r.free) return false;
       if (youthOnly && !r.youthFriendly) return false;
@@ -193,7 +191,7 @@ export const OfficialResourcesView: React.FC = () => {
     if (userLat !== null && userLng !== null) {
       res = sortResourcesByDistance(res, userLat, userLng);
     } else {
-      const order = ['NI', 'SV', 'GT', 'HN', 'CR', 'PA', 'INTL'];
+      const order = ['NI'];
       res = res.sort((a, b) => {
         const ia = order.indexOf(a.country);
         const ib = order.indexOf(b.country);
@@ -206,7 +204,7 @@ export const OfficialResourcesView: React.FC = () => {
     }
 
     return res;
-  }, [country, isINTL, selectedProblem, freeOnly, youthOnly, contactFilter, search, favorites, userLat, userLng]);
+  }, [country, selectedProblem, freeOnly, youthOnly, contactFilter, search, favorites, userLat, userLng]);
 
   const shown = filtered.slice(0, 40);
 
@@ -218,34 +216,19 @@ export const OfficialResourcesView: React.FC = () => {
 
   return (
     <div className="fade-in" style={{ paddingBottom: '110px' }}>
-      <CrisisModeBanner variant="compact" countryEmergency={emergency} localeLine={isINTL ? '800-SUICIDIO' : undefined} />
+      <CrisisModeBanner variant="compact" countryEmergency={emergency} />
 
       {/* Cabecera */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '14px 12px', marginTop: '6px' }}>
         <div>
           <div style={{ fontSize: '10px', fontFamily: 'var(--font-title)', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            {isINTL ? 'INTERNACIONAL' : 'RECURSOS OFICIALES'}
+            RECURSOS OFICIALES
           </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '20px', color: 'var(--text-primary)', margin: 0 }}>
-            {isINTL ? 'Ayuda internacional' : countryInfo?.label + ' — ayuda verificada'}
+            {countryInfo?.label} — ayuda verificada
           </h1>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {countryInfo && (
-            <select
-              value={country}
-              onChange={(e) => setCountry(e.target.value as OfficialResourceCountry)}
-              className="input-apple"
-              style={{ padding: '8px 10px', borderRadius: '12px', fontSize: '12px', background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
-              aria-label="Cambiar país"
-            >
-              <option value={country}>{countryInfo.label}</option>
-              {CRISIS_COUNTRIES.map((c) => (
-                <option key={c.country} value={c.country}>{c.label}</option>
-              ))}
-              <option value="INTL">Internacional</option>
-            </select>
-          )}
           <button
             onClick={() => setFiltersOpen((v) => !v)}
             style={{
@@ -339,7 +322,7 @@ export const OfficialResourcesView: React.FC = () => {
           />
         </div>
         <button
-          onClick={() => { setFiltersOpen(false); setCountry(isINTL ? 'NI' : (CRISIS_COUNTRIES[0].country as OfficialResourceCountry)); setSearch(''); setSelectedProblem('ALL'); setFreeOnly(false); setYouthOnly(false); setContactFilter('ALL'); }}
+          onClick={() => { setFiltersOpen(false); setCountry('NI'); setSearch(''); setSelectedProblem('ALL'); setFreeOnly(false); setYouthOnly(false); setContactFilter('ALL'); }}
           style={{
             padding: '0 14px', borderRadius: '14px', fontSize: '13px', fontFamily: 'var(--font-title)',
             background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-color)',
@@ -363,13 +346,14 @@ export const OfficialResourcesView: React.FC = () => {
           </p>
         </div>
       ) : (
-        shown.map((r) => {
+        <div className="cards-grid">
+        {shown.map((r) => {
           const isFav = favorites.includes(r.id);
           const Icon = TYPE_ICON[r.type];
           const contactStatusInfo = CONTACT_STATUS_LABEL[r.contactStatus];
           const distanceKm = (r as any).distanceKm as number | undefined;
           return (
-            <div key={r.id} className="glass-card fade-in" style={{ padding: '14px 12px', marginBottom: '10px' }}>
+            <div key={r.id} className="glass-card fade-in" style={{ padding: '14px 12px' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
                 <div style={{
                   width: '36px', height: '36px', borderRadius: '12px', flexShrink: 0,
@@ -467,15 +451,23 @@ export const OfficialResourcesView: React.FC = () => {
               </div>
             </div>
           );
-        })
+        })}
+        </div>
       )}
 
-      {/* Botón flotante de geolocalización */}
+      {/* Botón de geolocalización.
+
+          sticky en vez de fixed: con fixed se iba al borde derecho de la
+          VENTANA (fuera de la tarjeta centrada en tablet/escritorio) y pisaba
+          la franja reservada a la navbar. Como último hijo con esta posición
+          flota sobre el contenido, queda dentro del contenedor y a 110px del
+          suelo, por encima de la barra inferior. */}
       <button
         onClick={handleGeoClick}
         style={{
-          position: 'fixed', bottom: '22px', right: '22px', zIndex: 50,
+          position: 'sticky', bottom: '110px', zIndex: 50,
           display: 'flex', alignItems: 'center', gap: '8px',
+          width: 'fit-content', marginLeft: 'auto',
           padding: '12px 18px', borderRadius: '16px',
           background: 'var(--accent-sage)', color: '#0c1810',
           border: 'none', fontFamily: 'var(--font-title)', fontWeight: 600, fontSize: '13px',

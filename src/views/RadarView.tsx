@@ -318,7 +318,7 @@ export const RadarView: React.FC = () => {
           </svg>
         )}
 
-        <div style={styles.legendGrid}>
+        <div className="grid-up-2" style={styles.legendGrid}>
           {points.map((p, i) => (
             <div key={i} style={styles.legendItem}>
               <span style={{ fontSize: '12px' }}>{MOOD_EMOJIS[i]}</span>
@@ -396,8 +396,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: 'all 0.2s',
   },
   legendGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    /* Columnas responsivas en la clase .grid-up-2 (index.css). */
     gap: '8px',
     width: '100%',
     marginTop: '8px',

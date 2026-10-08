@@ -45,6 +45,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     gap: '12px',
     padding: 'calc(8px + env(safe-area-inset-top)) 0 2px',
+    /* En tablet/escritorio el escenario se limita a 640px; la barra sigue ese
+       mismo ancho para que volver, título y SOS queden alineados con el juego. */
+    width: '100%',
+    maxWidth: '640px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
   back: {
     width: '40px',

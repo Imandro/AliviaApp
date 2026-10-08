@@ -120,12 +120,12 @@ export const LIBRARY: LibraryItem[] = [
   },
   {
     id: 'l20', type: 'recurso', title: 'Recursos de apoyo contra las adicciones',
-    desc: 'Centros, líneas y comunidades de Centroamérica donde pedir ayuda sin pena ni juicios.',
+    desc: 'Centros, líneas y comunidades de Nicaragua donde pedir ayuda sin pena ni juicios.',
     category: 'adicciones', age: '13+',
   },
   {
-    id: 'l21', type: 'recurso', title: 'Líneas de ayuda de Centroamérica ',
-    desc: 'Teléfonos gratuitos de crisis por país. Si estás en peligro, llama ahora: están para escucharte.',
+    id: 'l21', type: 'recurso', title: 'Líneas de ayuda de Nicaragua ',
+    desc: 'Teléfonos gratuitos de crisis en Nicaragua. Si estás en peligro, llama ahora: están para escucharte.',
     category: 'suicidio', age: '10+',
   },
   {

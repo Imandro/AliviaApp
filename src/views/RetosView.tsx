@@ -271,6 +271,7 @@ export const RetosView: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
           <CalendarDays size={16} color="var(--accent-gold)" />
           <span style={styles.sectionTitle}>PRÓXIMOS RETOS</span>
         </div>
+        <div className="cards-grid">
         {upcoming.map((u) => (
           <div key={u.date} style={styles.nextRow}>
             <span style={styles.nextEmoji}>{u.reto.emoji}</span>
@@ -281,6 +282,7 @@ export const RetosView: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             <ChevronRight size={16} color="var(--text-muted)" style={{ flexShrink: 0 }} />
           </div>
         ))}
+        </div>
       </div>
 
       {/* Historial */}
@@ -294,6 +296,7 @@ export const RetosView: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             Completa tu primera misión y aparecerá aquí. ¡Un paso al día es suficiente!
           </p>
         )}
+        <div className="cards-grid">
         {history.map((r) => {
           const l = getLucha(r.luchaId);
           const reto = l.retos.find((x) => x.id === r.retoId);
@@ -311,6 +314,7 @@ export const RetosView: React.FC<{ user?: SafeUser | null }> = ({ user }) => {
             </div>
           );
         })}
+        </div>
       </div>
     </div>
   );

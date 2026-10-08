@@ -12,11 +12,12 @@ import {
   type AiTurn,
 } from '../utils/aiProvider';
 import { speakNatural, stopSpeaking, preloadVoices, unlockAudio } from '../utils/tts';
+import { SilaisAlertSheet } from '../components/SilaisAlertSheet';
 
 interface ChatMessage {
   role: 'user' | 'ai';
   text: string;
-  suggest?: { label: string; path: string }[];
+  suggest?: { label: string; path: string; kind?: 'silais' }[];
   isCrisis?: boolean;
   source?: 'groq' | 'rules';
 }
@@ -101,6 +102,7 @@ export const ChatView: React.FC = () => {
     }
   });
   const [toast, setToast] = useState('');
+  const [silaisOpen, setSilaisOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -117,6 +119,8 @@ export const ChatView: React.FC = () => {
   const crisisRef = useRef(false);
   const sendNowRef = useRef<(() => void) | null>(null);
   const pendingNavRef = useRef<{ path: string; label: string } | null>(null);
+  /** Contexto de la última frase en crisis para la nota de la alerta SILAIS. */
+  const silaisNoteRef = useRef('');
   messagesRef.current = messages;
   crisisRef.current = crisisMode;
 
@@ -640,6 +644,10 @@ export const ChatView: React.FC = () => {
         </div>
       )}
 
+      {/* En tablet/escritorio toda la conversación se limita a 800px y se
+          centra: sin esto el input llegaba a medir ~970px y las burbujas de
+          Livi y del usuario quedaban a cientos de píxeles una de otra. */}
+      <div className="content-max flex flex-col" style={{ flex: 1, minHeight: 0 }}>
       <div className="glass-card flex flex-col gap-3" style={styles.introCard}>
         <div style={styles.introHeader}>
           <div style={styles.badgeGlow}>
@@ -720,7 +728,18 @@ export const ChatView: React.FC = () => {
               {msg.suggest && msg.suggest.length > 0 && (
                 <div className="chat-suggest">
                   {msg.suggest.map((s, j) => (
-                    <button key={j} onClick={() => navigate(s.path)}>
+                    <button
+                      key={j}
+                      onClick={() => {
+                        if (s.kind === 'silais') {
+                          const lastUser = [...messagesRef.current].reverse().find(m => m.role === 'user');
+                          silaisNoteRef.current = lastUser?.text?.slice(0, 300) || '';
+                          setSilaisOpen(true);
+                          return;
+                        }
+                        navigate(s.path);
+                      }}
+                    >
                       <span>{s.label}</span>
                       <ArrowRight size={12} />
                     </button>
@@ -828,6 +847,21 @@ export const ChatView: React.FC = () => {
           En crisis? Líneas de ayuda gratuitas y contacto de emergencia →
         </span>
       </button>
+
+      <button onClick={() => setSilaisOpen(true)} style={styles.silaisBtn}>
+        <ShieldAlert size={14} color="#fff" />
+        <span style={{ fontSize: '12px', color: '#fff', fontWeight: 700 }}>
+          🚨 Alertar al SILAIS (+505 8413 2841)
+        </span>
+      </button>
+
+      <SilaisAlertSheet
+        open={silaisOpen}
+        onClose={() => { setSilaisOpen(false); silaisNoteRef.current = ''; }}
+        alertType="Ideación suicida (pensamientos de quitarse la vida)"
+        note={silaisNoteRef.current}
+      />
+      </div>
     </div>
   );
 };
@@ -1059,5 +1093,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: 'center',
     gap: '6px',
     padding: '6px',
+  },
+  silaisBtn: {
+    marginTop: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    padding: '12px 16px',
+    borderRadius: '16px',
+    border: '1px solid rgba(211, 47, 47, 0.45)',
+    background: 'linear-gradient(135deg, rgba(211, 47, 47, 0.9) 0%, rgba(183, 28, 28, 0.95) 100%)',
+    boxShadow: '0 6px 18px rgba(211, 47, 47, 0.35)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
 };

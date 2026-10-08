@@ -26,6 +26,8 @@ export type AiTransport = 'proxy' | 'direct';
 export interface AiSuggestion {
   label: string;
   path: string;
+  /** 'silais': el chat abre el formulario de alerta al SILAIS. */
+  kind?: 'silais';
 }
 
 export interface AiReply {
@@ -68,10 +70,11 @@ const CHAT_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-flash-lates
 const LLM_TIMEOUT_MS = 20000;
 const FIRST_TOKEN_TIMEOUT_MS = 12000;
 const MAX_HISTORY_TURNS = 8;
-const MAX_REPLY_CHARS = 420;
+const MAX_REPLY_CHARS = 1600;
 const MAX_RETRIES = 2;
 
 const SUGGEST_SOS: AiSuggestion = { label: 'Ver líneas de ayuda (SOS)', path: '/sos' };
+const SUGGEST_SILAIS: AiSuggestion = { label: '🚨 Alertar al SILAIS', path: '/sos?alerta=1', kind: 'silais' };
 const SUGGEST_CONNECT: AiSuggestion = { label: 'Conecta con alguien de confianza', path: '/connect' };
 const SUGGEST_DEFAULT: AiSuggestion[] = [
   { label: 'Ejercicio de respiración', path: '/breathe' },
@@ -120,8 +123,22 @@ export const aiTransport = transport;
 
 export const collapseWhitespace = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
+/**
+ * Limpia la respuesta sin borrar los parrafos: el chat los pinta con
+ * white-space: pre-line, y colapsarlos a un solo bloque era lo que dejaba
+ * cualquier respuesta larga como un muro de texto.
+ */
+export const cleanReply = (s: string): string =>
+  s
+    .replace(/\r\n?/g, '\n')
+    .split('\n')
+    .map(line => line.replace(/[ \t\u00a0]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
 export const trimReply = (content: string, max = MAX_REPLY_CHARS): string => {
-  const cleaned = collapseWhitespace(content);
+  const cleaned = cleanReply(content);
   if (cleaned.length <= max) return cleaned;
   const cut = cleaned.slice(0, max);
   const lastSpace = cut.lastIndexOf(' ');
@@ -192,7 +209,7 @@ const enforceCrisisSupport = (text: string): string => {
 
 const usableText = (text: string | null, userMsg: string): string | null => {
   if (!text) return null;
-  const cleaned = stripPreamble(collapseWhitespace(text));
+  const cleaned = stripPreamble(cleanReply(text));
   if (!cleaned) return null;
   if (looksLikeEcho(cleaned, userMsg)) return null;
   return cleaned;
@@ -257,7 +274,7 @@ const planTurn = (message: string, opts: ReplyOptions): Plan => {
       mode: 'crisis',
       bundle,
       assessment,
-      suggest: [SUGGEST_SOS, SUGGEST_CONNECT],
+      suggest: [SUGGEST_SILAIS, SUGGEST_SOS, SUGGEST_CONNECT],
       rulesReply,
       suggestRuled,
       messages: [
@@ -277,7 +294,7 @@ const planTurn = (message: string, opts: ReplyOptions): Plan => {
       mode: 'crisis',
       bundle,
       assessment,
-      suggest: [SUGGEST_SOS, SUGGEST_CONNECT],
+      suggest: [SUGGEST_SILAIS, SUGGEST_SOS, SUGGEST_CONNECT],
       rulesReply,
       suggestRuled,
       messages: [
@@ -309,7 +326,7 @@ const finalize = (plan: Plan, raw: string | null, message: string): AiReply => {
   const usable = usableText(raw, message);
   if (usable) {
     const text = isCrisis
-      ? enforceCrisisSupport(trimReply(usable, 500))
+      ? enforceCrisisSupport(trimReply(usable, MAX_REPLY_CHARS))
       : trimReply(usable);
     return {
       text,
