@@ -8,10 +8,16 @@ import {
   applyPrivacyScreen,
   authenticateWithBiometry,
   biometryInfo,
+  clearAppPin,
+  effectiveLockMethod,
   getPrivacyPrefs,
+  hasAppPin,
   setPrivacyPrefs,
+  PIN_LENGTH,
+  type LockMethod,
   type PrivacyPrefs,
 } from '../utils/appLock';
+import { PinSetupModal } from '../components/PinSetupModal';
 import { downloadHtmlReport, downloadJsonExport } from '../utils/exportData';
 import {
   applyReminderSettings,
@@ -98,6 +104,19 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ title, desc, icon, on, disabled, 
   </div>
 );
 
+const METHOD_OPTIONS: { id: LockMethod; label: string }[] = [
+  { id: 'biometric', label: 'Biometría' },
+  { id: 'pin', label: 'PIN' },
+  { id: 'both', label: 'Biometría + PIN' },
+];
+
+interface PinFlow {
+  mode: 'create' | 'change';
+  /** 'enable': al guardar el PIN se activa el bloqueo. 'method': se guarda el método elegido. */
+  then?: 'enable' | 'method';
+  method?: LockMethod;
+}
+
 export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout }) => {
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
@@ -105,6 +124,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
   const [privacy, setPrivacy] = useState<PrivacyPrefs>(() => getPrivacyPrefs());
   const [bioLabel, setBioLabel] = useState('');
   const [bioAvailable, setBioAvailable] = useState(false);
+  const [pinSet, setPinSet] = useState(() => hasAppPin());
+  const [pinFlow, setPinFlow] = useState<PinFlow | null>(null);
+  const [lockMsg, setLockMsg] = useState('');
   const [exporting, setExporting] = useState<'json' | 'reporte' | null>(null);
   const [reminders, setReminders] = useState(() => getReminderPrefs());
   const [reminderError, setReminderError] = useState('');
@@ -183,14 +205,81 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
     applyPrivacyScreen();
   };
 
-  const toggleBiometricLock = async () => {
-    if (!privacy.biometricLock) {
-      // Al activar: verificar identidad una vez para confirmar que funciona
-      const ok = await authenticateWithBiometry();
-      if (!ok) return;
+  const applyLockMethod = (method: LockMethod) => {
+    setPrivacy(setPrivacyPrefs({ lockMethod: method }));
+    setLockMsg('');
+  };
+
+  const selectLockMethod = (method: LockMethod) => {
+    if (method === privacy.lockMethod) return;
+    // El PIN es obligatorio para los métodos que lo incluyen.
+    const needsPin = !(method === 'biometric' && bioAvailable);
+    if (needsPin && !pinSet) {
+      setPinFlow({ mode: 'create', then: 'method', method });
+      return;
     }
-    const next = setPrivacyPrefs({ biometricLock: !privacy.biometricLock });
-    setPrivacy(next);
+    applyLockMethod(method);
+  };
+
+  const toggleLock = async () => {
+    if (privacy.biometricLock) {
+      setPrivacy(setPrivacyPrefs({ biometricLock: false }));
+      setLockMsg('Bloqueo desactivado.');
+      return;
+    }
+    // Sin biometría disponible, el método elegido se resuelve con PIN.
+    const wantsBiometric = privacy.lockMethod !== 'pin' && bioAvailable;
+    const wantsPin = !(privacy.lockMethod === 'biometric' && bioAvailable);
+    if (wantsPin && !pinSet) {
+      setPinFlow({ mode: 'create', then: 'enable' });
+      return;
+    }
+    if (wantsBiometric) {
+      // Verificar identidad una vez para confirmar que funciona.
+      const ok = await authenticateWithBiometry();
+      if (!ok) {
+        setLockMsg('No se pudo verificar la identidad. Inténtalo de nuevo.');
+        return;
+      }
+    }
+    setPrivacy(setPrivacyPrefs({ biometricLock: true }));
+    setLockMsg('Bloqueo activado.');
+  };
+
+  const removePin = () => {
+    if (!window.confirm('¿Quitar el PIN de ALIVIA? Tus datos no se borran.')) return;
+    clearAppPin();
+    setPinSet(false);
+    if (!privacy.biometricLock) {
+      setLockMsg('PIN eliminado.');
+      return;
+    }
+    if (privacy.lockMethod === 'biometric') {
+      setLockMsg('PIN eliminado.');
+      return;
+    }
+    if (privacy.lockMethod === 'both' && bioAvailable) {
+      setPrivacy(setPrivacyPrefs({ lockMethod: 'biometric' }));
+      setLockMsg('PIN eliminado. El bloqueo pide biometría.');
+      return;
+    }
+    setPrivacy(setPrivacyPrefs({ biometricLock: false }));
+    setLockMsg('El PIN era el único método: el bloqueo quedó desactivado.');
+  };
+
+  const handlePinFlowClose = (ok: boolean) => {
+    const flow = pinFlow;
+    setPinFlow(null);
+    if (!ok || !flow) return;
+    setPinSet(true);
+    if (flow.then === 'method' && flow.method) {
+      applyLockMethod(flow.method);
+    } else if (flow.then === 'enable') {
+      setPrivacy(setPrivacyPrefs({ biometricLock: true }));
+      setLockMsg('Bloqueo activado.');
+    } else if (flow.mode === 'change') {
+      setLockMsg('PIN actualizado.');
+    }
   };
 
   const handleExport = async (kind: 'json' | 'reporte') => {
@@ -263,6 +352,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
     setToken(null);
     onLogout();
   };
+
+  const currentMethod = effectiveLockMethod(privacy, bioAvailable, pinSet);
+  const lockDesc = !privacy.biometricLock
+    ? 'Pide biometría o tu PIN al abrir ALIVIA. Funciona en la app y en el navegador.'
+    : currentMethod === 'both'
+      ? 'Se pedirá tu biometría y después tu PIN al abrir ALIVIA.'
+      : currentMethod === 'pin'
+        ? 'Se pedirá tu PIN de ALIVIA al abrir la app.'
+        : currentMethod === 'biometric'
+          ? `Se pedirá ${bioLabel ? bioLabel.toLowerCase() : 'tu biometría'} al abrir ALIVIA.`
+          : 'Sin método disponible: crea un PIN o registra biometría.';
 
   return (
     <div className="fade-in flex flex-col gap-4" style={{ paddingBottom: '90px' }}>
@@ -405,20 +505,60 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ user, onEdit, onLogout
           onToggle={togglePrivacyScreen}
         />
         <ToggleRow
-          title={bioLabel ? `Bloqueo con ${bioLabel.toLowerCase()}` : 'Bloqueo biométrico'}
-          desc={
-            !native
-              ? 'Disponible en la app instalada.'
-              : bioAvailable
-                ? 'Se pedirá tu huella, rostro o PIN al abrir ALIVIA.'
-                : 'Tu dispositivo no tiene biometría registrada.'
-          }
+          title="Bloqueo al abrir ALIVIA"
+          desc={lockDesc}
           icon={<Fingerprint size={15} />}
           on={privacy.biometricLock}
-          disabled={!native || !bioAvailable}
-          onToggle={toggleBiometricLock}
+          onToggle={toggleLock}
         />
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <p style={{ ...styles.label, color: 'var(--text-muted)' }}>MÉTODO DE BLOQUEO</p>
+          <div style={styles.methodRow}>
+            {METHOD_OPTIONS.map((opt) => {
+              const needsBio = opt.id !== 'pin';
+              const disabled = needsBio && !bioAvailable;
+              const on = currentMethod === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={disabled}
+                  aria-pressed={on}
+                  onClick={() => selectLockMethod(opt.id)}
+                  style={{
+                    ...styles.methodBtn,
+                    ...(on ? styles.methodBtnOn : {}),
+                    opacity: disabled ? 0.4 : 1,
+                    cursor: disabled ? 'default' : 'pointer',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+          {!bioAvailable ? (
+            <p style={styles.sectionNote}>
+              Este dispositivo no tiene biometría: usa un PIN de {PIN_LENGTH} dígitos.
+            </p>
+          ) : null}
+          {pinSet ? (
+            <div style={styles.pinRow}>
+              <span style={styles.pinBadge}>PIN configurado</span>
+              <button type="button" style={styles.pinBtn} onClick={() => setPinFlow({ mode: 'change' })}>
+                Cambiar PIN
+              </button>
+              <button type="button" style={styles.pinBtn} onClick={removePin}>
+                Quitar PIN
+              </button>
+            </div>
+          ) : null}
+          {lockMsg ? <p style={styles.sectionNote}>{lockMsg}</p> : null}
+        </div>
       </div>
+
+      {pinFlow ? <PinSetupModal mode={pinFlow.mode} onClose={handlePinFlowClose} /> : null}
 
       {/* Mis datos */}
       <div className="glass-card" style={styles.card}>
@@ -824,6 +964,57 @@ const styles: { [key: string]: React.CSSProperties } = {
     background: 'rgba(var(--accent-gold-rgb), 0.14)',
     borderColor: 'rgba(var(--accent-gold-rgb), 0.45)',
     color: 'var(--accent-gold)',
+  },
+  methodRow: {
+    display: 'flex',
+    gap: 6,
+  },
+  methodBtn: {
+    flex: 1,
+    padding: '8px 4px',
+    borderRadius: 12,
+    border: '1px solid var(--border-color)',
+    background: 'transparent',
+    color: 'var(--text-muted)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 600,
+    fontSize: 11.5,
+    transition: 'all .2s',
+  },
+  methodBtnOn: {
+    background: 'rgba(var(--accent-gold-rgb), 0.14)',
+    borderColor: 'rgba(var(--accent-gold-rgb), 0.45)',
+    color: 'var(--accent-gold)',
+  },
+  sectionNote: {
+    margin: 0,
+    fontSize: 11.5,
+    lineHeight: 1.5,
+    color: 'var(--text-muted)',
+  },
+  pinRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+    paddingTop: 2,
+  },
+  pinBadge: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: 'var(--accent-sage)',
+    letterSpacing: '0.02em',
+  },
+  pinBtn: {
+    padding: '7px 12px',
+    borderRadius: 10,
+    border: '1px solid var(--border-color-glow)',
+    background: 'rgba(var(--accent-gold-rgb), 0.08)',
+    color: 'var(--accent-gold)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 600,
+    fontSize: 11.5,
+    cursor: 'pointer',
   },
   privTitle: {
     display: 'block',

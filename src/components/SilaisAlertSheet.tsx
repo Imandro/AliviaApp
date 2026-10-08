@@ -45,6 +45,8 @@ export const SilaisAlertSheet: React.FC<Props> = ({ open, onClose, alertType, no
   const [geoState, setGeoState] = useState<GeoState>('idle');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+  const [duplicate, setDuplicate] = useState(false);
   const [error, setError] = useState('');
 
   // Al abrir: perfil en caché, tipo/nota precargados y GPS en marcha.
@@ -60,6 +62,8 @@ export const SilaisAlertSheet: React.FC<Props> = ({ open, onClose, alertType, no
     setSent(false);
     setError('');
     setSending(false);
+    setConfirmed(false);
+    setDuplicate(false);
 
     let cancelled = false;
     setGeoState('locating');
@@ -96,7 +100,7 @@ export const SilaisAlertSheet: React.FC<Props> = ({ open, onClose, alertType, no
     note: nota.trim() || undefined,
   });
 
-  const canSend = name.trim().length >= 2 && !sending;
+  const canSend = name.trim().length >= 2 && confirmed && !sending;
 
   const handleSend = async () => {
     if (!canSend) return;
@@ -106,6 +110,7 @@ export const SilaisAlertSheet: React.FC<Props> = ({ open, onClose, alertType, no
     const result = await sendSilaisAlert(data);
     setSending(false);
     if (result.ok) {
+      setDuplicate(result.duplicate === true);
       setSent(true);
       // Registro de auditoría (best-effort, igual que las líneas de crisis).
       void logCrisisContact(null, 'silais', `${tipo} · ${data.department || 'ubicación sin confirmar'}`);
@@ -148,11 +153,12 @@ export const SilaisAlertSheet: React.FC<Props> = ({ open, onClose, alertType, no
             <div style={styles.successBox}>
               <div style={styles.successIcon}><Check size={26} color="#fff" /></div>
               <p className="title-medium" style={{ color: 'var(--accent-sage)', textAlign: 'center' }}>
-                Alerta enviada
+                {duplicate ? 'Ya se envió' : 'Alerta enviada'}
               </p>
               <p className="body-standard" style={{ fontSize: '12px', textAlign: 'center', opacity: 0.85 }}>
-                El SILAIS recibió los datos de {name.trim()}. Si la situación es inmediata, llama también al 911 o
-                permanece con alguien de confianza.
+                {duplicate
+                  ? `Ya se envió una alerta idéntica por ${name.trim()} hace pocos minutos y no se reenvió, para no generar alarmas repetidas. Si esto es una emergencia nueva, cambia un dato o espera unos minutos.`
+                  : `El SILAIS recibió los datos de ${name.trim()}. Si la situación es inmediata, llama también al 911 o permanece con alguien de confianza.`}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -275,6 +281,20 @@ export const SilaisAlertSheet: React.FC<Props> = ({ open, onClose, alertType, no
                 </a>
               </div>
             )}
+
+            <label style={styles.confirmRow} htmlFor="silais-confirm">
+              <input
+                id="silais-confirm"
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => setConfirmed(e.target.checked)}
+                disabled={sending}
+                style={{ width: '16px', height: '16px', accentColor: '#e53935', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: '11.5px', lineHeight: 1.45 }}>
+                Confirmo que esto es una emergencia real y quiero avisar al SILAIS.
+              </span>
+            </label>
 
             <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
               <button
@@ -441,6 +461,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 6px 18px rgba(46, 125, 50, 0.4)',
+  },
+  confirmRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '8px',
+    background: 'rgba(229, 57, 53, 0.08)',
+    border: '1px solid rgba(229, 57, 53, 0.22)',
+    borderRadius: '12px',
+    padding: '9px 11px',
+    fontSize: '11px',
+    lineHeight: 1.45,
+    color: 'var(--text-secondary)',
+    fontFamily: 'var(--font-body)',
+    cursor: 'pointer',
   },
   errorBox: {
     display: 'flex',

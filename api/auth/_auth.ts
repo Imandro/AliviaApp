@@ -1,6 +1,9 @@
 import { scryptSync, randomBytes, timingSafeEqual, randomUUID } from 'crypto';
 import type { ApiRequest } from '../_types.js';
 import { getPool } from '../_db.js';
+// Solo el tipo: _roles importa _auth en runtime, así que este borde se queda
+// en tiempo de compilación y el grafo real de módulos sigue acíclico.
+import type { Role } from './_roles.js';
 
 const SESSION_DAYS = 30;
 
@@ -10,6 +13,8 @@ export interface SafeUser {
   email: string;
   phone: string | null;
   name: string;
+  role: Role;
+  is_active: boolean;
   problems: string[];
   situations: string[];
   strategies: string[];
@@ -30,6 +35,10 @@ export function toSafeUser(row: any): SafeUser {
     email: row.email,
     phone: row.phone ?? null,
     name: row.name,
+    // La BD garantiza valores del catálogo (FK a roles); el fallback cubre
+    // filas cacheadas de antes de la migración.
+    role: (typeof row.role === 'string' && row.role ? row.role : 'usuario') as Role,
+    is_active: row.is_active === undefined ? true : Boolean(row.is_active),
     problems: row.problems ?? [],
     situations: row.situations ?? [],
     strategies: row.strategies ?? [],
@@ -84,6 +93,7 @@ export interface SessionUser {
   name: string;
   username: string;
   email: string;
+  role: string;
 }
 
 export async function getUserFromRequest(req: ApiRequest): Promise<SessionUser | null> {
@@ -91,11 +101,13 @@ export async function getUserFromRequest(req: ApiRequest): Promise<SessionUser |
   if (!auth || !auth.startsWith('Bearer ')) return null;
   const token = auth.slice(7).trim();
   if (!token) return null;
+  // El filtro por is_active invalida las sesiones de cuentas desactivadas
+  // en la siguiente petición: desactivar equivale a un cierre forzado.
   const { rows } = await getPool().query(
-    `SELECT u.id, u.name, u.username, u.email
+    `SELECT u.id, u.name, u.username, u.email, u.role
      FROM sessions s
      JOIN users u ON u.id = s.user_id
-     WHERE s.token = $1 AND s.expires_at > now()`,
+     WHERE s.token = $1 AND s.expires_at > now() AND u.is_active`,
     [token]
   );
   return rows[0] ?? null;

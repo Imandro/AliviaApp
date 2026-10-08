@@ -34,6 +34,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
 
+    // La contraseña es correcta pero la cuenta fue desactivada por un admin:
+    // mensaje propio para no confundirlo con credenciales inválidas.
+    if (user.is_active === false) {
+      return res.status(403).json({ error: 'Tu cuenta está desactivada. Contacta al administrador.' });
+    }
+
     const token = await createSession(String(user.id));
 
     return res.status(200).json({ token, user: toSafeUser(user) });

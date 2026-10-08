@@ -12,11 +12,34 @@ import type { ApiRequest, ApiResponse } from './_types.js';
 const SILAIS_NUMBER = process.env.SILAIS_NUMBER || '50584132841';
 const GRAPH_BASE = 'https://graph.facebook.com/v21.0';
 
+/** Prefijo de las pruebas tecnicas: sendToSilais las redirige al numero de
+ *  prueba (SILAIS_TEST_NUMBER) y, si no hay numero configurado, NO envia
+ *  nada. Asi una prueba jamas llega al SILAIS real. */
+export const PRUEBA_PREFIX = '[PRUEBA';
+
+/** Tipos oficiales de alerta: mismo listado que src/utils/silaisAlert.ts
+ *  (un test de igualdad evita que cliente y servidor se desincronicen).
+ *  El servidor solo acepta estos valores: bloquea payloads inventados. */
+export const ALERT_TIPOS = [
+  'Ideación suicida (pensamientos de quitarse la vida)',
+  'Intento de autolesión / autolisis',
+  'Sobredosis',
+  'Violencia o agresión en curso',
+  'Crisis de salud mental severa',
+  'Otro',
+] as const;
+
 /* Rate-limit en memoria por IP. El contenedor Lambda no es eterno, pero
  * aguanta varios minutos y basta para disuadir el spam del endpoint publico. */
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 5;
 const hits = new Map<string, number[]>();
+
+/* Anti-duplicados: la misma alerta (persona + tipo + zona) no se reenvia
+ * dentro de los 10 minutos. Evita que un doble toque o un reintento dispare
+ * dos alarmas falsas al SILAIS. */
+const DUP_WINDOW_MS = 10 * 60_000;
+const recentes = new Map<string, number>();
 
 const allow = (ip: string): boolean => {
   const now = Date.now();
@@ -37,6 +60,41 @@ const clientIp = (req: ApiRequest): string => {
 
 const clampStr = (v: unknown, max: number): string =>
   typeof v === 'string' ? v.trim().slice(0, max) : '';
+
+/** Auditoria de cada envio/rechazo (CloudWatch): hora de Nicaragua, IP, tipo. */
+const audit = (evento: string, data: Record<string, unknown>): void => {
+  try {
+    console.log(`[alerts] ${evento} ${JSON.stringify({ hora: horaNicaragua(), ...data })}`);
+  } catch {
+    /* la auditoria jamas debe tumbar un envio */
+  }
+};
+
+const normalizeFirma = (s: string): string =>
+  s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim();
+
+/** Firma de la alerta para anti-duplicados: persona + tipo + zona aproximada,
+ *  siempre dentro de la misma IP (reintentos del mismo equipo). */
+const fingerprint = (a: SilaisAlertInput, ip: string): string => {
+  const coord =
+    typeof a.lat === 'number' && typeof a.lng === 'number'
+      ? `${a.lat.toFixed(3)},${a.lng.toFixed(3)}` // ~110 m
+      : 'sin-coordenadas';
+  return `${ip}|${normalizeFirma(a.name)}|${a.alertType}|${coord}`;
+};
+
+const esDuplicada = (firma: string): boolean => {
+  const now = Date.now();
+  if (recentes.size > 400) {
+    for (const [k, t] of recentes) if (now - t > DUP_WINDOW_MS) recentes.delete(k);
+  }
+  const prev = recentes.get(firma);
+  return prev !== undefined && now - prev < DUP_WINDOW_MS;
+};
+
+const marcarEnviada = (firma: string): void => {
+  recentes.set(firma, Date.now());
+};
 
 export interface SilaisAlertInput {
   name: string;
@@ -83,13 +141,22 @@ export const buildAlertMessage = (a: SilaisAlertInput): string => {
   return lineas.join('\n');
 };
 
-const validate = (raw: unknown): SilaisAlertInput | null => {
-  if (!raw || typeof raw !== 'object') return null;
+type ValidateResult = { ok: true; alert: SilaisAlertInput } | { ok: false; error: string };
+
+const validate = (raw: unknown): ValidateResult => {
+  if (!raw || typeof raw !== 'object') {
+    return { ok: false, error: 'Faltan datos: name y alertType son requeridos' };
+  }
   const b = raw as Record<string, unknown>;
 
   const name = clampStr(b.name, 80);
   const alertType = clampStr(b.alertType, 120);
-  if (!name || !alertType) return null;
+  if (!name || !alertType) {
+    return { ok: false, error: 'Faltan datos: name y alertType son requeridos' };
+  }
+  if (!(ALERT_TIPOS as readonly string[]).includes(alertType)) {
+    return { ok: false, error: 'alertType no permitido' };
+  }
 
   const lat = typeof b.lat === 'number' ? b.lat : Number(b.lat);
   const lng = typeof b.lng === 'number' ? b.lng : Number(b.lng);
@@ -97,15 +164,18 @@ const validate = (raw: unknown): SilaisAlertInput | null => {
     Number.isFinite(n) && n >= min && n <= max;
 
   return {
-    name,
-    alertType,
-    phone: clampStr(b.phone, 30),
-    department: clampStr(b.department, 80),
-    municipality: clampStr(b.municipality, 80),
-    address: clampStr(b.address, 160),
-    note: clampStr(b.note, 400),
-    lat: coordOk(lat, -90, 90) ? lat : undefined,
-    lng: coordOk(lng, -180, 180) ? lng : undefined,
+    ok: true,
+    alert: {
+      name,
+      alertType,
+      phone: clampStr(b.phone, 30),
+      department: clampStr(b.department, 80),
+      municipality: clampStr(b.municipality, 80),
+      address: clampStr(b.address, 160),
+      note: clampStr(b.note, 400),
+      lat: coordOk(lat, -90, 90) ? lat : undefined,
+      lng: coordOk(lng, -180, 180) ? lng : undefined,
+    },
   };
 };
 
@@ -114,11 +184,24 @@ interface WaTextResponse {
   error?: { message?: string; code?: number };
 }
 
-/** Envia el mensaje al SILAIS via WhatsApp Cloud API. */
+/** Envia el mensaje via WhatsApp Cloud API.
+ *  Un mensaje que empieza con [PRUEBA es una prueba tecnica: va SOLO al
+ *  numero de prueba (SILAIS_TEST_NUMBER); sin ese numero configurado se
+ *  rechaza. Asi ninguna prueba puede llegar al SILAIS real. */
 export const sendToSilais = async (message: string): Promise<{ ok: true; waMessageId?: string } | { ok: false; status: number; detail: string }> => {
   const token = (process.env.WHATSAPP_TOKEN ?? '').trim();
   const phoneId = (process.env.WHATSAPP_PHONE_NUMBER_ID ?? '').trim();
   if (!token || !phoneId) return { ok: false, status: 503, detail: 'WhatsApp no configurado' };
+
+  const esPrueba = message.trimStart().startsWith(PRUEBA_PREFIX);
+  let destino = SILAIS_NUMBER;
+  if (esPrueba) {
+    const testNumber = (process.env.SILAIS_TEST_NUMBER ?? '').replace(/\D/g, '');
+    if (!testNumber) {
+      return { ok: false, status: 503, detail: 'Numero de prueba no configurado' };
+    }
+    destino = testNumber;
+  }
 
   // Meta exige una plantilla aprobada para el primer mensaje fuera de la
   // ventana de 24 h. Si el secreto trae nombre de plantilla (con un unico
@@ -127,7 +210,7 @@ export const sendToSilais = async (message: string): Promise<{ ok: true; waMessa
   const payload = template
     ? {
         messaging_product: 'whatsapp',
-        to: SILAIS_NUMBER,
+        to: destino,
         type: 'template',
         template: {
           name: template,
@@ -137,7 +220,7 @@ export const sendToSilais = async (message: string): Promise<{ ok: true; waMessa
       }
     : {
         messaging_product: 'whatsapp',
-        to: SILAIS_NUMBER,
+        to: destino,
         type: 'text',
         text: { preview_url: false, body: message },
       };
@@ -168,18 +251,38 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ error: 'Metodo no permitido' });
   }
 
-  if (!allow(clientIp(req))) {
+  const ip = clientIp(req);
+
+  if (!allow(ip)) {
+    audit('rechazada', { ip, motivo: 'rate-limit' });
     return res.status(429).json({ error: 'Demasiadas alertas, intentalo en unos segundos' });
   }
 
-  const alert = validate(req.body);
-  if (!alert) {
-    return res.status(400).json({ error: 'Faltan datos: name y alertType son requeridos' });
+  const v = validate(req.body);
+  if (!v.ok) {
+    audit('rechazada', { ip, motivo: v.error });
+    return res.status(400).json({ error: v.error });
+  }
+  const alert = v.alert;
+
+  const firma = fingerprint(alert, ip);
+  if (esDuplicada(firma)) {
+    audit('duplicada', { ip, tipo: alert.alertType });
+    return res.status(200).json({ ok: true, duplicate: true, waMessageId: null });
   }
 
   const sent = await sendToSilais(buildAlertMessage(alert));
   if (!sent.ok) {
+    audit('rechazada', { ip, motivo: sent.detail });
     return res.status(sent.status).json({ error: sent.detail });
   }
-  return res.status(200).json({ ok: true, waMessageId: sent.waMessageId ?? null });
+
+  marcarEnviada(firma);
+  audit('enviada', {
+    ip,
+    tipo: alert.alertType,
+    depto: alert.department || 'por confirmar',
+    waMessageId: sent.waMessageId ?? null,
+  });
+  return res.status(200).json({ ok: true, waMessageId: sent.waMessageId ?? null, duplicate: false });
 }
