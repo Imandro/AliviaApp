@@ -208,20 +208,45 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1200px;transform:translate3d(0,var(--scroll-offset,0px),0);will-change:transform}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1100px;transform:translate3d(0,var(--scroll-offset,0px),0);will-change:transform}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
   filter:blur(22px);opacity:var(--glow-opacity,.9);transform:scale(var(--glow-scale,1))
 }
-.mockup img{
-  display:block;width:auto;height:min(68vh,570px);max-width:100%;object-fit:contain;
+.iphone-device{
+  position:relative;width:clamp(220px,26vw,326px);max-width:72vw;aspect-ratio:393/852;
+  padding:7px;border:1px solid rgba(255,255,255,.72);border-radius:15.5% / 7.2%;
+  background:linear-gradient(112deg,#343638 0%,#d8d9d5 5%,#777a7a 9%,#252729 13%,#090a0b 48%,#777a7a 91%,#d4d5d1 95%,#333537 100%);
+  box-shadow:0 28px 55px rgba(0,0,0,.42),0 8px 18px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.28);
   transform:rotateY(var(--scroll-rotate,0deg)) rotateX(var(--scroll-pitch,0deg));
-  transform-origin:center;
-  filter:drop-shadow(var(--scroll-shadow-x,0px) 24px 34px rgba(0,0,0,.32));
+  transform-style:preserve-3d;transform-origin:center;
+  transition:transform .12s linear,filter .18s ease;
+  filter:drop-shadow(var(--scroll-shadow-x,0px) 14px 22px rgba(0,0,0,.22));
   will-change:transform
 }
+.iphone-device::before{
+  content:"";position:absolute;inset:3px;border:1px solid rgba(255,255,255,.22);
+  border-radius:inherit;pointer-events:none
+}
+.iphone-screen{
+  position:absolute;inset:7px;overflow:hidden;border-radius:13.6% / 6.4%;
+  background:#111b14;box-shadow:inset 0 0 0 1px rgba(0,0,0,.85)
+}
+.iphone-screen img{display:block;width:100%;height:100%;object-fit:cover}
+.iphone-button{
+  position:absolute;z-index:2;width:3px;border-radius:3px;
+  background:linear-gradient(90deg,#777a7a,#d4d5d1 50%,#5a5d5e);
+  box-shadow:0 0 0 1px rgba(0,0,0,.38)
+}
+.iphone-button--action{left:-3px;top:16%;height:4.2%}
+.iphone-button--volume-up{left:-3px;top:23%;height:7%}
+.iphone-button--volume-down{left:-3px;top:31.5%;height:7%}
+.iphone-button--power{right:-3px;top:25%;height:12%}
 .mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
+@media (max-width:640px){
+  .iphone-device{width:clamp(230px,68vw,310px);max-width:76vw}
+}
 
 /* Momentos */
 .momentos{padding:clamp(3rem,7vw,5.5rem) 0}
@@ -612,6 +637,7 @@ a{color:inherit}
   *{transition:none!important; animation:none!important}
   .reveal{opacity:1; transform:none}
   .mockup{transform:none!important;will-change:auto}
+  .iphone-device{transform:none!important;filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));will-change:auto}
 }
 :focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
 </style>
@@ -721,7 +747,15 @@ a{color:inherit}
     </div>
 
     <figure class="mockup">
-      <img src="/alivia-app-mockup.jpeg" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
+      <div class="iphone-device" role="img" aria-label="Mockup de un iPhone 15 con ALIVIA abierta">
+        <span class="iphone-button iphone-button--action" aria-hidden="true"></span>
+        <span class="iphone-button iphone-button--volume-up" aria-hidden="true"></span>
+        <span class="iphone-button iphone-button--volume-down" aria-hidden="true"></span>
+        <span class="iphone-button iphone-button--power" aria-hidden="true"></span>
+        <div class="iphone-screen">
+          <img src="/alivia-app-screen.webp" alt="">
+        </div>
+      </div>
       <figcaption>Una mirada a las herramientas de bienestar que encontrarás en ALIVIA.</figcaption>
     </figure>
   </div>
@@ -1195,12 +1229,12 @@ a{color:inherit}
   }
 })();
 
-/* Giro 3D del telefono sincronizado con su recorrido por la pantalla */
+/* Giro 3D fluido del iPhone sincronizado con el desplazamiento */
 (function(){
   var mockup = document.querySelector('.mockup');
-  var image = mockup && mockup.querySelector('img');
+  var device = mockup && mockup.querySelector('.iphone-device');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!mockup || !image || reduce || !('requestAnimationFrame' in window)) return;
+  if (!mockup || !device || reduce || !('requestAnimationFrame' in window)) return;
   var pending = false;
   function update(){
     var rect = mockup.getBoundingClientRect();
@@ -1208,9 +1242,9 @@ a{color:inherit}
     var range = (window.innerHeight + rect.height) / 2;
     var depth = Math.max(-1, Math.min(1, (window.innerHeight / 2 - center) / range));
     mockup.style.setProperty('--scroll-offset', (depth * 18).toFixed(2) + 'px');
-    image.style.setProperty('--scroll-rotate', (depth * 24).toFixed(2) + 'deg');
-    image.style.setProperty('--scroll-pitch', (depth * -2.5).toFixed(2) + 'deg');
-    image.style.setProperty('--scroll-shadow-x', (depth * -12).toFixed(2) + 'px');
+    device.style.setProperty('--scroll-rotate', (depth * 28).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-pitch', (depth * -1.6).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-shadow-x', (depth * -10).toFixed(2) + 'px');
     mockup.style.setProperty('--glow-scale', (1 - Math.abs(depth) * 0.12).toFixed(2));
     mockup.style.setProperty('--glow-opacity', (0.62 + (1 - Math.abs(depth)) * 0.32).toFixed(2));
     pending = false;
