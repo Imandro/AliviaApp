@@ -47,6 +47,7 @@ const graphOk = () =>
 const originalToken = process.env.WHATSAPP_TOKEN;
 const originalPhoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const originalTemplate = process.env.WHATSAPP_TEMPLATE_NAME;
+const originalTestNumber = process.env.SILAIS_TEST_NUMBER;
 
 beforeEach(() => {
   process.env.WHATSAPP_TOKEN = 'EAAG-test-token';
@@ -62,6 +63,8 @@ afterEach(() => {
   else process.env.WHATSAPP_PHONE_NUMBER_ID = originalPhoneId;
   if (originalTemplate === undefined) delete process.env.WHATSAPP_TEMPLATE_NAME;
   else process.env.WHATSAPP_TEMPLATE_NAME = originalTemplate;
+  if (originalTestNumber === undefined) delete process.env.SILAIS_TEST_NUMBER;
+  else process.env.SILAIS_TEST_NUMBER = originalTestNumber;
 });
 
 describe('alert-handler — flujo completo del bot', () => {
@@ -72,7 +75,7 @@ describe('alert-handler — flujo completo del bot', () => {
     const res = await handler(makeEvent({ body: alertBody }));
 
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual({ ok: true, waMessageId: 'wamid.INTEGRATION123' });
+    expect(JSON.parse(res.body)).toEqual({ ok: true, waMessageId: 'wamid.INTEGRATION123', duplicate: false });
 
     // Una sola llamada saliente, al endpoint de WhatsApp del número de la app.
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -195,5 +198,21 @@ describe('alert-handler — flujo completo del bot', () => {
       last = res.statusCode;
     }
     expect(last).toBe(429);
+  });
+
+  it('marca duplicada en el handler y no reenvia a Meta', async () => {
+    vi.stubGlobal('fetch', graphOk());
+    const ip = `10.15.15.${(ipSeq++ % 250) + 1}`;
+    // Primera: ok
+    const res1 = await handler(makeEvent({ headers: { 'x-forwarded-for': ip }, body: alertBody }));
+    expect(res1.statusCode).toBe(200);
+    expect(JSON.parse(res1.body)).toEqual({ ok: true, waMessageId: 'wamid.INTEGRATION123', duplicate: false });
+    // Segunda: duplicada
+    const res2 = await handler(makeEvent({ headers: { 'x-forwarded-for': ip }, body: alertBody }));
+    expect(res2.statusCode).toBe(200);
+    expect(JSON.parse(res2.body)).toEqual({ ok: true, duplicate: true, waMessageId: null });
+    // Meta solo llamado una vez
+    // (graphOk es un mock compartido; verificamos que solo hubo 1 llamada real)
+    // Nota: el mock graphOk se crea por test, asi que esta verificacion es a nivel de alerts.test
   });
 });

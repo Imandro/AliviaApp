@@ -168,7 +168,7 @@ export const silaisWaLink = (a: SilaisAlertData): string =>
   `https://wa.me/${SILAIS_NUMBER}?text=${encodeURIComponent(buildSilaisMessage(a))}`;
 
 export type SendResult =
-  | { ok: true; waMessageId?: string | null }
+  | { ok: true; waMessageId?: string | null; duplicate?: boolean }
   | { ok: false; error: string; network?: boolean };
 
 /**
@@ -184,11 +184,15 @@ export const sendSilaisAlert = async (a: SilaisAlertData): Promise<SendResult> =
       body: JSON.stringify(a),
       signal: AbortSignal.timeout(15000),
     });
-    const body = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+    const body = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; duplicate?: boolean } | null;
     if (!res.ok || !body?.ok) {
       return { ok: false, error: body?.error || `Error ${res.status}` };
     }
-    return { ok: true, waMessageId: (body as { waMessageId?: string | null }).waMessageId ?? null };
+    return {
+      ok: true,
+      waMessageId: (body as { waMessageId?: string | null }).waMessageId ?? null,
+      duplicate: body.duplicate === true,
+    };
   } catch {
     return { ok: false, error: 'Sin conexión con el servidor', network: true };
   }

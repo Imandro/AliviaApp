@@ -63,6 +63,7 @@ import { syncSystemBarsTheme } from './utils/systemBars';
 import { SyncToast } from './components/SyncToast';
 import { AppLock } from './components/AppLock';
 import { FirstRunSpotlight } from './components/FirstRunSpotlight';
+import { FirstLockPrompt, shouldShowFirstLockPrompt } from './components/FirstLockPrompt';
 import { LoadingBrand } from './components/LoadingBrand';
 import { StartupReady } from './components/StartupReady';
 
@@ -300,14 +301,17 @@ function Root() {
   }
 
   return (
-    <AppShell
-      user={user!}
-      onEditProfile={() => setStatus('onboarding')}
-      onLogout={() => {
-        setUser(null);
-        setStatus('welcome');
-      }}
-    />
+    <>
+      <AppShell
+        user={user!}
+        onEditProfile={() => setStatus('onboarding')}
+        onLogout={() => {
+          setUser(null);
+          setStatus('welcome');
+        }}
+      />
+      {shouldShowFirstLockPrompt() ? <FirstLockPrompt onClose={() => {}} /> : null}
+    </>
   );
 }
 

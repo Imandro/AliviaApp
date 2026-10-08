@@ -58,6 +58,21 @@ CREATE TABLE IF NOT EXISTS plan_activities (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Roles del sistema (RBAC). Es un catalogo cerrado: users.role apunta aqui, asi
+-- que la base de datos rechaza cualquier valor que no sea uno de estos tres.
+CREATE TABLE IF NOT EXISTS roles (
+  code TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO roles (code, name, description) VALUES
+  ('admin',   'Administrador', 'Gestiona cuentas, roles y la configuracion global'),
+  ('usuario', 'Usuario',       'Uso habitual de la app sobre sus propios datos'),
+  ('auditor', 'Auditor',       'Solo lectura: revisa la bitacora y los agregados sin datos personales')
+ON CONFLICT (code) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   username TEXT UNIQUE NOT NULL,
@@ -65,6 +80,8 @@ CREATE TABLE IF NOT EXISTS users (
   phone TEXT UNIQUE,
   name TEXT NOT NULL,
   password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'usuario',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
   problems TEXT[] NOT NULL DEFAULT '{}',
   situations TEXT[] NOT NULL DEFAULT '{}',
   strategies TEXT[] NOT NULL DEFAULT '{}',
@@ -86,6 +103,13 @@ CREATE TABLE IF NOT EXISTS users (
 -- CREATE TABLE IF NOT EXISTS no anade columnas nuevas. IF NOT EXISTS hace que
 -- el script sea idempotente y se pueda correr en cada arranque sin efecto.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS landing_seen BOOLEAN NOT NULL DEFAULT FALSE;
+
+-- El ALTER de role va aparte del CREATE porque la tabla ya existe en produccion
+-- (CREATE TABLE IF NOT EXISTS no anade columnas ni llaves nuevas).
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'usuario';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_fkey;
+ALTER TABLE users ADD CONSTRAINT users_role_fkey FOREIGN KEY (role) REFERENCES roles(code);
 
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
@@ -152,6 +176,22 @@ CREATE TABLE IF NOT EXISTS crisis_contact_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_crisis_log_user ON crisis_contact_log(user_id);
+
+-- Bitacora de auditoria: toda accion sensible sobre cuentas y roles queda
+-- registrada. La consulta es del rol auditor (y admin) via /api/admin/audit.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id BIGSERIAL PRIMARY KEY,
+  actor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  actor_role TEXT NOT NULL,
+  action TEXT NOT NULL,
+  entity TEXT NOT NULL,
+  entity_id TEXT,
+  detail JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log (action, created_at DESC);
 `;
 
 const FUNCTIONS_SQL = (() => {

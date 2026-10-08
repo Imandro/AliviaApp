@@ -19,6 +19,7 @@ node_modules
 dist
 dist-ssr
 *.local
+whatsapp-secret.local.json
 
 # Editor directories and files
 .vscode/*

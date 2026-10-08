@@ -90,7 +90,19 @@ describe('sendSilaisAlert', () => {
       })
     ));
     const out = await sendSilaisAlert({ name: 'Ana', alertType: 'Otro' });
-    expect(out).toEqual({ ok: true, waMessageId: 'wamid.1' });
+    expect(out).toEqual({ ok: true, waMessageId: 'wamid.1', duplicate: false });
+  });
+
+  it('reconoce cuando el backend marcó la alerta como duplicada', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () =>
+      new Response(JSON.stringify({ ok: true, duplicate: true, waMessageId: null }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    ));
+    const out = await sendSilaisAlert({ name: 'Ana', alertType: 'Otro' });
+    expect(out.ok).toBe(true);
+    expect(out.ok === true && out.duplicate).toBe(true);
   });
 
   it('propaga el error del backend (429 rate limit)', async () => {

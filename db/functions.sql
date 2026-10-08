@@ -24,6 +24,12 @@ DROP FUNCTION IF EXISTS fn_save_assessment(UUID, TEXT, INTEGER, INTEGER, INTEGER
 DROP FUNCTION IF EXISTS fn_get_user_assessments(UUID);
 DROP FUNCTION IF EXISTS fn_log_crisis_contact(UUID, INTEGER, TEXT, TEXT);
 DROP FUNCTION IF EXISTS fn_set_assessment_advice(INTEGER, TEXT);
+DROP FUNCTION IF EXISTS fn_log_audit(UUID, TEXT, TEXT, TEXT, TEXT, JSONB);
+DROP FUNCTION IF EXISTS fn_list_users();
+DROP FUNCTION IF EXISTS fn_set_user_role(UUID, UUID, TEXT);
+DROP FUNCTION IF EXISTS fn_set_user_active(UUID, UUID, BOOLEAN);
+DROP FUNCTION IF EXISTS fn_get_audit(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS fn_admin_stats();
 
 -- ---------- ÁNIMO (mood_entries) ----------
 
@@ -412,4 +418,197 @@ BEGIN
   END IF;
 
   RETURN v_user;
+END $$;
+
+-- ---------- ROLES Y AUDITORÍA (roles / audit_log) ----------
+
+-- Escribe un evento en la bitácora. Se llama desde las funciones que cambian
+-- cuentas o roles, así el registro queda en la MISMA transacción que el cambio:
+-- o se aplican ambos, o ninguno.
+CREATE OR REPLACE FUNCTION fn_log_audit(
+  p_actor_id UUID,
+  p_actor_role TEXT,
+  p_action TEXT,
+  p_entity TEXT,
+  p_entity_id TEXT DEFAULT NULL,
+  p_detail JSONB DEFAULT '{}'::jsonb
+) RETURNS BIGINT LANGUAGE plpgsql AS $$
+DECLARE
+  v_id BIGINT;
+BEGIN
+  INSERT INTO audit_log (actor_id, actor_role, action, entity, entity_id, detail)
+  VALUES (p_actor_id, p_actor_role, p_action, p_entity, p_entity_id, p_detail)
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END $$;
+
+-- Listado de cuentas para el panel de administración. Nunca expone
+-- password_hash: solo las columnas que la interfaz necesita ver.
+CREATE OR REPLACE FUNCTION fn_list_users()
+RETURNS TABLE(
+  id UUID, username TEXT, email TEXT, name TEXT, role TEXT,
+  is_active BOOLEAN, onboarding_done BOOLEAN, created_at TEXT, last_access TEXT
+) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  SELECT u.id, u.username, u.email, u.name, u.role, u.is_active, u.onboarding_done,
+         to_char(u.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+         to_char(MAX(s.created_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+  FROM users u
+  LEFT JOIN sessions s ON s.user_id = u.id
+  GROUP BY u.id
+  ORDER BY u.created_at DESC;
+END $$;
+
+-- Cambia el rol de una cuenta. La API ya validó que el actor es admin, pero la
+-- función re-verifica en la base: defensa en profundidad. Un atacante con
+-- acceso directo a la BD no puede escalarse privilegios y ningún bug del
+-- handler puede saltarse la regla.
+CREATE OR REPLACE FUNCTION fn_set_user_role(
+  p_actor_id UUID,
+  p_target_id UUID,
+  p_new_role TEXT
+) RETURNS TABLE(
+  o_id UUID, o_username TEXT, o_email TEXT, o_name TEXT, o_role TEXT, o_is_active BOOLEAN
+) LANGUAGE plpgsql AS $$
+DECLARE
+  v_actor_role TEXT;
+  v_old_role TEXT;
+BEGIN
+  SELECT role INTO v_actor_role FROM users WHERE id = p_actor_id;
+  IF v_actor_role IS DISTINCT FROM 'admin' THEN
+    RAISE EXCEPTION 'Solo un administrador puede cambiar roles';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM roles WHERE code = p_new_role) THEN
+    RAISE EXCEPTION 'Rol no válido: %', p_new_role;
+  END IF;
+  -- Cambiarse el propio rol es la vía clásica al bloqueo: se prohíbe.
+  IF p_actor_id = p_target_id THEN
+    RAISE EXCEPTION 'No puedes cambiar tu propio rol';
+  END IF;
+
+  SELECT role INTO v_old_role FROM users WHERE id = p_target_id;
+  IF v_old_role IS NULL THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Si se degrada al único admin activo, nadie más podría gestionar roles.
+  IF v_old_role = 'admin' AND p_new_role <> 'admin'
+     AND NOT EXISTS (
+       SELECT 1 FROM users u
+       WHERE u.role = 'admin' AND u.is_active AND u.id <> p_target_id
+     ) THEN
+    RAISE EXCEPTION 'Debe quedar al menos un administrador activo';
+  END IF;
+
+  UPDATE users SET role = p_new_role, updated_at = now()
+  WHERE id = p_target_id;
+
+  PERFORM fn_log_audit(p_actor_id, v_actor_role, 'user.role_change', 'user', p_target_id::text,
+    jsonb_build_object('from', v_old_role, 'to', p_new_role));
+
+  RETURN QUERY
+  SELECT u.id, u.username, u.email, u.name, u.role, u.is_active
+  FROM users u WHERE u.id = p_target_id;
+END $$;
+
+-- Activa o desactiva una cuenta. Las sesiones de cuentas desactivadas dejan
+-- de validarse (la API filtra por is_active), equivalente a un cierre forzado.
+CREATE OR REPLACE FUNCTION fn_set_user_active(
+  p_actor_id UUID,
+  p_target_id UUID,
+  p_is_active BOOLEAN
+) RETURNS TABLE(
+  o_id UUID, o_username TEXT, o_email TEXT, o_name TEXT, o_role TEXT, o_is_active BOOLEAN
+) LANGUAGE plpgsql AS $$
+DECLARE
+  v_actor_role TEXT;
+  v_old_active BOOLEAN;
+  v_target_role TEXT;
+BEGIN
+  SELECT role INTO v_actor_role FROM users WHERE id = p_actor_id;
+  IF v_actor_role IS DISTINCT FROM 'admin' THEN
+    RAISE EXCEPTION 'Solo un administrador puede desactivar cuentas';
+  END IF;
+  IF p_actor_id = p_target_id THEN
+    RAISE EXCEPTION 'No puedes desactivar tu propia cuenta';
+  END IF;
+
+  SELECT role, is_active INTO v_target_role, v_old_active FROM users WHERE id = p_target_id;
+  IF v_target_role IS NULL THEN
+    RAISE EXCEPTION 'Usuario no encontrado';
+  END IF;
+
+  -- Nunca se deja el sistema sin un administrador activo.
+  IF NOT p_is_active AND v_target_role = 'admin'
+     AND NOT EXISTS (
+       SELECT 1 FROM users u
+       WHERE u.role = 'admin' AND u.is_active AND u.id <> p_target_id
+     ) THEN
+    RAISE EXCEPTION 'Debe quedar al menos un administrador activo';
+  END IF;
+
+  UPDATE users SET is_active = p_is_active, updated_at = now()
+  WHERE id = p_target_id;
+
+  IF p_is_active = FALSE THEN
+    DELETE FROM sessions WHERE user_id = p_target_id;
+  END IF;
+
+  PERFORM fn_log_audit(p_actor_id, v_actor_role, 'user.deactivate', 'user', p_target_id::text,
+    jsonb_build_object('from', v_old_active, 'to', p_is_active));
+
+  RETURN QUERY
+  SELECT u.id, u.username, u.email, u.name, u.role, u.is_active
+  FROM users u WHERE u.id = p_target_id;
+END $$;
+
+-- Bitácora para el auditor: quién hizo qué y cuándo. El actor se resuelve por
+-- username (no nombre ni correo) para no exponer datos personales de más.
+CREATE OR REPLACE FUNCTION fn_get_audit(
+  p_limit INTEGER DEFAULT 50,
+  p_offset INTEGER DEFAULT 0
+) RETURNS TABLE(
+  id BIGINT, actor TEXT, actor_role TEXT, action TEXT, entity TEXT,
+  entity_id TEXT, detail JSONB, created_at TEXT
+) LANGUAGE plpgsql AS $$
+BEGIN
+  IF p_limit < 1 OR p_limit > 200 THEN
+    RAISE EXCEPTION 'El límite debe estar entre 1 y 200';
+  END IF;
+  IF p_offset < 0 THEN
+    RAISE EXCEPTION 'El offset no puede ser negativo';
+  END IF;
+
+  RETURN QUERY
+  SELECT a.id, COALESCE(u.username, 'sistema'), a.actor_role, a.action, a.entity,
+         a.entity_id, a.detail,
+         to_char(a.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+  FROM audit_log a
+  LEFT JOIN users u ON u.id = a.actor_id
+  ORDER BY a.created_at DESC, a.id DESC
+  LIMIT p_limit OFFSET p_offset;
+END $$;
+
+-- Agregados para el panel de administración. Solo conteos y promedios:
+-- ningún dato personal identificable en el resumen.
+CREATE OR REPLACE FUNCTION fn_admin_stats()
+RETURNS TABLE(
+  users_total BIGINT, users_active BIGINT, users_admin BIGINT, users_auditor BIGINT,
+  sessions_active BIGINT, assessments_total BIGINT, assessments_30d BIGINT,
+  crisis_contacts BIGINT, community_posts BIGINT, mood_avg NUMERIC
+) LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    (SELECT COUNT(*) FROM users),
+    (SELECT COUNT(*) FROM users WHERE is_active),
+    (SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active),
+    (SELECT COUNT(*) FROM users WHERE role = 'auditor' AND is_active),
+    (SELECT COUNT(*) FROM sessions WHERE expires_at > now()),
+    (SELECT COUNT(*) FROM assessments),
+    (SELECT COUNT(*) FROM assessments WHERE created_at > now() - interval '30 days'),
+    (SELECT COUNT(*) FROM crisis_contact_log),
+    (SELECT COUNT(*) FROM community_posts),
+    COALESCE((SELECT ROUND(AVG(score), 2) FROM mood_entries), 0);
 END $$;

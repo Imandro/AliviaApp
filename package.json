@@ -9,8 +9,8 @@
     "build:seo": "node scripts/build-seo.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-      "build:lambda": "node scripts/build-lambda.mjs",
-      "release:apk": "node scripts/release-apk.mjs",
+    "build:lambda": "node scripts/build-lambda.mjs",
+    "release:apk": "node scripts/release-apk.mjs",
     "sync:android": "npm run build && cap sync android && node scripts/post-sync.js",
     "build:ios:web": "tsc -b && vite build --base=./ --outDir dist-ios --mode ios",
     "sync:ios": "npm run build:ios:web && node scripts/ios-sync.js"
@@ -38,6 +38,7 @@
     "@types/ws": "^8.18.2",
     "@vitejs/plugin-react": "^4.3.4",
     "esbuild": "^0.24.0",
+    "playwright": "^1.64.0",
     "typescript": "~5.6.3",
     "vite": "^5.4.11",
     "vite-plugin-pwa": "^0.21.2",
