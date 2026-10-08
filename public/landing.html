@@ -200,43 +200,18 @@ a{color:inherit}
 .btn--fantasma:hover{background:rgba(255,255,255,.03); transform:translateY(-2px)}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
-/* Tarjeta-orbe */
-.orbcard{
-  position:relative; border-radius:24px;
-  background:var(--vidrio);
-  border:1px solid var(--linea);
-  box-shadow:var(--sombra-card), inset 0 1px 0 rgba(255,255,255,.04);
-  padding:clamp(1.6rem,3vw,2.6rem);
-  display:flex; flex-direction:column; align-items:center; gap:1.4rem;
-  backdrop-filter:blur(24px) saturate(1.15); -webkit-backdrop-filter:blur(24px) saturate(1.15);
+/* Mockup del producto */
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate}
+.mockup::before{
+  content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
+  background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
+  filter:blur(22px)
 }
-.orbstage{position:relative; width:min(250px,64%); aspect-ratio:1; display:grid; place-items:center}
-.orbstage::before{
-  content:""; position:absolute; inset:-14%;
-  background:radial-gradient(circle, rgba(233,200,107,.14), transparent 65%);
-  animation:respira 8s ease-in-out infinite;
+.mockup img{
+  display:block;width:auto;height:min(68vh,570px);max-width:100%;object-fit:contain;
+  border-radius:28px;filter:drop-shadow(0 24px 34px rgba(0,0,0,.32))
 }
-.orb{
-  width:100%; height:100%; border-radius:50%;
-  background:radial-gradient(circle at 33% 30%, #FFF6DC 0%, var(--oro) 34%, rgba(233,200,107,.25) 68%, transparent 74%);
-  box-shadow:0 0 46px rgba(233,200,107,.18);
-  display:grid; place-items:center;
-  animation:respira 8s ease-in-out infinite;
-}
-.orb p{
-  font-family:"Quicksand",sans-serif; font-weight:700; color:#5A4A1E;
-  font-size:.92rem; letter-spacing:.18em; text-transform:uppercase; text-align:center; margin:0;
-}
-.orb small{display:block; font-family:"Lato",sans-serif; font-size:.66rem; letter-spacing:.24em; opacity:.75; font-weight:400}
-@keyframes respira{0%,100%{transform:scale(.84)}28%{transform:scale(1)}52%{transform:scale(.97)}}
-.fases{display:flex; gap:.4rem; justify-content:center}
-.fases span{
-  font-family:"Quicksand",sans-serif; font-weight:600; font-size:.74rem;
-  color:var(--texto-2); border:1px solid var(--linea); border-radius:16px; padding:.32rem .8rem;
-  background:rgba(255,255,255,.04);
-}
-.fases span.on{color:var(--oro); background:rgba(242,227,160,.12); border-color:rgba(242,227,160,.18)}
-.orbcard figcaption{font-size:.82rem; color:var(--texto-3); text-align:center; margin:0}
+.mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
 
 /* Momentos */
 .momentos{padding:clamp(3rem,7vw,5.5rem) 0}
@@ -354,6 +329,23 @@ a{color:inherit}
 .recursos__card p{margin:0; color:var(--texto-2); font-size:.97rem; line-height:1.65}
 .recursos__card--coral{border-color:rgba(232,196,201,.18); background:rgba(232,196,201,.07)}
 .recursos__card--coral:hover{border-color:rgba(232,196,201,.3)}
+
+/* Articulacion local para atencion de casos prioritarios. */
+.articulacion{padding:clamp(2rem,5vw,3.5rem) 0}
+.articulacion__panel{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,.65fr);gap:clamp(1.5rem,4vw,3rem);align-items:center;
+  padding:clamp(1.6rem,4vw,2.6rem);border:1px solid rgba(140,176,141,.28);border-radius:24px;
+  background:linear-gradient(135deg,rgba(44,83,61,.28),rgba(22,36,28,.82));box-shadow:var(--sombra-card);
+}
+.articulacion__panel h2{font-size:clamp(1.55rem,3vw,2.2rem);max-width:22ch;margin:.35rem 0 .8rem}
+.articulacion__panel p{color:var(--texto-2);margin:0;line-height:1.7}
+.articulacion__panel p+p{margin-top:.8rem}
+.articulacion__nota{
+  padding:1.25rem 1.35rem;border:1px solid var(--linea);border-radius:18px;
+  background:rgba(13,24,16,.38);color:var(--texto-2);font-size:.92rem;line-height:1.65;
+}
+.articulacion__nota strong{display:block;margin-bottom:.35rem;color:var(--salvia);font-family:"Quicksand",sans-serif;font-size:1rem}
+@media (max-width:700px){.articulacion__panel{grid-template-columns:1fr}}
 
 /* FAQ: <details> nativo, sin JS. Se cierra al abrir otra para que la pagina
    no crezca sin limite en movil. */
@@ -581,7 +573,7 @@ a{color:inherit}
   .hero__cta .btn{width:100%; justify-content:center}
   .aurora i{filter:blur(56px); animation:none}
   .estrellas{animation:none}
-  .orbcard,.card,.recursos__card,.demo-red,.techcard,.galeria{
+  .card,.recursos__card,.demo-red,.techcard,.galeria{
     backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   }
   .galeria__rejilla{grid-template-columns:1fr}
@@ -693,14 +685,9 @@ a{color:inherit}
       </div>
     </div>
 
-    <figure class="orbcard" style="margin:0" aria-label="Demostración del motor de respiración">
-      <div class="orbstage">
-        <div class="orb"><p>Inhala<small>4 · sostén · 4</small></p></div>
-      </div>
-      <div class="fases">
-        <span class="on">Box 4·4·4·4</span><span>4-7-8</span><span>Coherente 5·5</span>
-      </div>
-      <figcaption>El círculo marca tu ritmo; el sonido se sintetiza en tiempo real.</figcaption>
+    <figure class="mockup">
+      <img src="/alivia-app-mockup.jpeg" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
+      <figcaption>Una mirada a las herramientas de bienestar que encontrarás en ALIVIA.</figcaption>
     </figure>
   </div>
 </header>
@@ -831,6 +818,23 @@ a{color:inherit}
         <h3>Cosas que no importan</h3>
         <p>Ocho tareas aburridas a propósito —monedas, bloques, marimba, dardos, papel— para distraerte sin nada que ganar.</p>
       </article>
+    </div>
+  </div>
+</section>
+
+<section class="articulacion" aria-labelledby="articulacionTitulo">
+  <div class="wrap">
+    <div class="articulacion__panel reveal">
+      <div>
+        <p class="kicker">Acompañamiento en la comunidad</p>
+        <h2 id="articulacionTitulo">Una alerta crítica puede acercar ayuda a tiempo.</h2>
+        <p>ALIVIA trabaja en coordinación con el MINSA–SILAIS (Madriz), desde donde se facilita la comunicación de casos de salud mental que requieren atención prioritaria con las autoridades y los puestos de mando más cercanos, en Madriz y los demás departamentos.</p>
+        <p>Los reportes se gestionan desde la aplicación mediante mecanismos de validación orientados a reducir envíos falsos o de broma, para que las alertas relevantes puedan canalizarse y ser valoradas por las autoridades correspondientes.</p>
+      </div>
+      <aside class="articulacion__nota">
+        <strong>Un puente para pedir apoyo</strong>
+        Esta coordinación busca contribuir a una respuesta oportuna y a la protección de la vida. ALIVIA complementa, pero no sustituye, los servicios de emergencia ni la atención de profesionales de salud.
+      </aside>
     </div>
   </div>
 </section>
