@@ -208,20 +208,20 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1100px;transform:translate3d(0,var(--scroll-offset,0px),0);will-change:transform}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;perspective:1100px}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
-  filter:blur(22px);opacity:var(--glow-opacity,.9);transform:scale(var(--glow-scale,1))
+  filter:blur(22px)
 }
 .iphone-device{
   position:relative;width:clamp(220px,26vw,326px);max-width:72vw;aspect-ratio:393/852;
   padding:7px;border:1px solid rgba(255,255,255,.72);border-radius:15.5% / 7.2%;
   background:linear-gradient(112deg,#343638 0%,#d8d9d5 5%,#777a7a 9%,#252729 13%,#090a0b 48%,#777a7a 91%,#d4d5d1 95%,#333537 100%);
   box-shadow:0 28px 55px rgba(0,0,0,.42),0 8px 18px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.28);
-  transform:rotateY(var(--scroll-rotate,0deg)) rotateX(var(--scroll-pitch,0deg));
+  transform:translate3d(var(--scroll-x,0px),0,0) rotateY(var(--scroll-rotate,0deg)) rotateX(var(--scroll-pitch,0deg));
   transform-style:preserve-3d;transform-origin:center;
-  transition:transform .12s linear,filter .18s ease;
+  transition:transform .16s ease-out,filter .2s ease;
   filter:drop-shadow(var(--scroll-shadow-x,0px) 14px 22px rgba(0,0,0,.22));
   will-change:transform
 }
@@ -636,8 +636,7 @@ a{color:inherit}
   html{scroll-behavior:auto}
   *{transition:none!important; animation:none!important}
   .reveal{opacity:1; transform:none}
-  .mockup{transform:none!important;will-change:auto}
-  .iphone-device{transform:none!important;filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));will-change:auto}
+  .iphone-device{transition:transform .18s linear!important;filter:drop-shadow(0 18px 24px rgba(0,0,0,.28));will-change:auto}
 }
 :focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
 </style>
@@ -1229,24 +1228,24 @@ a{color:inherit}
   }
 })();
 
-/* Giro 3D fluido del iPhone sincronizado con el desplazamiento */
+/* El iPhone llega desde un costado y se asienta conforme avanza el scroll */
 (function(){
   var mockup = document.querySelector('.mockup');
   var device = mockup && mockup.querySelector('.iphone-device');
+  var hero = document.querySelector('.hero');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!mockup || !device || reduce || !('requestAnimationFrame' in window)) return;
+  if (!mockup || !device || !hero || !('requestAnimationFrame' in window)) return;
   var pending = false;
   function update(){
-    var rect = mockup.getBoundingClientRect();
-    var center = rect.top + rect.height / 2;
-    var range = (window.innerHeight + rect.height) / 2;
-    var depth = Math.max(-1, Math.min(1, (window.innerHeight / 2 - center) / range));
-    mockup.style.setProperty('--scroll-offset', (depth * 18).toFixed(2) + 'px');
-    device.style.setProperty('--scroll-rotate', (depth * 28).toFixed(2) + 'deg');
-    device.style.setProperty('--scroll-pitch', (depth * -1.6).toFixed(2) + 'deg');
-    device.style.setProperty('--scroll-shadow-x', (depth * -10).toFixed(2) + 'px');
-    mockup.style.setProperty('--glow-scale', (1 - Math.abs(depth) * 0.12).toFixed(2));
-    mockup.style.setProperty('--glow-opacity', (0.62 + (1 - Math.abs(depth)) * 0.32).toFixed(2));
+    var heroTop = hero.getBoundingClientRect().top + window.scrollY;
+    var range = Math.max(360, Math.min(720, window.innerHeight * .72));
+    var progress = Math.max(0, Math.min(1, (window.scrollY - heroTop) / range));
+    var arrival = 1 - progress;
+    var motionScale = reduce ? .55 : 1;
+    device.style.setProperty('--scroll-x', (arrival * 88 * motionScale).toFixed(2) + 'px');
+    device.style.setProperty('--scroll-rotate', (arrival * -34 * motionScale).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-pitch', (arrival * 1.8 * motionScale).toFixed(2) + 'deg');
+    device.style.setProperty('--scroll-shadow-x', (arrival * -9 * motionScale).toFixed(2) + 'px');
     pending = false;
   }
   function schedule(){
