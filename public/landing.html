@@ -208,7 +208,7 @@ a{color:inherit}
 .btn svg{width:18px;height:18px;flex:none;fill:currentColor}
 
 /* Mockup del producto */
-.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate}
+.mockup{position:relative;display:grid;justify-items:center;margin:0;isolation:isolate;transform:translate3d(0,var(--scroll-offset,0px),0);will-change:transform}
 .mockup::before{
   content:"";position:absolute;z-index:-1;width:88%;aspect-ratio:1;top:10%;
   background:radial-gradient(circle,rgba(140,176,141,.22),rgba(233,200,107,.1) 42%,transparent 70%);
@@ -216,8 +216,10 @@ a{color:inherit}
 }
 .mockup img{
   display:block;width:auto;height:min(68vh,570px);max-width:100%;object-fit:contain;
-  border-radius:28px;filter:drop-shadow(0 24px 34px rgba(0,0,0,.32))
+  animation:mockup-flotar 7s ease-in-out infinite;
+  filter:drop-shadow(0 24px 34px rgba(0,0,0,.32))
 }
+@keyframes mockup-flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 .mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
 
 /* Momentos */
@@ -608,6 +610,7 @@ a{color:inherit}
   html{scroll-behavior:auto}
   *{transition:none!important; animation:none!important}
   .reveal{opacity:1; transform:none}
+  .mockup{transform:none!important;will-change:auto}
 }
 :focus-visible{outline:3px solid var(--oro-vivo); outline-offset:3px; border-radius:8px}
 </style>
@@ -717,7 +720,7 @@ a{color:inherit}
     </div>
 
     <figure class="mockup">
-      <img src="/alivia-app-mockup.jpeg" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
+      <img src="/alivia-app-mockup.webp" alt="Mockup de ALIVIA abierta en un teléfono, con herramientas de bienestar emocional y recursos de apoyo">
       <figcaption>Una mirada a las herramientas de bienestar que encontrarás en ALIVIA.</figcaption>
     </figure>
   </div>
@@ -1189,6 +1192,29 @@ a{color:inherit}
   } else {
     items.forEach(function(el){ el.classList.add('is-in'); });
   }
+})();
+
+/* Desplazamiento sutil del mockup al recorrer la página */
+(function(){
+  var mockup = document.querySelector('.mockup');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!mockup || reduce || !('requestAnimationFrame' in window)) return;
+  var pending = false;
+  function update(){
+    var rect = mockup.getBoundingClientRect();
+    var progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+    var offset = Math.max(-12, Math.min(12, (progress - 0.5) * 24));
+    mockup.style.setProperty('--scroll-offset', offset.toFixed(2) + 'px');
+    pending = false;
+  }
+  function schedule(){
+    if (pending) return;
+    pending = true;
+    window.requestAnimationFrame(update);
+  }
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule, { passive: true });
+  update();
 })();
 </script>
 
