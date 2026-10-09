@@ -113,21 +113,128 @@ erDiagram
     PLANS ||--o{ PLAN_ACTIVITIES : "1:N"
     USERS }o--o{ AUDIT_LOG : "actor (FK opcional)"
 
-    ROLES { TEXT code PK, TEXT name, TEXT description, TIMESTAMPTZ created_at }
-    USERS { UUID id PK, TEXT username UK, TEXT email UK, TEXT phone UK, TEXT name, TEXT password_hash, TEXT role FK, BOOLEAN is_active, TEXT[] problems, TEXT[] situations, TEXT[] strategies, TEXT trusted_person, TEXT trusted_phone, BOOLEAN wants_contact, TEXT[] changes, TEXT goals_text, BOOLEAN onboarding_done, TIMESTAMPTZ created_at, TIMESTAMPTZ updated_at }
-    SESSIONS { TEXT token PK, UUID user_id FK, TIMESTAMPTZ created_at, TIMESTAMPTZ expires_at }
-    MOOD_ENTRIES { DATE date PK, INTEGER score, TEXT note }
-    EMERGENCY_CONTACT { INTEGER id PK (CHECK=1), TEXT name, TEXT phone }
-    COMPLETED_ACTIVITIES { TEXT id, TEXT title, TIMESTAMPTZ completed_at, DATE date, PK (id, date) }
-    COMMUNITY_POSTS { SERIAL id PK, TEXT author, TEXT content, TEXT topic, INTEGER likes, TIMESTAMPTZ created_at }
-    PLANS { SERIAL id PK, TEXT title, TEXT area, TIMESTAMPTZ created_at }
-    PLAN_GOALS { SERIAL id PK, INTEGER plan_id FK, TEXT title, BOOLEAN done, TIMESTAMPTZ created_at }
-    PLAN_ACTIVITIES { SERIAL id PK, INTEGER plan_id FK, TEXT title, TEXT duration, BOOLEAN done, TIMESTAMPTZ created_at }
-    NOTIFICATION_PREFERENCES { UUID user_id PK FK, JSONB settings, TIMESTAMPTZ updated_at }
-    PUSH_SUBSCRIPTIONS { BIGSERIAL id PK, UUID user_id FK, TEXT endpoint UK, JSONB subscription, TIMESTAMPTZ created_at, TIMESTAMPTZ updated_at }
-    ASSESSMENTS { SERIAL id PK, UUID user_id FK, TEXT type, INTEGER stress, INTEGER anxiety, INTEGER depression, TEXT level, BOOLEAN crisis, TEXT[] recommendations, TEXT ai_advice, TIMESTAMPTZ created_at }
-    CRISIS_CONTACT_LOG { SERIAL id PK, UUID user_id FK, INTEGER assessment_id FK, TEXT channel, TEXT detail, TIMESTAMPTZ created_at }
-    AUDIT_LOG { BIGSERIAL id PK, UUID actor_id FK, TEXT actor_role, TEXT action, TEXT entity, TEXT entity_id, JSONB detail, TIMESTAMPTZ created_at }
+    ROLES {
+        TEXT code PK
+        TEXT name
+        TEXT description
+        TIMESTAMPTZ created_at
+    }
+    USERS {
+        UUID id PK
+        TEXT username UK
+        TEXT email UK
+        TEXT phone UK
+        TEXT name
+        TEXT password_hash
+        TEXT role FK
+        BOOLEAN is_active
+        TEXT[] problems
+        TEXT[] situations
+        TEXT[] strategies
+        TEXT trusted_person
+        TEXT trusted_phone
+        BOOLEAN wants_contact
+        TEXT[] changes
+        TEXT goals_text
+        BOOLEAN onboarding_done
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+    SESSIONS {
+        TEXT token PK
+        UUID user_id FK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ expires_at
+    }
+    MOOD_ENTRIES {
+        DATE date PK
+        INTEGER score
+        TEXT note
+    }
+    EMERGENCY_CONTACT {
+        INTEGER id PK
+        TEXT name
+        TEXT phone
+    }
+    COMPLETED_ACTIVITIES {
+        TEXT id
+        TEXT title
+        TIMESTAMPTZ completed_at
+        DATE date
+    }
+    COMMUNITY_POSTS {
+        SERIAL id PK
+        TEXT author
+        TEXT content
+        TEXT topic
+        INTEGER likes
+        TIMESTAMPTZ created_at
+    }
+    PLANS {
+        SERIAL id PK
+        TEXT title
+        TEXT area
+        TIMESTAMPTZ created_at
+    }
+    PLAN_GOALS {
+        SERIAL id PK
+        INTEGER plan_id FK
+        TEXT title
+        BOOLEAN done
+        TIMESTAMPTZ created_at
+    }
+    PLAN_ACTIVITIES {
+        SERIAL id PK
+        INTEGER plan_id FK
+        TEXT title
+        TEXT duration
+        BOOLEAN done
+        TIMESTAMPTZ created_at
+    }
+    NOTIFICATION_PREFERENCES {
+        UUID user_id PK FK
+        JSONB settings
+        TIMESTAMPTZ updated_at
+    }
+    PUSH_SUBSCRIPTIONS {
+        BIGSERIAL id PK
+        UUID user_id FK
+        TEXT endpoint UK
+        JSONB subscription
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+    ASSESSMENTS {
+        SERIAL id PK
+        UUID user_id FK
+        TEXT type
+        INTEGER stress
+        INTEGER anxiety
+        INTEGER depression
+        TEXT level
+        BOOLEAN crisis
+        TEXT[] recommendations
+        TEXT ai_advice
+        TIMESTAMPTZ created_at
+    }
+    CRISIS_CONTACT_LOG {
+        SERIAL id PK
+        UUID user_id FK
+        INTEGER assessment_id FK
+        TEXT channel
+        TEXT detail
+        TIMESTAMPTZ created_at
+    }
+    AUDIT_LOG {
+        BIGSERIAL id PK
+        UUID actor_id FK
+        TEXT actor_role
+        TEXT action
+        TEXT entity
+        TEXT entity_id
+        JSONB detail
+        TIMESTAMPTZ created_at
+    }
 ```
 
 > **Notas de normalización:**  
