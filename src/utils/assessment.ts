@@ -66,7 +66,7 @@ export const isCrisisLevel = (scores: { stress: number; anxiety: number; depress
 
 export const getMyAssessments = async (): Promise<AssessmentRecord[]> => {
   try {
-    return await apiGet<AssessmentRecord[]>(BASE);
+    return await apiGet<AssessmentRecord[]>(BASE, getAuthHeaders());
   } catch {
     return [];
   }
@@ -79,12 +79,12 @@ export interface SaveAssessmentInput extends AssessmentResult {
 
 export const saveAssessment = async (data: SaveAssessmentInput): Promise<AssessmentRecord | null> => {
   try {
-    await apiMutate(BASE, {
+    const saved = await apiMutate<AssessmentRecord>(BASE, {
       method: 'POST',
       body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     });
-    // En línea: revalidamos la caché con el registro real del servidor
+    // Keep the real server ID online; temporary IDs are only for queued writes.
     const records = readCache<AssessmentRecord[]>(BASE) ?? [];
     const synth: AssessmentRecord = {
       id: tempId(),
@@ -97,9 +97,9 @@ export const saveAssessment = async (data: SaveAssessmentInput): Promise<Assessm
       recommendations: data.recommendations,
       ai_advice: data.ai_advice ?? null,
       created_at: new Date().toISOString(),
+      ...saved,
     };
-    records.unshift(synth);
-    writeCache(BASE, records);
+    writeCache(BASE, [synth, ...records.filter((record) => record.id !== synth.id)]);
     return synth;
   } catch (e) {
     if (!(e instanceof OfflineQueuedError)) return null;

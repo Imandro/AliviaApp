@@ -119,6 +119,7 @@ export const AssessmentView: React.FC = () => {
 
     // Reprograma el aviso del próximo chequeo (5 días desde ahora)
     if (saved) {
+      setRecords((prev) => [saved, ...prev.filter((record) => record.id !== saved.id)]);
       import('../utils/reminders').then(({ getReminderPrefs, syncCheckInReminder }) => {
         void syncCheckInReminder(getReminderPrefs(), saved.created_at);
       });
@@ -169,8 +170,6 @@ export const AssessmentView: React.FC = () => {
         if (assessment.isCrisis) {
           logCrisisContact(saved.id, 'assessment', assessment.evidence.map(e => e.label).join('; '));
         }
-      } else if (saved) {
-        setRecords((prev) => [saved, ...prev]);
       }
     } catch {
       // Sin IA el chequeo sigue siendo valido: las recomendaciones locales ya
