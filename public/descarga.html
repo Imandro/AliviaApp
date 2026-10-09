@@ -104,9 +104,8 @@ a{color:inherit}
   backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
   background:rgba(13,24,16,.74); border-bottom:1px solid var(--linea);}
 .nav__in{display:flex; align-items:center; gap:1.4rem; padding:.85rem 0}
-.wordmark{font-family:var(--fuente-titulo); font-weight:700; font-size:1.15rem;
-  letter-spacing:.3em; text-decoration:none; line-height:1;}
-.wordmark b{color:var(--oro-vivo)}
+.wordmark{display:inline-flex; flex:none; align-items:center; text-decoration:none;}
+.wordmark__alivia{display:block;width:clamp(5rem,8vw,6.3rem);height:auto}
 .nav__links{margin-left:auto; display:flex; gap:.35rem; align-items:center}
 .nav__links a{font-family:var(--fuente-titulo); font-weight:600; font-size:.86rem;
   color:var(--texto-2); text-decoration:none; padding:.5rem .9rem; border-radius:999px;
@@ -470,6 +469,7 @@ code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.85e
   .cmp th,.cmp td{border-bottom:none; padding:.25rem 1.1rem; display:flex; gap:.6rem; align-items:baseline}
   .cmp thead th{font-size:.68rem}
   .pie__meta{flex-direction:column; align-items:flex-start}
+  .wordmark__alivia{width:4.1rem}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -516,7 +516,9 @@ code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:.85e
 
 <nav class="nav">
   <div class="wrap nav__in">
-    <a class="wordmark" href="/landing.html">ALIVIA<b>.</b></a>
+    <a class="wordmark" href="/landing.html" aria-label="ALIVIA">
+      <img class="wordmark__alivia" src="/alivia-logo-secundario-blanco.png" alt="ALIVIA" width="2460" height="938">
+    </a>
     <div class="nav__links">
       <a class="volver" href="/landing.html">Volver al sitio</a>
       <a href="#que-sale">Qué sale</a>
