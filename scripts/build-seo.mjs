@@ -19,6 +19,7 @@ import { build } from 'esbuild';
 import { mkdirSync, writeFileSync, rmSync, readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { updateDownloadPage } from './download-page.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -602,47 +603,11 @@ const releaseManifest = JSON.parse(readFileSync(join(root, 'public', 'releases.j
 const descargaPath = join(root, 'public', 'descarga.html');
 
 if (existsSync(descargaPath)) {
-  let html = readFileSync(descargaPath, 'utf8');
+  const html = readFileSync(descargaPath, 'utf8');
   const size = releaseManifest.sizeLabel ?? `${(releaseManifest.bytes / 1048576).toFixed(1)} MB`;
   const version = releaseManifest.version;
 
-  // Solo las etiquetas del <head>: el cuerpo ya se rellena con JS.
-  const headEnd = html.indexOf('</head>');
-  const head = html.slice(0, headEnd);
-  let body = html.slice(headEnd);
-
-  // Eliminar bloques ld+json previos de SoftwareApplication para evitar duplicados
-  const cleanHead = head
-    .replace(/<script type="application\/ld\+json">\s*\{[\s\S]*?"@type"\s*:\s*"SoftwareApplication"[\s\S]*?<\/script>\s*/g, '');
-
-  const swap = (input) =>
-    input
-      .replace(/v\d+\.\d+\.\d+/g, `v${version}`)
-      .replace(/\d+[,.]?\d*\s?MB/gi, size);
-
-  const newHead = swap(cleanHead);
-
-  const ld = `<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "ALIVIA",
-  "applicationCategory": "HealthApplication",
-  "operatingSystem": "Android",
-  "url": "https://alivia.lat/descarga.html",
-  "softwareVersion": "${version}",
-  "fileSize": "${releaseManifest.bytes} bytes",
-  "downloadUrl": "${SITE}${releaseManifest.url}",
-  "inLanguage": "es",
-  "description": "App de bienestar emocional para jovenes. Sin anuncios, sin analitica, funciona sin conexion y con codigo abierto.",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "publisher": { "@type": "Organization", name: "ALIVIA", url": "${SITE}/" }
-}
-</script>
-`;
-
-  body = body.replace('</head>', `${ld}</head>`);
-  writeFileSync(descargaPath, newHead + body, 'utf8');
+  writeFileSync(descargaPath, updateDownloadPage(html, releaseManifest, SITE), 'utf8');
   console.log(`SEO: descarga.html actualizada a v${version} (${size})`);
 } else {
   console.warn('SEO: no existe public/descarga.html, se deja sin tocar');
