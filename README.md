@@ -114,126 +114,126 @@ erDiagram
     USERS }o--o{ AUDIT_LOG : "actor (FK opcional)"
 
     ROLES {
-        TEXT code PK
-        TEXT name
-        TEXT description
-        TIMESTAMPTZ created_at
+        string code PK
+        string name
+        string description
+        datetime created_at
     }
     USERS {
-        UUID id PK
-        TEXT username UK
-        TEXT email UK
-        TEXT phone UK
-        TEXT name
-        TEXT password_hash
-        TEXT role FK
-        BOOLEAN is_active
-        TEXT[] problems
-        TEXT[] situations
-        TEXT[] strategies
-        TEXT trusted_person
-        TEXT trusted_phone
-        BOOLEAN wants_contact
-        TEXT[] changes
-        TEXT goals_text
-        BOOLEAN onboarding_done
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
+        string id PK
+        string username UK
+        string email UK
+        string phone UK
+        string name
+        string password_hash
+        string role FK
+        boolean is_active
+        text problems
+        text situations
+        text strategies
+        string trusted_person
+        string trusted_phone
+        boolean wants_contact
+        text changes
+        string goals_text
+        boolean onboarding_done
+        datetime created_at
+        datetime updated_at
     }
     SESSIONS {
-        TEXT token PK
-        UUID user_id FK
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ expires_at
+        string token PK
+        string user_id FK
+        datetime created_at
+        datetime expires_at
     }
     MOOD_ENTRIES {
-        DATE date PK
-        INTEGER score
-        TEXT note
+        date date PK
+        int score
+        string note
     }
     EMERGENCY_CONTACT {
-        INTEGER id PK
-        TEXT name
-        TEXT phone
+        int id PK
+        string name
+        string phone
     }
     COMPLETED_ACTIVITIES {
-        TEXT id
-        TEXT title
-        TIMESTAMPTZ completed_at
-        DATE date
+        string id
+        string title
+        datetime completed_at
+        date date
     }
     COMMUNITY_POSTS {
-        SERIAL id PK
-        TEXT author
-        TEXT content
-        TEXT topic
-        INTEGER likes
-        TIMESTAMPTZ created_at
+        int id PK
+        string author
+        string content
+        string topic
+        int likes
+        datetime created_at
     }
     PLANS {
-        SERIAL id PK
-        TEXT title
-        TEXT area
-        TIMESTAMPTZ created_at
+        int id PK
+        string title
+        string area
+        datetime created_at
     }
     PLAN_GOALS {
-        SERIAL id PK
-        INTEGER plan_id FK
-        TEXT title
-        BOOLEAN done
-        TIMESTAMPTZ created_at
+        int id PK
+        int plan_id FK
+        string title
+        boolean done
+        datetime created_at
     }
     PLAN_ACTIVITIES {
-        SERIAL id PK
-        INTEGER plan_id FK
-        TEXT title
-        TEXT duration
-        BOOLEAN done
-        TIMESTAMPTZ created_at
+        int id PK
+        int plan_id FK
+        string title
+        string duration
+        boolean done
+        datetime created_at
     }
     NOTIFICATION_PREFERENCES {
-        UUID user_id PK FK
-        JSONB settings
-        TIMESTAMPTZ updated_at
+        string user_id PK FK
+        text settings
+        datetime updated_at
     }
     PUSH_SUBSCRIPTIONS {
-        BIGSERIAL id PK
-        UUID user_id FK
-        TEXT endpoint UK
-        JSONB subscription
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ updated_at
+        int id PK
+        string user_id FK
+        string endpoint UK
+        text subscription
+        datetime created_at
+        datetime updated_at
     }
     ASSESSMENTS {
-        SERIAL id PK
-        UUID user_id FK
-        TEXT type
-        INTEGER stress
-        INTEGER anxiety
-        INTEGER depression
-        TEXT level
-        BOOLEAN crisis
-        TEXT[] recommendations
-        TEXT ai_advice
-        TIMESTAMPTZ created_at
+        int id PK
+        string user_id FK
+        string type
+        int stress
+        int anxiety
+        int depression
+        string level
+        boolean crisis
+        text recommendations
+        string ai_advice
+        datetime created_at
     }
     CRISIS_CONTACT_LOG {
-        SERIAL id PK
-        UUID user_id FK
-        INTEGER assessment_id FK
-        TEXT channel
-        TEXT detail
-        TIMESTAMPTZ created_at
+        int id PK
+        string user_id FK
+        int assessment_id FK
+        string channel
+        string detail
+        datetime created_at
     }
     AUDIT_LOG {
-        BIGSERIAL id PK
-        UUID actor_id FK
-        TEXT actor_role
-        TEXT action
-        TEXT entity
-        TEXT entity_id
-        JSONB detail
-        TIMESTAMPTZ created_at
+        int id PK
+        string actor_id FK
+        string actor_role
+        string action
+        string entity
+        string entity_id
+        text detail
+        datetime created_at
     }
 ```
 
