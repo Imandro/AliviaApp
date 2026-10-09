@@ -126,7 +126,7 @@ const supportsStreaming = (): boolean => typeof streamifyRuntime === 'function';
 // streamifyResponse. Es un writableStream de Node ya preparado: por eso no hay
 // que pasar nada por HttpResponseStream.from (que exige setContentType y no lo
 // tiene un PassThrough propio).
-const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): Promise<void> => {
+export const streamChat = async (event: LambdaEvent, responseStream: ResponseStream): Promise<void> => {
   const write = (chunk: string): void => {
     responseStream.write(chunk);
   };

@@ -25,7 +25,7 @@ import notificationDispatchHandler from '../notifications/dispatch.js';
 
 type Handler = (req: ApiRequest, res: ApiResponse) => unknown;
 
-const routes: Record<string, Handler> = {
+export const routes: Record<string, Handler> = {
   '/api/auth/login': loginHandler,
   '/api/auth/register': registerHandler,
   '/api/auth/logout': logoutHandler,

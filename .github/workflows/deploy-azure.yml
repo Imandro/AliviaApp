@@ -1,8 +1,7 @@
 name: Deploy web to Azure
 
 on:
-  push:
-    branches: [main]
+  # Historical Container Apps deployment: manual only.
   workflow_dispatch:
 
 permissions:

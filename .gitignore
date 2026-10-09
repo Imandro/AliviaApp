@@ -83,3 +83,4 @@ public/seo/
 public/sitemap.xml
 api/lambda/dist-alerts/
 api/lambda/lambda-alerts.zip
+dist-api/
