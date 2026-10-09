@@ -1,8 +1,7 @@
 name: Deploy to AWS
 
 on:
-  push:
-    branches: [main]
+  # Historical deployment: manual only. main deploys to the Azure VM.
   # Republicar sin necesidad de un commit vacio: util tras un release del APK o
   # para revocar un despliegue. El comentario del job validate-infra ya prometia
   # este disparador, pero no estaba declarado.

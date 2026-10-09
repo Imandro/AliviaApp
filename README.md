@@ -18,10 +18,10 @@
 ![Vite](https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white)
 ![Capacitor](https://img.shields.io/badge/Capacitor_8-119EFF?style=flat-square&logo=capacitor&logoColor=white)
 ![Swift](https://img.shields.io/badge/Swift-WKWebView-F05138?style=flat-square&logo=swift&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-RDS-336791?style=flat-square&logo=postgresql&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-Lambda%20%2B%20S3%20%2B%20CloudFront%20%2B%20RDS-232F3E?style=flat-square&logo=amazon-aws&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL_14-VM_Azure-336791?style=flat-square&logo=postgresql&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-VM_Ubuntu_22.04-0078D4?style=flat-square)
 
-**[Abrir la web](https://d3gm2ziao5tkw0.cloudfront.net)** ·
+**[Abrir la web en Azure](https://57.156.61.193/)** ·
 **[Descargar Android](https://alivia.lat/descarga.html)** ·
 **[Landing del proyecto](https://alivia.lat/landing.html)** ·
 **[Reportar un problema](https://github.com/Imandro/AliviaApp/issues)**
@@ -67,7 +67,7 @@ ALIVIA pone herramientas de primera línea exactamente ahí — en el bolsillo, 
 
 | Experiencia | Estado | Detalle |
 |---|---|---|
-| Web responsive | Producción ([alivia.lat](https://alivia.lat)) | SPA instalable como PWA: manifest + precache completo con Workbox |
+| Web responsive | Azure VM ([57.156.61.193](https://57.156.61.193/)) | SPA instalable como PWA; API y base nueva en la VM |
 | App Android nativa | APK en [alivia.lat/releases](https://alivia.lat/releases.json) y GitHub Releases · AAB listo para Play | Capacitor 8: ícono adaptativo, splash screen, permisos y firma propios |
 | App iOS nativa | IPA ad-hoc / TestFlight | Shell Swift (WKWebView) propio con puente nativo: biometría, hápticos, notificaciones, cortina de privacidad |
 | PWA instalada | iOS / Android | Al instalarse, el modo standalone redirige todo a la app |
@@ -83,8 +83,9 @@ El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantall
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, React Router, Lucide icons |
 | **Nativo Android** | Capacitor 8, Gradle 8, JDK 21, Android SDK 36 |
 | **Nativo iOS** | Swift, WKWebView, XcodeGen (project.yml) |
-| **Backend** | AWS Lambda (Node.js), PostgreSQL 16 (RDS), pg driver |
-| **Infraestructura** | CloudFormation/SAM (4 stacks), CloudFront, S3, EventBridge, Secrets Manager |
+| **Backend web Azure** | Node.js 22 HTTP, PostgreSQL 14 en VM, pg driver |
+| **Infraestructura web Azure** | VM Ubuntu 22.04.5 LTS, nginx, systemd, NSG, HTTPS con Certbot |
+| **Infraestructura histórica AWS** | Lambda, RDS PostgreSQL 16, S3, CloudFront; despliegue manual separado |
 | **IA / Voz** | OpenAI (gpt-4.1-mini), Groq (Whisper), ElevenLabs (TTS), Edge TTS, Google TTS |
 | **Testing / Calidad** | Vitest (141 tests), TypeScript strict, ESLint + Prettier |
 
@@ -224,7 +225,21 @@ erDiagram
 
 ---
 
-## Arquitectura (Resumen)
+## Arquitectura actual de la web en Azure
+
+```text
+Navegador -> HTTPS 57.156.61.193:443 -> nginx (VM vm-alivia)
+                                      |-- dist/ (React + Vite)
+                                      |-- /api/* -> Node.js 127.0.0.1:8080
+                                                       -> socket Unix PostgreSQL
+                                                       -> base alivia_azure
+```
+
+La web utiliza peticiones relativas `/api/*`, que se resuelven contra la IP pública de Azure. La API y PostgreSQL no exponen sus puertos internos a internet. Esta base se creó vacía por decisión del equipo: no contiene los datos ni las cuentas anteriores de AWS.
+
+El APK publicado y el shell iOS conservan su configuración previa de API. IA, voz de proveedores y notificaciones requieren configurar sus claves y validar esas funciones en Azure; los envíos externos están desactivados por defecto.
+
+### Arquitectura histórica de AWS
 
 ```
 Cliente (Web PWA / Android / iOS)          AWS Cloud
@@ -409,7 +424,56 @@ npm run preview      # vista previa build
 
 ---
 
-## Despliegue (AWS)
+## Despliegue actual en Azure
+
+| Recurso | Configuración |
+|---|---|
+| Suscripción | Azure for Students |
+| Grupo de recursos | `ALIVIA-RG-CL` |
+| VM / región | `vm-alivia` / Chile Central |
+| Sistema operativo | Ubuntu 22.04.5 LTS |
+| URL pública | https://57.156.61.193/ |
+| Servicio de API | `alivia-azure-api.service`, usuario Linux `alivia_azure` |
+| Base de datos | `alivia_azure`, PostgreSQL 14 instalado en la VM; no es un servicio administrado |
+| Release activo | `/opt/alivia-azure/current` apunta a `/opt/alivia-azure/releases/<SHA>` |
+| Puertos públicos | 80 para redirección y renovación de certificado; 443 para HTTPS |
+| SSH | 22 restringido a IP de acceso específicas; actualizar la regla si cambia la red |
+| Puertos privados | PostgreSQL 5432 y API 8080, escuchando en `127.0.0.1` |
+
+### Preparación de la VM
+
+Requiere Node.js 22, npm, nginx, PostgreSQL 14 o superior y acceso administrativo a la VM. Ejecutar `sudo bash scripts/bootstrap-vm-azure.sh` una vez crea el usuario/base nuevos y obtiene el certificado para la IP. Este script no borra bases existentes. El certificado usa renovación automática; la VM debe estar encendida y el puerto 80 accesible para las validaciones.
+
+La API se conecta a PostgreSQL por socket Unix con autenticación peer, sin una contraseña de base en GitHub. `scripts/deploy-vm-azure.sh` instala el servicio systemd y la configuración nginx desde el repositorio. Los secretos de proveedores, cuando se configuren, deben almacenarse fuera del repositorio en la VM, mediante un archivo de entorno protegido.
+
+### GitHub main -> VM Azure
+
+El workflow [Deploy app to Azure VM](.github/workflows/deploy-azure-vm.yml) se ejecuta al actualizar `main`. Usa las variables Actions `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` y `AZURE_SUBSCRIPTION_ID` y autenticación OIDC. La identidad necesita el rol **Virtual Machine Contributor**, limitado al recurso `vm-alivia`, para ejecutar el despliegue por Azure Run Command. No necesita una clave privada SSH ni contraseña en GitHub.
+
+Antes de desplegar ejecuta `npm ci`, builds web/API/Lambda y tests. Después descarga del repositorio el commit exacto `github.sha`, compila en la VM, reinicia la API y recarga nginx. La base persiste entre despliegues. Los workflows históricos de AWS y Container Apps quedan disponibles solo mediante ejecución manual; los PR conservan las validaciones requeridas.
+
+### Comprobar que Azure ejecuta el mismo commit que main
+
+```bash
+git fetch origin main
+git rev-parse origin/main
+curl --fail https://57.156.61.193/healthz
+curl --fail https://57.156.61.193/readyz
+```
+
+El campo `revision` de `/healthz` debe coincidir con el SHA de `origin/main`; `/readyz` debe devolver `status: ready`. Dentro de la VM también se puede leer `/opt/alivia-azure/current/SOURCE_COMMIT`. Cada release se obtiene de GitHub por ese SHA, incluyendo el README y los scripts utilizados.
+
+Antes de activar el release, `scripts/verify-source.mjs` compara el hash Git de **cada archivo versionado** con el árbol del commit en GitHub. El despliegue se detiene si hay diferencias. La prueba queda en `/opt/alivia-azure/current/SOURCE_VERIFICATION.json`; `dist/`, `dist-api/` y `node_modules/` son resultados generados y no forman parte del código versionado.
+
+Para publicar manualmente un commit de `main` desde la VM:
+
+```bash
+sudo bash scripts/deploy-vm-azure.sh <SHA_COMPLETO_DE_MAIN>
+```
+
+El dominio `alivia.lat` y la instalación anterior de Container Apps siguen siendo destinos separados; no se cambió su DNS al publicar esta VM. La evidencia de esta entrega usa la URL pública de la VM.
+
+## Despliegue histórico en AWS (manual)
 
 ```bash
 # 1. Red
@@ -430,7 +494,7 @@ sam deploy --template-file .aws-sam/build-app/template.yaml --stack-name alivia-
 aws cloudformation deploy --template-file infra/web.yaml --stack-name alivia-web
 ```
 
-En `main` el workflow **Deploy to AWS** (`.github/workflows/deploy-aws.yml`) hace todo vía OIDC (`AWS_ROLE_ARN`), sin claves AWS en el repo.
+El workflow histórico **Deploy to AWS** (`.github/workflows/deploy-aws.yml`) solo despliega mediante `workflow_dispatch`, con OIDC (`AWS_ROLE_ARN`). En los PR sigue validando la infraestructura, sin desplegar. Actualizar `main` publica la instalación actual en la VM de Azure.
 
 ---
 

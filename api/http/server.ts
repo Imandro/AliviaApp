@@ -71,6 +71,7 @@ export function createApiServer(options: {
   readiness: () => Promise<void>;
   allowExternalNotifications?: boolean;
   maxBodyBytes?: number;
+  revision?: string;
 }) {
   const server = createServer(async (input, output) => {
     const res = responseAdapter(output);
@@ -84,7 +85,7 @@ export function createApiServer(options: {
       const url = new URL(input.url || '/', 'http://localhost');
       const path = url.pathname.replace(/\/+$/, '') || '/';
       if (path === '/healthz' && input.method === 'GET') {
-        res.json({ status: 'ok' }); return;
+        res.json({ status: 'ok', revision: options.revision || null }); return;
       }
       if (path === '/readyz' && input.method === 'GET') {
         try { await options.readiness(); res.json({ status: 'ready' }); }

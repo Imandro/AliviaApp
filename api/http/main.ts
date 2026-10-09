@@ -12,6 +12,7 @@ if (!['verify-full', 'local-socket'].includes(process.env.DATABASE_TLS_MODE || '
 await ensureSchema();
 await ensureFunctions();
 const server = createApiServer({
+  revision: process.env.APP_REVISION,
   routes: { ...routes, '/api/posts/like': routes['/api/posts'], '/api/ai/chat': aiHandler, '/api/ai/transcribe': aiHandler, '/api/tts': ttsHandler, '/api/alerts': alertsHandler },
   streamChat: async (body, output) => streamChat({
     version: '2.0', rawPath: '/api/ai/chat', body: JSON.stringify(body ?? {}),

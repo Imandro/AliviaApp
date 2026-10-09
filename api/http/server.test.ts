@@ -24,6 +24,11 @@ async function start(routes: Record<string, HttpHandler> = {}, overrides: Partia
 }
 
 describe('Portable API HTTP contract', () => {
+  it('reports the deployed source commit for comparison with GitHub', async () => {
+    const revision = '0123456789abcdef0123456789abcdef01234567';
+    const base = await start({}, { revision });
+    expect(await (await fetch(`${base}/healthz`)).json()).toEqual({ status: 'ok', revision });
+  });
   it('rejects using socket-only mode to disable TLS for a network database', () => {
     const originalUrl = process.env.DATABASE_URL;
     const originalMode = process.env.DATABASE_TLS_MODE;

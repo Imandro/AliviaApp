@@ -15,7 +15,8 @@ cd "$release"
 runuser -u alivia_azure -- npm ci --no-audit --no-fund
 runuser -u alivia_azure -- npm run build
 runuser -u alivia_azure -- npm run build:api
-runuser -u alivia_azure -- npm prune --omit=dev --no-audit --no-fund
+runuser -u alivia_azure -- node scripts/verify-source.mjs "$revision"
+# Preserve the repository lock file; npm prune can rewrite it.
 ln -sfn "$release" "$app/current"
 # nginx traverses directories and reads the public build, not private files.
 chmod 755 "$app" "$app/releases" "$release"
@@ -38,6 +39,7 @@ Environment=PORT=8080
 Environment=DATABASE_TLS_MODE=local-socket
 Environment="DATABASE_URL=postgresql:///alivia_azure?host=/var/run/postgresql&user=alivia_azure"
 Environment=ALLOW_EXTERNAL_NOTIFICATIONS=false
+EnvironmentFile=/opt/alivia-azure/deployment.env
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true
@@ -47,6 +49,9 @@ ProtectHome=true
 [Install]
 WantedBy=multi-user.target
 UNIT
+printf 'APP_REVISION=%s\n' "$revision" > "$app/deployment.env"
+chmod 644 "$app/deployment.env"
+printf '%s\n' "$revision" > "$release/SOURCE_COMMIT"
 systemctl daemon-reload
 systemctl enable alivia-azure-api
 systemctl restart alivia-azure-api
