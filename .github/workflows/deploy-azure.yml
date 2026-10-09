@@ -1,0 +1,211 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [main]
+  # Republicar sin commit vacio: util tras publicar un APK o para revocar un
+  # despliegue. El workflow de AWS ya tenia este disparador declarado.
+  workflow_dispatch:
+  # Los PR no despliegan: solo compilan y empaquetan el backend, que es donde se
+  # rompe el codigo. Publicar en la VM desde un PR permitiria a cualquiera que
+  # abriera un PR tocar produccion.
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+# Una VM no se puede desplegar dos veces en paralelo: dos jobs copiando sobre
+# /opt/alivia a la vez dejan el bundle a medias.
+concurrency:
+  group: azure-deploy
+  cancel-in-progress: false
+
+jobs:
+  # Valida el backend en los PR. Corre en local: es el mismo build:lambda que
+  # usan las cuatro Lambdas de AWS mas el bundle del servidor de la VM. No
+  # toca Azure.
+  validate-api:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # 22 y no 24 a proposito: el lockfile solo puede satisfacer una version
+          # de npm. Con 24, `npm ci` falla con "Missing: lightningcss-* from
+          # lock file". Todos los workflows que usan npm ci van en 22.
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build backend (Lambdas + servidor VM)
+        run: npm run build:lambda
+
+      - name: Tests
+        # api/bundles.test.ts carga dist*/ para detectar referencias sin
+        # importar, asi que el build de arriba no es opcional.
+        run: npm test
+
+  # El frontend se construye siempre, en push y en PR. En push, sus artefactos
+  # los consume el deploy; en PR, solo sirve para comprobar que `npm run build`
+  # no se rompio.
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.app.json
+
+      - name: Build frontend
+        # Vite solo lee VITE_* en tiempo de build. Las variables de GitHub no
+        # llegan solas: hay que declararlas en env: o el bundle sale sin la clave
+        # VAPID y el service worker no puede suscribirse a las notificaciones.
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_TTS_URL: ${{ vars.VITE_TTS_URL }}
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
+        run: npm run build
+
+      - name: Build backend
+        run: npm run build:lambda
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alivia-web
+          path: dist/
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alivia-server
+          path: server/dist/
+          retention-days: 7
+
+  deploy:
+    # Nunca desde un PR: build-web corrio igualmente, pero publicar en la VM solo
+    # ocurre en push a main o dispatch manual.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    needs: build-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: alivia-web
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: alivia-server
+          path: server/dist
+
+      # OIDC: la credencial federada la emite Azure (App registration), asi que
+      # el workflow no guarda ningun secreto. Equivale al AWS_ROLE_ARN del
+      # deploy-aws.yml.
+      - name: Login en Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Preparar SSH
+        run: |
+          mkdir -p ~/.ssh
+          # La clave del runner se registra en la VM con `az vm ssh` en vez de
+          # usar la contrasena en linea de comandos, que Azure registra en el
+          # log de actividad.
+          ssh-keygen -t ed25519 -f ~/.ssh/id_alivia -N "" -C "github-actions"
+          chmod 600 ~/.ssh/id_alivia
+
+      - name: Autorizar la clave publica en la VM
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az vm user update \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --name vm-alivia \
+              --username ${{ vars.VM_ADMIN_USERNAME }} \
+              --ssh-key-file ~/.ssh/id_alivia.pub
+
+      - name: Copiar el backend a la VM
+        run: |
+          ssh -i ~/.ssh/id_alivia ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }} \
+            'mkdir -p /tmp/alivia-release && rm -rf /tmp/alivia-release/*'
+          scp -i ~/.ssh/id_alivia -r server/dist/. \
+            ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }}:/tmp/alivia-release/
+          scp -i ~/.ssh/id_alivia db/functions.sql db/schema.sql \
+            ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }}:/tmp/alivia-release/
+
+      # El bundle y sus artefactos son gitignored: se producen en el runner y se
+      # copian ya compilados. `npm install` en la VM (no copiar node_modules)
+      # resuelve las dependencias nativas `web-push`, `pg` y `ws`, declaradas
+      # external en el build porque web-push hace dynamic require de crypto.
+      - name: Instalar dependencias de runtime en la VM
+        run: |
+          ssh -i ~/.ssh/id_alivia ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }} \
+            'set -e
+             cd /tmp/alivia-release
+             npm install --omit=dev --no-audit --no-fund
+             sudo mkdir -p /opt/alivia/server/dist
+             sudo cp -r /tmp/alivia-release/. /opt/alivia/server/dist/
+             sudo chown -R alivia:alivia /opt/alivia/server
+             rm -rf /tmp/alivia-release'
+
+      # Se copia dist/ completo pero NO se borra lo que hay: el APK vive en
+      # dist/releases/ y lo sube `npm run release:apk` a mano. Borrar el
+      # directorio antes de copiar seria el --delete de S3: la pagina de descarga
+      # se rompia en silencio, sirviendo el index.html de la SPA con 200 en vez
+      # de 404.
+      - name: Copiar el frontend a la VM
+        run: |
+          ssh -i ~/.ssh/id_alivia ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }} \
+            'sudo mkdir -p /opt/alivia/dist/releases'
+          scp -i ~/.ssh/id_alivia -r dist/. \
+            ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }}:/opt/alivia/dist/
+          ssh -i ~/.ssh/id_alivia ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }} \
+            'sudo chown -R alivia:alivia /opt/alivia/dist'
+
+      - name: Reiniciar el backend
+        run: |
+          ssh -i ~/.ssh/id_alivia ${{ vars.VM_ADMIN_USERNAME }}@${{ vars.VM_HOST }} \
+            'sudo systemctl restart alivia-api
+             sleep 3
+             sudo systemctl --no-pager status alivia-api || true
+             sudo journalctl -u alivia-api -n 20 --no-pager'
+
+      - name: Verificar la API contra la IP publica
+        run: |
+          # Un 401 de /api/auth/me prueba que la cadena completa funciona:
+          # internet -> NSG -> nginx -> Node -> PostgreSQL. Un 502 seria un
+          # backend caido y un 404 una ruta mal montada; el 401 sin token es el
+          # resultado esperado.
+          echo "Esperando 30 s por el arranque en frio de PostgreSQL..."
+          sleep 30
+          for intento in 1 2 3 4 5 6; do
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' \
+              "http://${{ vars.VM_HOST }}/api/auth/me" || echo 000)
+            echo "Intento ${intento}: HTTP ${codigo}"
+            if [ "$codigo" = "401" ] || [ "$codigo" = "200" ]; then
+              echo "API respondiendo contra la IP publica de Azure."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::La API no responde en http://${{ vars.VM_HOST }}/api/auth/me"
+          exit 1

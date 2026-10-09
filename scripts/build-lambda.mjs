@@ -10,6 +10,8 @@ const outDir = join(apiDir, 'dist');
 const ttsOutDir = join(apiDir, 'dist-tts');
 const aiOutDir = join(apiDir, 'dist-ai');
 const alertsOutDir = join(apiDir, 'dist-alerts');
+// Bundle del backend para la VM de Azure (api/server/index.ts).
+const serverOutDir = join(root, 'server', 'dist');
 
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
@@ -17,10 +19,12 @@ rmSync(outDir, { recursive: true, force: true });
 rmSync(ttsOutDir, { recursive: true, force: true });
 rmSync(aiOutDir, { recursive: true, force: true });
 rmSync(alertsOutDir, { recursive: true, force: true });
+rmSync(serverOutDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 mkdirSync(ttsOutDir, { recursive: true });
 mkdirSync(aiOutDir, { recursive: true });
 mkdirSync(alertsOutDir, { recursive: true });
+mkdirSync(serverOutDir, { recursive: true });
 
 // `web-push` es CommonJS y usa `require('crypto')` por dentro. Si esbuild lo
 // empaqueta dentro de un bundle ESM, al ejecutarlo en Node 22 revienta con
@@ -108,8 +112,29 @@ writeRuntimePackage(aiOutDir, 'alivia-ai', {});
 // La Lambda de alertas solo usa fetch nativo, igual que la de IA.
 writeRuntimePackage(alertsOutDir, 'alivia-alerts', {});
 
+// Servidor de la VM de Azure: un unico proceso con TODA la API (las cuatro
+// Lambdas de AWS estaban separadas solo por el coste del NAT Gateway del VPC, y
+// en una VM no aplica). `web-push` sigue siendo external por lo de arriba, asi
+// que necesita las mismas dependencias nativas en su package.json de runtime.
+await build({
+  ...shared,
+  entryPoints: [join(root, 'api', 'server', 'index.ts')],
+  outfile: join(serverOutDir, 'server.js'),
+});
+
+// api/_db.ts lee db/functions.sql desde process.cwd(), asi que db/ tiene que
+// viajar junto al bundle en la VM (systemd arranca con WorkingDirectory=repo).
+cpSync(join(root, 'db'), join(serverOutDir, 'db'), { recursive: true });
+
+writeRuntimePackage(serverOutDir, 'alivia-server', {
+  pg: pkg.dependencies.pg,
+  ws: pkg.dependencies.ws,
+  'web-push': pkg.dependencies['web-push'],
+});
+
 console.log('Lambda build complete:', outDir);
 console.log('TTS Lambda build complete:', ttsOutDir);
 console.log('AI Lambda build complete:', aiOutDir);
 console.log('Alerts Lambda build complete:', alertsOutDir);
+console.log('Server (Azure VM) build complete:', serverOutDir);
 

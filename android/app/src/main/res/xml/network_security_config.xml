@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Politica de red de Android para la app nativa.
+
+  Por que existe: el backend de Azure se sirve en http://<IP publica>, porque una
+  IP suelta no puede tener certificado TLS. Android, desde API 28 y con
+  targetSdk 36, bloquea el trafico HTTP en claro por defecto
+  (`usesCleartextTraffic` = false). Sin este archivo, TODAS las peticiones a la
+  API fallan con:
+
+      java.io.IOException: Cleartext HTTP traffic to <ip> not permitted
+
+  Es decir, la app no arrancaria contra el servidor de Azure.
+
+  Que sea una excepcion y no `usesCleartextTraffic="true"` a pelo: con la
+  opcion global se permitiria HTTP en claro hacia cualquier host, lo que
+  expondría el token de sesion y los datos de la persona usuaria ante un
+  intermediario. Aqui solo se permite el host de la API.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Loopback: el WebView de Capacitor sirve el bundle desde aqui. -->
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+
+        <!--
+          IP publica de la VM de Azure. Se sustituye por la real al desplegar;
+          es el mismo valor que src/utils/apiOrigins.ts (AZURE_IP).
+
+          Si la API pasa a un dominio propio con TLS, este bloque entero se puede
+          borrar: el base-config ya permite HTTPS a cualquier host.
+        -->
+        <domain includeSubdomains="false">RELLENAR_CON_LA_IP_PUBLICA_DE_AZURE</domain>
+    </domain-config>
+</network-security-config>

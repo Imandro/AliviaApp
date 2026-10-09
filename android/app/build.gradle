@@ -1,5 +1,48 @@
 apply plugin: 'com.android.application'
 
+// --- Guardia del despliegue a Azure -----------------------------------------
+// La IP publica de la VM aparece en DOS ficheros, y tienen que coincidir:
+//
+//   src/utils/apiOrigins.ts            -> origen de la API para el shell nativo
+//   res/xml/network_security_config.xml -> excepcion de Android al HTTP en claro
+//
+// Divergen sin que nada lo delate: el JS compila igual y el APK tambien, solo
+// que la app no consigue ni registrarse ni llamar a la API. Este check convierte
+// ese fallo silencioso en un fallo de build.
+//
+// Para levantar el bloqueo tras el despliegue:
+//   1. `az deployment group show` -> publicIpAddress
+//   2. sustituir el placeholder en ambos ficheros
+def PLACEHOLDER = 'RELLENAR_CON_LA_IP_PUBLICA_DE_AZURE'
+
+// rootProject es el directorio android/, asi que los recursos del modulo :app
+// cuelgan de app/.
+def placeholderFiles = [
+    rootProject.file('../src/utils/apiOrigins.ts'),
+    rootProject.file('app/src/main/res/xml/network_security_config.xml'),
+].findAll { it.exists() && it.text.contains(PLACEHOLDER) }
+
+if (placeholderFiles) {
+    // El guardia solo aplica al build de release, que es el que se publica. Un
+    // assembleDebug para depurar en local no necesita la IP real: el guard se
+    // evalua en fase de configuracion, antes de saber que tarea se va a ejecutar,
+    // asi que se mira el arranque de Gradle.
+    def pedidas = gradle.startParameter.taskNames.join(' ')
+    def esRelease = pedidas.contains('Release') || pedidas.contains('release')
+
+    if (esRelease) {
+        throw new GradleException(
+            "La IP publica de Azure sigue sin rellenar (${PLACEHOLDER}) en:\n" +
+            placeholderFiles.collect { "  - " + it.path }.join('\n') + "\n\n" +
+            "Es la IP que imprime `az deployment group show --query " +
+            "properties.outputs.publicIpAddress.value`. Sin ella el APK se compila " +
+            "pero no puede llamar a la API (Android bloquea el trafico en claro) ni " +
+            "hacer login. Para un APK de verificacion en local: `assembleDebug`."
+        )
+    }
+    logger.lifecycle("[alivia] IP de Azure sin rellenar; solo se permite en build de debug.")
+}
+
 // Firma de release: credenciales en android/keystore.properties (NO subir a git)
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file("keystore.properties")
