@@ -6,8 +6,10 @@ revision=${1:?Pass a tested Git commit SHA}
 app=/opt/alivia-azure
 release="$app/releases/$revision"
 install -d -o alivia_azure -g alivia_azure "$app/releases" "$release"
-curl --fail --location --retry 3 "https://codeload.github.com/Imandro/AliviaApp/tar.gz/$revision" -o /tmp/alivia-azure-source.tar.gz
-tar -xzf /tmp/alivia-azure-source.tar.gz --strip-components=1 -C "$release"
+source_archive=$(mktemp)
+trap 'rm -f "$source_archive"' EXIT
+curl --fail --location --retry 3 "https://codeload.github.com/Imandro/AliviaApp/tar.gz/$revision" -o "$source_archive"
+tar -xzf "$source_archive" --strip-components=1 -C "$release"
 chown -R alivia_azure:alivia_azure "$release"
 cd "$release"
 runuser -u alivia_azure -- npm ci --no-audit --no-fund
@@ -46,7 +48,8 @@ ProtectHome=true
 WantedBy=multi-user.target
 UNIT
 systemctl daemon-reload
-systemctl enable --now alivia-azure-api
+systemctl enable alivia-azure-api
+systemctl restart alivia-azure-api
 for attempt in $(seq 1 30); do
   if curl --fail --silent http://127.0.0.1:8080/readyz; then break; fi
   sleep 2
