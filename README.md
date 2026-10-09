@@ -128,13 +128,13 @@ erDiagram
         string password_hash
         string role FK
         boolean is_active
-        text problems
-        text situations
-        text strategies
+        string problems
+        string situations
+        string strategies
         string trusted_person
         string trusted_phone
         boolean wants_contact
-        text changes
+        string changes
         string goals_text
         boolean onboarding_done
         datetime created_at
@@ -193,14 +193,14 @@ erDiagram
     }
     NOTIFICATION_PREFERENCES {
         string user_id PK FK
-        text settings
+        string settings
         datetime updated_at
     }
     PUSH_SUBSCRIPTIONS {
         int id PK
         string user_id FK
         string endpoint UK
-        text subscription
+        string subscription
         datetime created_at
         datetime updated_at
     }
@@ -213,7 +213,7 @@ erDiagram
         int depression
         string level
         boolean crisis
-        text recommendations
+        string recommendations
         string ai_advice
         datetime created_at
     }
@@ -232,7 +232,7 @@ erDiagram
         string action
         string entity
         string entity_id
-        text detail
+        string detail
         datetime created_at
     }
 ```
