@@ -94,6 +94,8 @@ El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantall
 
 El esquema está normalizado hasta la **Tercera Forma Normal (3FN)**, superando el requisito de 2FN. Todas las tablas tienen clave primaria, no hay dependencias parciales ni transitivas, y las relaciones se modelan con claves foráneas explícitas.
 
+![Modelo Entidad-Relación ALIVIA](db/alivia-modelo-relacional-er.svg)
+
 ```mermaid
 erDiagram
     ROLES ||--o{ USERS : "catálogo (FK)"
