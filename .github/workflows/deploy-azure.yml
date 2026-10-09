@@ -1,0 +1,65 @@
+name: Deploy web to Azure
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: alivia-web-azure
+  cancel-in-progress: false
+
+env:
+  ACR_NAME: ca7b8d71f95facr
+  ACR_SERVER: ca7b8d71f95facr.azurecr.io
+  RESOURCE_GROUP: rg-alivia
+  CONTAINER_APP: alivia-web-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sign in to Azure with GitHub OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push on the GitHub runner
+        env:
+          VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          az acr login --name "$ACR_NAME"
+          docker build --platform linux/amd64 \
+            --build-arg "VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY" \
+            --tag "$ACR_SERVER/alivia-web:$GITHUB_SHA" .
+          docker push "$ACR_SERVER/alivia-web:$GITHUB_SHA"
+
+      - name: Deploy the new image
+        run: |
+          set -euo pipefail
+          az extension add --name containerapp --upgrade --yes
+          az containerapp update \
+            --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$ACR_SERVER/alivia-web:$GITHUB_SHA" \
+            --output none
+
+      - name: Check the web endpoint
+        run: |
+          set -euo pipefail
+          fqdn=$(az containerapp show --name "$CONTAINER_APP" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query properties.configuration.ingress.fqdn --output tsv)
+          curl --fail --silent --show-error --retry 12 --retry-all-errors \
+            --retry-delay 10 --max-time 30 "https://$fqdn/healthz"
+          printf '\nPublished: https://%s\n' "$fqdn"
