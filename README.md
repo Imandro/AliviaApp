@@ -94,148 +94,127 @@ El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantall
 
 El esquema está normalizado hasta la **Tercera Forma Normal (3FN)**, superando el requisito de 2FN. Todas las tablas tienen clave primaria, no hay dependencias parciales ni transitivas, y las relaciones se modelan con claves foráneas explícitas.
 
-![Modelo Entidad-Relación ALIVIA](db/alivia-modelo-relacional-er.svg)
+El modelo se divide en dos vistas para mantener legibles las relaciones. Se muestran las claves y los campos principales; las relaciones corresponden a las claves foráneas de `db/schema.sql`.
+
+### Identidad y sesiones
 
 ```mermaid
 erDiagram
-    ROLES ||--o{ USERS : "catálogo (FK)"
-    USERS ||--o{ SESSIONS : "1:N"
-    USERS ||--o{ ASSESSMENTS : "1:N"
-    USERS ||--o{ MOOD_ENTRIES : "1:N (por fecha)"
-    USERS ||--|| EMERGENCY_CONTACT : "1:1"
-    USERS ||--o{ COMPLETED_ACTIVITIES : "1:N"
-    USERS ||--o{ COMMUNITY_POSTS : "1:N (author)"
-    USERS ||--o{ PLANS : "1:N"
-    USERS ||--|| NOTIFICATION_PREFERENCES : "1:1"
-    USERS ||--o{ PUSH_SUBSCRIPTIONS : "1:N"
-    USERS ||--o{ CRISIS_CONTACT_LOG : "1:N"
-    PLANS ||--o{ PLAN_GOALS : "1:N"
-    PLANS ||--o{ PLAN_ACTIVITIES : "1:N"
-    USERS }o--o{ AUDIT_LOG : "actor (FK opcional)"
+    ROLES ||--o{ USERS : "asigna"
+    USERS ||--o{ SESSIONS : "abre"
 
     ROLES {
         string code PK
         string name
-        string description
-        datetime created_at
     }
     USERS {
-        string id PK
+        uuid id PK
+        string role FK
         string username UK
         string email UK
-        string phone UK
-        string name
-        string password_hash
-        string role FK
-        boolean is_active
-        string problems
-        string situations
-        string strategies
-        string trusted_person
-        string trusted_phone
-        boolean wants_contact
-        string changes
-        string goals_text
-        boolean onboarding_done
-        datetime created_at
-        datetime updated_at
     }
     SESSIONS {
         string token PK
-        string user_id FK
-        datetime created_at
-        datetime expires_at
+        uuid user_id FK
+        timestamp expires_at
     }
-    MOOD_ENTRIES {
-        date date PK
-        int score
-        string note
+```
+
+### Evaluaciones y registros
+
+```mermaid
+erDiagram
+    USERS ||--o{ ASSESSMENTS : "realiza"
+    USERS o|--o{ AUDIT_LOG : "actor opcional"
+    USERS ||--o{ CRISIS_CONTACT_LOG : "genera"
+    ASSESSMENTS o|--o{ CRISIS_CONTACT_LOG : "evaluacion opcional"
+
+    USERS {
+        uuid id PK
     }
-    EMERGENCY_CONTACT {
+    ASSESSMENTS {
         int id PK
-        string name
-        string phone
+        uuid user_id FK
+        string type
+        boolean crisis
     }
-    COMPLETED_ACTIVITIES {
-        string id
-        string title
-        datetime completed_at
-        date date
-    }
-    COMMUNITY_POSTS {
+    CRISIS_CONTACT_LOG {
         int id PK
-        string author
-        string content
-        string topic
-        int likes
-        datetime created_at
+        uuid user_id FK
+        int assessment_id FK
+        string channel
     }
+    AUDIT_LOG {
+        bigint id PK
+        uuid actor_id FK
+        string actor_role
+        string action
+    }
+```
+
+### Notificaciones
+
+```mermaid
+erDiagram
+    USERS ||--o| NOTIFICATION_PREFERENCES : "configura"
+    USERS ||--o{ PUSH_SUBSCRIPTIONS : "registra"
+    USERS ||--o{ NOTIFICATION_DELIVERIES : "recibe"
+
+    USERS {
+        uuid id PK
+    }
+    NOTIFICATION_PREFERENCES {
+        uuid user_id PK
+        jsonb settings
+    }
+    PUSH_SUBSCRIPTIONS {
+        bigint id PK
+        uuid user_id FK
+        string endpoint UK
+    }
+    NOTIFICATION_DELIVERIES {
+        bigint id PK
+        uuid user_id FK
+        string reminder_id
+        date local_date
+        string status
+    }
+```
+
+### Contenido global y planes
+
+Las tablas de contenido no tienen una clave foránea a `users`. Los planes se relacionan únicamente con sus metas y actividades.
+
+```mermaid
+erDiagram
+    PLANS ||--o{ PLAN_GOALS : "contiene"
+    PLANS ||--o{ PLAN_ACTIVITIES : "incluye"
+
     PLANS {
         int id PK
         string title
         string area
-        datetime created_at
     }
     PLAN_GOALS {
         int id PK
         int plan_id FK
         string title
         boolean done
-        datetime created_at
     }
     PLAN_ACTIVITIES {
         int id PK
         int plan_id FK
         string title
-        string duration
         boolean done
-        datetime created_at
-    }
-    NOTIFICATION_PREFERENCES {
-        string user_id PK FK
-        string settings
-        datetime updated_at
-    }
-    PUSH_SUBSCRIPTIONS {
-        int id PK
-        string user_id FK
-        string endpoint UK
-        string subscription
-        datetime created_at
-        datetime updated_at
-    }
-    ASSESSMENTS {
-        int id PK
-        string user_id FK
-        string type
-        int stress
-        int anxiety
-        int depression
-        string level
-        boolean crisis
-        string recommendations
-        string ai_advice
-        datetime created_at
-    }
-    CRISIS_CONTACT_LOG {
-        int id PK
-        string user_id FK
-        int assessment_id FK
-        string channel
-        string detail
-        datetime created_at
-    }
-    AUDIT_LOG {
-        int id PK
-        string actor_id FK
-        string actor_role
-        string action
-        string entity
-        string entity_id
-        string detail
-        datetime created_at
     }
 ```
+
+| Tabla independiente | Clave primaria | Campos principales |
+|---|---|---|
+| `mood_entries` | `date` | `score`, `note` |
+| `emergency_contact` | `id` | `name`, `phone` |
+| `completed_activities` | (`id`, `date`) | `title`, `completed_at` |
+| `community_posts` | `id` | `author`, `content`, `topic`, `likes` |
 
 > **Notas de normalización:**  
 > - **1FN:** Atributos atómicos (arrays `TEXT[]` son nativos de PostgreSQL).  
