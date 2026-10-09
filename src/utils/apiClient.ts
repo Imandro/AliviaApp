@@ -101,10 +101,10 @@ export async function apiGet<T>(path: string, headers?: Record<string, string>):
 }
 
 /** Mutación que se encola automáticamente si no hay red. */
-export async function apiMutate(
+export async function apiMutate<T = unknown>(
   path: string,
   options: { method?: string; body?: string; headers?: Record<string, string> } = {}
-): Promise<void> {
+): Promise<T | undefined> {
   const { method = 'POST', body, headers } = options;
   try {
     const res = await rawFetch(path, { method, body, headers, signal: timeoutSignal(15000) });
@@ -113,6 +113,8 @@ export async function apiMutate(
       throw new HttpError(res.status, errBody?.error || `Error ${res.status}`);
     }
     void flushOutbox();
+    // Preserve the server identifier for callers that show or update this record.
+    return await res.json().catch(() => undefined) as T | undefined;
   } catch (err) {
     if (err instanceof HttpError) throw err;
     const items = readOutbox();

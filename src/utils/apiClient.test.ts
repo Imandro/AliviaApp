@@ -50,6 +50,13 @@ describe('apiClient — motor offline-first', () => {
     expect(apiClient.pendingCount()).toBe(0);
   });
 
+  it('devuelve el identificador real de una escritura confirmada', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => okResponse({ id: 42 })));
+    const saved = await apiClient.apiMutate<{ id: number }>('/api/assessments', { body: '{}' });
+    expect(saved?.id).toBe(42);
+    expect(apiClient.pendingCount()).toBe(0);
+  });
+
   it('Mutación sin red: se encola y lanza OfflineQueuedError', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline'); }));
 
