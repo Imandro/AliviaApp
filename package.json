@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "build:lambda": "node scripts/build-lambda.mjs",
+    "build:api": "node scripts/build-api.mjs",
     "release:apk": "node scripts/release-apk.mjs",
     "sync:android": "npm run build && cap sync android && node scripts/post-sync.js",
     "build:ios:web": "tsc -b && vite build --base=./ --outDir dist-ios --mode ios",

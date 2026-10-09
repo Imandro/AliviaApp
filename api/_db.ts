@@ -207,9 +207,24 @@ export function getPool(): Pool {
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL no configurada');
     }
+    const socketMode = process.env.DATABASE_TLS_MODE === 'local-socket';
+    if (socketMode) {
+      const parsed = new URL(process.env.DATABASE_URL);
+      if (parsed.hostname || parsed.searchParams.get('host') !== '/var/run/postgresql') {
+        throw new Error('local-socket requires the local PostgreSQL Unix socket');
+      }
+    }
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
+      // AWS keeps its existing configuration. Azure's container opts into
+      // hostname/certificate validation and rejects URL options that bypass it.
+      ...(process.env.DATABASE_TLS_MODE === 'verify-full' ? {
+        connectionString: strictDatabaseUrl(process.env.DATABASE_URL),
+        ssl: {
+          rejectUnauthorized: true,
+          ...(process.env.DATABASE_CA_FILE ? { ca: readFileSync(process.env.DATABASE_CA_FILE, 'utf8') } : {}),
+        },
+      } : socketMode ? { ssl: false } : { ssl: { rejectUnauthorized: false } }),
       max: 5,
       connectionTimeoutMillis: 10000,
       idleTimeoutMillis: 30000,
@@ -246,4 +261,13 @@ export function ensureFunctions(): Promise<void> {
       });
   }
   return functionsReady;
+}
+
+export function strictDatabaseUrl(connectionString: string): string {
+  const parsed = new URL(connectionString);
+  // node-postgres can replace the ssl object when these parameters are set.
+  for (const option of ['sslmode', 'sslcert', 'sslkey', 'sslrootcert', 'uselibpqcompat']) {
+    parsed.searchParams.delete(option);
+  }
+  return parsed.toString();
 }
