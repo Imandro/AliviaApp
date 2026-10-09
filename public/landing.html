@@ -158,13 +158,6 @@ a{color:inherit}
   display:inline-flex; align-items:center; gap:.5rem; flex:none; color:var(--texto); text-decoration:none;
 }
 .wordmark__alivia{display:block;width:clamp(5rem,8vw,6.3rem);height:auto}
-.wordmark__por{font-family:"Quicksand",sans-serif;font-size:1rem;font-weight:700;color:var(--oro)}
-.wordmark__minsa{display:grid;justify-items:center;gap:.08rem}
-.wordmark__minsa img{display:block;width:clamp(4.7rem,7.5vw,6rem);height:auto}
-.wordmark__minsa span{
-  color:var(--texto-2);font-family:"Quicksand",sans-serif;font-size:.48rem;
-  font-weight:700;letter-spacing:.16em;text-transform:uppercase
-}
 .nav__links{margin-left:auto; display:flex; gap:.4rem; align-items:center}
 .nav__links a{
   font-family:"Quicksand",sans-serif; font-weight:600; font-size:.86rem;
@@ -215,7 +208,7 @@ a{color:inherit}
   filter:blur(22px)
 }
 .iphone-device{
-  position:relative;width:clamp(220px,26vw,326px);max-width:72vw;aspect-ratio:393/852;
+  position:relative;width:clamp(187px,22.1vw,277px);max-width:72vw;aspect-ratio:393/852;
   padding:7px;border:1px solid rgba(255,255,255,.72);border-radius:15.5% / 7.2%;
   background:linear-gradient(112deg,#343638 0%,#d8d9d5 5%,#777a7a 9%,#252729 13%,#090a0b 48%,#777a7a 91%,#d4d5d1 95%,#333537 100%);
   box-shadow:0 28px 55px rgba(0,0,0,.42),0 8px 18px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.28);
@@ -243,9 +236,8 @@ a{color:inherit}
 .iphone-button--volume-up{left:-3px;top:23%;height:7%}
 .iphone-button--volume-down{left:-3px;top:31.5%;height:7%}
 .iphone-button--power{right:-3px;top:25%;height:12%}
-.mockup figcaption{margin-top:.8rem;color:var(--texto-3);font-size:.82rem;text-align:center}
 @media (max-width:640px){
-  .iphone-device{width:clamp(230px,68vw,310px);max-width:76vw}
+  .mockup{display:none}
 }
 
 /* Momentos */
@@ -699,13 +691,8 @@ a{color:inherit}
 
 <nav class="nav">
   <div class="wrap nav__in">
-    <a class="wordmark" href="/" aria-label="ALIVIA en colaboración con MINSA–SILAIS Madriz">
+    <a class="wordmark" href="/" aria-label="ALIVIA">
       <img class="wordmark__alivia" src="/alivia-logo-secundario-blanco.png" alt="ALIVIA" width="2460" height="938">
-      <span class="wordmark__por" aria-hidden="true">×</span>
-      <span class="wordmark__minsa">
-        <img src="/minsa-logo-silais.png" alt="Ministerio de Salud de Nicaragua, MINSA">
-        <span>SILAIS Madriz</span>
-      </span>
     </a>
     <div class="nav__links">
       <a href="#momentos">Momentos</a>
@@ -753,7 +740,6 @@ a{color:inherit}
           <img src="/alivia-app-screen.webp" alt="">
         </div>
       </div>
-      <figcaption>Una mirada a las herramientas de bienestar que encontrarás en ALIVIA.</figcaption>
     </figure>
   </div>
 </header>
