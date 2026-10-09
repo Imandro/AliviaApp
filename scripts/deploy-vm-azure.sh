@@ -40,6 +40,7 @@ Environment=DATABASE_TLS_MODE=local-socket
 Environment="DATABASE_URL=postgresql:///alivia_azure?host=/var/run/postgresql&user=alivia_azure"
 Environment=ALLOW_EXTERNAL_NOTIFICATIONS=false
 EnvironmentFile=/opt/alivia-azure/deployment.env
+EnvironmentFile=-/etc/alivia-azure/database.env
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

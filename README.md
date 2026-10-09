@@ -18,7 +18,7 @@
 ![Vite](https://img.shields.io/badge/Vite_5-646CFF?style=flat-square&logo=vite&logoColor=white)
 ![Capacitor](https://img.shields.io/badge/Capacitor_8-119EFF?style=flat-square&logo=capacitor&logoColor=white)
 ![Swift](https://img.shields.io/badge/Swift-WKWebView-F05138?style=flat-square&logo=swift&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL_14-VM_Azure-336791?style=flat-square&logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL_16-Azure_Flexible_Server-336791?style=flat-square&logo=postgresql&logoColor=white)
 ![Azure](https://img.shields.io/badge/Azure-VM_Ubuntu_22.04-0078D4?style=flat-square)
 
 **[Abrir la web en Azure](https://57.156.61.193/)** ·
@@ -67,7 +67,7 @@ ALIVIA pone herramientas de primera línea exactamente ahí — en el bolsillo, 
 
 | Experiencia | Estado | Detalle |
 |---|---|---|
-| Web responsive | Azure VM ([57.156.61.193](https://57.156.61.193/)) | SPA instalable como PWA; API y base nueva en la VM |
+| Web responsive | Azure VM ([57.156.61.193](https://57.156.61.193/)) | SPA instalable como PWA; API en VM y base privada administrada en Azure |
 | App Android nativa | APK en [alivia.lat/releases](https://alivia.lat/releases.json) y GitHub Releases · AAB listo para Play | Capacitor 8: ícono adaptativo, splash screen, permisos y firma propios |
 | App iOS nativa | IPA ad-hoc / TestFlight | Shell Swift (WKWebView) propio con puente nativo: biometría, hápticos, notificaciones, cortina de privacidad |
 | PWA instalada | iOS / Android | Al instalarse, el modo standalone redirige todo a la app |
@@ -83,7 +83,7 @@ El mismo bundle de Vite corre en las cuatro: no hay código duplicado ni pantall
 | **Frontend** | React 18, TypeScript 5.6, Vite 5, React Router, Lucide icons |
 | **Nativo Android** | Capacitor 8, Gradle 8, JDK 21, Android SDK 36 |
 | **Nativo iOS** | Swift, WKWebView, XcodeGen (project.yml) |
-| **Backend web Azure** | Node.js 22 HTTP, PostgreSQL 14 en VM, pg driver |
+| **Backend web Azure** | Node.js 22 HTTP en VM, Azure Database for PostgreSQL 16 Flexible Server, pg driver |
 | **Infraestructura web Azure** | VM Ubuntu 22.04.5 LTS, nginx, systemd, NSG, HTTPS con Certbot |
 | **Infraestructura histórica AWS** | Lambda, RDS PostgreSQL 16, S3, CloudFront; despliegue manual separado |
 | **IA / Voz** | OpenAI (gpt-4.1-mini), Groq (Whisper), ElevenLabs (TTS), Edge TTS, Google TTS |
@@ -231,7 +231,7 @@ erDiagram
 Navegador -> HTTPS 57.156.61.193:443 -> nginx (VM vm-alivia)
                                       |-- dist/ (React + Vite)
                                       |-- /api/* -> Node.js 127.0.0.1:8080
-                                                       -> socket Unix PostgreSQL
+                                                       -> TLS + red privada -> Azure PostgreSQL 16
                                                        -> base alivia_azure
 ```
 
@@ -367,7 +367,7 @@ Tres roles definidos en BD (`roles` catálogo) y código (`api/auth/_roles.ts`, 
 ## Estructura del Proyecto
 
 ```text
-├── api/                  # Lambdas serverless (AWS + pg)
+├── api/                  # API Node.js Azure y handlers históricos AWS
 │   ├── _db.ts            # Pool, esquema, funciones SQL
 │   ├── auth/             # Registro, login, sesiones, roles
 │   ├── admin/            # Panel: usuarios, bitácora, métricas
@@ -379,7 +379,7 @@ Tres roles definidos en BD (`roles` catálogo) y código (`api/auth/_roles.ts`, 
 ├── ios/                  # Shell Swift (WKWebView) + XcodeGen
 ├── public/               # fonts, landing.html, descarga.html
 ├── scripts/              # build-lambda, ios-sync, post-sync
-├── .github/workflows/    # CI, deploy-aws (OIDC), ios-build
+├── .github/workflows/    # CI, deploy-azure-vm (OIDC), AWS manual, ios-build
 ├── src/
 │   ├── components/       # UI reutilizable (Header, Nav, SyncToast, AppLock…)
 │   ├── views/            # 22 pantallas (Dashboard, Breathe, Chat, SOS, Radar…)
@@ -434,17 +434,31 @@ npm run preview      # vista previa build
 | Sistema operativo | Ubuntu 22.04.5 LTS |
 | URL pública | https://57.156.61.193/ |
 | Servicio de API | `alivia-azure-api.service`, usuario Linux `alivia_azure` |
-| Base de datos | `alivia_azure`, PostgreSQL 14 instalado en la VM; no es un servicio administrado |
+| Servidor de base de datos | Azure Database for PostgreSQL Flexible Server `pg-alivia-20261009`, PostgreSQL 16, Chile Central |
+| Base de datos | `alivia_azure`; datos trasladados desde PostgreSQL de la VM, conservando tablas, registros y secuencias |
+| Red de base de datos | Subred privada `snet-postgres` (`10.1.2.0/24`) en `vnet-alivia`, DNS privado y acceso público deshabilitado |
+| Tamaño / respaldos | Burstable `Standard_B1ms`, almacenamiento 32 GiB, retención de backups 7 días |
 | Release activo | `/opt/alivia-azure/current` apunta a `/opt/alivia-azure/releases/<SHA>` |
 | Puertos públicos | 80 para redirección y renovación de certificado; 443 para HTTPS |
 | SSH | 22 restringido a IP de acceso específicas; actualizar la regla si cambia la red |
-| Puertos privados | PostgreSQL 5432 y API 8080, escuchando en `127.0.0.1` |
+| Puertos privados | API 8080 en `127.0.0.1`; PostgreSQL 5432 solo por la red privada Azure |
 
 ### Preparación de la VM
 
 Requiere Node.js 22, npm, nginx, PostgreSQL 14 o superior y acceso administrativo a la VM. Ejecutar `sudo bash scripts/bootstrap-vm-azure.sh` una vez crea el usuario/base nuevos y obtiene el certificado para la IP. Este script no borra bases existentes. El certificado usa renovación automática; la VM debe estar encendida y el puerto 80 accesible para las validaciones.
 
-La API se conecta a PostgreSQL por socket Unix con autenticación peer, sin una contraseña de base en GitHub. `scripts/deploy-vm-azure.sh` instala el servicio systemd y la configuración nginx desde el repositorio. Los secretos de proveedores, cuando se configuren, deben almacenarse fuera del repositorio en la VM, mediante un archivo de entorno protegido.
+La API se conecta a `pg-alivia-20261009.postgres.database.azure.com` por la red privada usando el rol de aplicación `alivia_app` y TLS con verificación de certificado y nombre del servidor. La conexión está en `/etc/alivia-azure/database.env`, propiedad de root y permisos `600`, fuera del repositorio:
+
+```dotenv
+DATABASE_TLS_MODE=verify-full
+DATABASE_URL=postgresql://alivia_app:<PASSWORD_URL_ENCODED>@pg-alivia-20261009.postgres.database.azure.com:5432/alivia_azure
+```
+
+`scripts/deploy-vm-azure.sh` carga ese archivo después de la configuración local inicial. Por tanto, cada actualización de `main` conserva la conexión al servicio administrado. Los secretos no se guardan en GitHub. La base PostgreSQL 14 original permanece en la VM como respaldo del traslado; no recibe nuevas escrituras de la aplicación. `bootstrap-vm-azure.sh` prepara la VM con una base local inicial y no crea el servicio administrado.
+
+Para encontrar la base en el portal: **Azure Database for PostgreSQL Flexible Servers → pg-alivia-20261009 → Bases de datos → alivia_azure**. El portal muestra el recurso, su red, versión, métricas y backups. Para consultar tablas y registros por SQL hay que conectarse desde la red privada (por ejemplo, mediante la VM); no se abre el puerto 5432 al público.
+
+Los secretos de proveedores, cuando se configuren, deben almacenarse fuera del repositorio en la VM, mediante un archivo de entorno protegido.
 
 ### GitHub main -> VM Azure
 
