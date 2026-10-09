@@ -4,6 +4,9 @@ import { getUserFromRequest, toSafeUser, PHONE_RE } from './_auth.js';
 
 import { applyCors } from '../_cors.js';
 
+const optionalText = (value: unknown): string | null =>
+  value == null ? null : String(value).trim() || null;
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (applyCors(req, res)) return;
   if (req.method !== 'PUT') {
@@ -34,13 +37,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const strategies = Array.isArray(body.strategies) ? body.strategies.filter((x: unknown) => typeof x === 'string') : current.strategies;
     const changes = Array.isArray(body.changes) ? body.changes.filter((x: unknown) => typeof x === 'string') : current.changes;
 
-    const trustedPerson = body.trusted_person !== undefined ? String(body.trusted_person).trim() || null : current.trusted_person;
-    const trustedPhone = body.trusted_phone !== undefined ? String(body.trusted_phone).trim() || null : current.trusted_phone;
+    const trustedPerson = body.trusted_person !== undefined ? optionalText(body.trusted_person) : current.trusted_person;
+    const trustedPhone = body.trusted_phone !== undefined ? optionalText(body.trusted_phone) : current.trusted_phone;
     const wantsContact = body.wants_contact !== undefined ? Boolean(body.wants_contact) : Boolean(current.wants_contact);
-    const goalsText = body.goals_text !== undefined ? String(body.goals_text).trim() || null : current.goals_text;
+    const goalsText = body.goals_text !== undefined ? optionalText(body.goals_text) : current.goals_text;
     const onboardingDone = body.onboarding_done !== undefined ? Boolean(body.onboarding_done) : Boolean(current.onboarding_done);
 
-    const phone = body.phone !== undefined ? String(body.phone).trim() || null : current.phone;
+    const phone = body.phone !== undefined ? optionalText(body.phone) : current.phone;
     if (phone && !PHONE_RE.test(phone)) {
       return res.status(400).json({ error: 'Ingresa un teléfono válido' });
     }
