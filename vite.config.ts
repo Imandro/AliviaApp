@@ -69,6 +69,9 @@ globIgnores: [
         // con el bundle viejo (y su contenido obsoleto) hasta que recarga a
         // mano. Con clientsClaim el tab abierto cambia solo.
         clientsClaim: true,
+        // Manual service worker registration does not send SKIP_WAITING.
+        // Activate updates without requiring every open tab to be closed.
+        skipWaiting: true,
         // Las paginas estaticas de marketing van sueltas: sin esto el service
         // worker responderia /descarga.html con el index.html de la SPA y el
         // visitante veria la app en vez de la pagina de descarga.
