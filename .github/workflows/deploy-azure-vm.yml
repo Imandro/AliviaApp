@@ -1,0 +1,66 @@
+name: Deploy app to Azure VM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alivia-azure-vm
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Validate source before deployment
+        run: |
+          npm ci
+          npm run build
+          npm run build:api
+          npm run build:lambda
+          npm test
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy this exact GitHub commit to the VM
+        env:
+          APP_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$APP_SHA" =~ ^[a-f0-9]{40}$ ]]
+          cat > "$RUNNER_TEMP/deploy-vm.sh" <<SCRIPT
+          #!/bin/bash
+          set -euo pipefail
+          script=\$(mktemp)
+          trap 'rm -f "\$script"' EXIT
+          curl --fail --location --retry 3 "https://raw.githubusercontent.com/Imandro/AliviaApp/$APP_SHA/scripts/deploy-vm-azure.sh" -o "\$script"
+          bash "\$script" "$APP_SHA"
+          SCRIPT
+          az vm run-command invoke --resource-group ALIVIA-RG-CL --name vm-alivia \
+            --command-id RunShellScript --scripts "@$RUNNER_TEMP/deploy-vm.sh" \
+            --query 'value[].message' --output tsv
+      - name: Check database and deployed commit
+        env:
+          APP_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 \
+            https://57.156.61.193/readyz | jq -e '.status == "ready"'
+          curl --fail --silent --show-error https://57.156.61.193/healthz \
+            | jq -e --arg sha "$APP_SHA" '.status == "ok" and .revision == $sha'

@@ -328,6 +328,8 @@ const clientKey = (req: ApiRequest): string =>
   headerValue(req, 'cloudfront-viewer-address').trim() ||
   'unknown';
 
+export const allowAiRequest = (req: ApiRequest): boolean => allowRequest(clientKey(req));
+
 const sendError = (res: ApiResponse, status: number, message: string): void => {
   res.status(status).json({ error: message });
 };
@@ -497,7 +499,7 @@ export default async function aiHandler(req: ApiRequest, res: ApiResponse): Prom
     return sendError(res, 404, 'Not found');
   }
 
-  if (!allowRequest(clientKey(req))) {
+  if (!allowAiRequest(req)) {
     res.setHeader?.('Retry-After', '30');
     return sendError(res, 429, 'Demasiadas peticiones');
   }
